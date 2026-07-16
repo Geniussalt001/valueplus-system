@@ -5,6 +5,10 @@ use commands::po_processor::{
     process_po_documents,
 };
 
+use commands::print_processor::{
+    print_po_workbook,
+};
+
 #[tauri::command]
 fn greet(
     name: &str,
@@ -49,6 +53,7 @@ pub fn run() {
                 greet,
                 preview_po_documents,
                 process_po_documents,
+                print_po_workbook,
             ],
         )
         .run(

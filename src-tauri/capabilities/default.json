@@ -10,6 +10,7 @@
     "opener:default",
     "process:default",
     "updater:default",
+    "dialog:default",
     {
       "identifier": "http:default",
       "allow": [

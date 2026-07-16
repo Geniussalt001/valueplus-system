@@ -2,6 +2,8 @@ import {
   ArrowLeft,
   FileCheck2,
   Files,
+  FolderOpen,
+  Printer,
   ScanSearch,
 } from "lucide-react";
 
@@ -14,12 +16,20 @@ import {
 } from "../../components/split-rename-po/IvNumberInput";
 
 import {
+  LockedTemplateCard,
+} from "../../components/split-rename-po/LockedTemplateCard";
+
+import {
   PoPreviewTable,
 } from "../../components/split-rename-po/PoPreviewTable";
 
 import {
   PoProcessingSummary,
 } from "../../components/split-rename-po/PoProcessingSummary";
+
+import {
+  PrintSettingsModal,
+} from "../../components/split-rename-po/PrintSettingsModal";
 
 import {
   ProcessingOverlay,
@@ -57,6 +67,30 @@ export function SplitRenamePoPage({
         activity={
           processor.activity
         }
+      />
+
+      <PrintSettingsModal
+        open={
+          processor
+            .printModalOpen
+        }
+        records={
+          processor.preview
+            ?.records ?? []
+        }
+        disabled={busy}
+        onClose={
+          processor
+            .closePrintModal
+        }
+        onConfirm={(
+          warehouses,
+        ) => {
+          void processor
+            .printWorkbook(
+              warehouses,
+            );
+        }}
       />
 
       <header
@@ -123,8 +157,7 @@ export function SplitRenamePoPage({
             "
           >
             อ่านข้อมูล PO จาก PDF
-            จับคู่สินค้ากับ Excel
-            Template
+            จับคู่สินค้ากับ Excel Template
             และจัดทำใบจัดสินค้าอัตโนมัติ
           </p>
         </div>
@@ -158,7 +191,7 @@ export function SplitRenamePoPage({
         <FileUploadCard
           kind="pdf"
           title="อัปโหลดไฟล์ PDF"
-          description="ไฟล์รายงาน PO จาก CP ALL"
+          description="เลือกไฟล์รายงาน PO จาก CP ALL"
           path={
             processor.pdfPath
           }
@@ -169,19 +202,15 @@ export function SplitRenamePoPage({
           }}
         />
 
-        <FileUploadCard
-          kind="excel"
-          title="อัปโหลด Excel Template"
-          description="Template ใบจัดสินค้าที่ยังไม่ได้แก้ไข"
-          path={
+        <LockedTemplateCard
+          templatePath={
             processor
               .templatePath
           }
-          disabled={busy}
-          onSelect={() => {
-            void processor
-              .chooseTemplate();
-          }}
+          baseFolder={
+            processor
+              .baseFolder
+          }
         />
 
         <IvNumberInput
@@ -237,9 +266,28 @@ export function SplitRenamePoPage({
             text-emerald-200
           "
         >
-          {
-            processor.success
-          }
+          <p className="font-medium">
+            {
+              processor.success
+            }
+          </p>
+
+          {processor
+            .savedOutputPath && (
+            <p
+              className="
+                mt-1
+                break-all
+                text-xs
+                text-emerald-200/80
+              "
+            >
+              {
+                processor
+                  .savedOutputPath
+              }
+            </p>
+          )}
         </div>
       )}
 
@@ -251,6 +299,7 @@ export function SplitRenamePoPage({
           justify-end
           gap-3
           sm:flex-row
+          sm:flex-wrap
         "
       >
         <button
@@ -326,8 +375,82 @@ export function SplitRenamePoPage({
             size={18}
           />
 
-          สร้างไฟล์ Excel
+          บันทึกไฟล์ Excel
         </button>
+
+        {processor.savedFolder && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              void processor
+                .openSavedFolder();
+            }}
+            className="
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-blue-300/25
+              bg-blue-300/[0.08]
+              px-6
+              py-3
+              text-sm
+              font-medium
+              text-blue-200
+              transition
+              hover:-translate-y-0.5
+              hover:bg-blue-300/[0.14]
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            <FolderOpen
+              size={18}
+            />
+
+            เปิดโฟลเดอร์ที่บันทึก
+          </button>
+        )}
+
+        {processor.canPrint && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={
+              processor
+                .openPrintModal
+            }
+            className="
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-violet-300/25
+              bg-violet-300/[0.08]
+              px-6
+              py-3
+              text-sm
+              font-medium
+              text-violet-200
+              transition
+              hover:-translate-y-0.5
+              hover:bg-violet-300/[0.14]
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            <Printer
+              size={18}
+            />
+
+            สั่งพิมพ์
+          </button>
+        )}
       </div>
 
       {processor.preview && (
@@ -359,8 +482,8 @@ export function SplitRenamePoPage({
                 text-blue-200
               "
             >
-              ชีตที่เก็บไว้
-              โดยไม่เขียนข้อมูล:{" "}
+              ชีตที่ไม่มีข้อมูล
+              และระบบมองข้าม:{" "}
               {
                 processor.preview
                   .unused_sheets

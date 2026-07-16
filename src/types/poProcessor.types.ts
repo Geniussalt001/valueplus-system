@@ -46,3 +46,11 @@ export interface PoProcessorInput {
   startIv: string;
   outputPath?: string;
 }
+
+export interface DailyPickingPaths {
+  desktopPath: string;
+  baseFolder: string;
+  templatePath: string;
+  outputFolder: string;
+  outputPath: string;
+}

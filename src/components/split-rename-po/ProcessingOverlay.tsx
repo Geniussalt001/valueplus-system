@@ -25,7 +25,10 @@ const activityMessages: Record<
     "กำลังอ่าน PDF และจับคู่สินค้า...",
 
   exporting:
-    "กำลังสร้างไฟล์ Excel...",
+    "กำลังสร้างและบันทึกไฟล์ Excel...",
+
+  printing:
+    "กำลังเตรียมเอกสารสำหรับพิมพ์...",
 };
 
 export function ProcessingOverlay({
@@ -93,7 +96,16 @@ export function ProcessingOverlay({
           }
         </p>
 
-        <div className="mt-4 h-1 w-48 overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="
+            mt-4
+            h-1
+            w-48
+            overflow-hidden
+            rounded-full
+            bg-slate-800
+          "
+        >
           <div
             className="
               h-full
@@ -109,8 +121,10 @@ export function ProcessingOverlay({
         </div>
 
         <p className="mt-4 text-xs text-slate-500">
-          กรุณาอย่าปิดโปรแกรม
-          ระหว่างประมวลผล
+          {activity ===
+          "printing"
+            ? "กรุณารอหน้าต่างเลือกเครื่องพิมพ์"
+            : "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล"}
         </p>
       </div>
     </div>
