@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+:root {
+  font-family:
+    "Segoe UI",
+    Tahoma,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #f8fafc;
+  background: #020812;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+}
+
+.brand-logo {
+  aspect-ratio: 650 / 239;
+  background: linear-gradient(
+    100deg,
+    #ffffff 0%,
+    #a5f3fc 50%,
+    #38bdf8 100%
+  );
+
+  mask-image: url("/images/valueplus-logo.png");
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+
+  -webkit-mask-image: url("/images/valueplus-logo.png");
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+
+  filter: drop-shadow(0 0 15px rgb(34 211 238 / 20%));
+}
+
+.tron-grid {
+  background-image:
+    linear-gradient(rgb(34 211 238 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 6%) 1px, transparent 1px);
+  background-size: 75px 75px;
+  mask-image: linear-gradient(to bottom, transparent, black, transparent);
+}
+
+.login-background {
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.login-card {
+  border: 1px solid rgb(103 232 249 / 25%);
+  background:
+    radial-gradient(circle at top right, rgb(34 211 238 / 7%), transparent 35%),
+    rgb(3 16 31 / 82%);
+
+  clip-path: polygon(
+    18px 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%,
+    0 18px
+  );
+
+  box-shadow:
+    0 35px 100px rgb(0 0 0 / 60%),
+    0 0 60px rgb(34 211 238 / 8%),
+    inset 0 0 40px rgb(34 211 238 / 3%);
+}
+
+.login-button {
+  border: 1px solid rgb(103 232 249 / 48%);
+  background: rgb(34 211 238 / 7%);
+
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+
+  transition:
+    background 250ms ease,
+    box-shadow 250ms ease,
+    transform 250ms ease;
+}
+
+.login-button:hover {
+  background: rgb(34 211 238 / 14%);
+  box-shadow:
+    0 0 28px rgb(34 211 238 / 12%),
+    inset 0 0 25px rgb(34 211 238 / 5%);
+  transform: translateY(-2px);
+}
+
+.dashboard {
+  background:
+    radial-gradient(circle at 90% 5%, rgb(14 116 144 / 13%), transparent 28%),
+    radial-gradient(circle at 10% 95%, rgb(30 64 175 / 10%), transparent 35%),
+    #020812;
+}
+
+.dashboard-sidebar {
+  box-shadow: 20px 0 60px rgb(0 0 0 / 18%);
+}
+
+.sidebar-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  color: #64748b;
+  text-align: left;
+  transition: 200ms ease;
+}
+
+.sidebar-item:hover {
+  border-color: rgb(103 232 249 / 12%);
+  background: rgb(34 211 238 / 4%);
+  color: #cbd5e1;
+}
+
+.sidebar-item-active {
+  border-color: rgb(103 232 249 / 18%);
+  background: linear-gradient(
+    90deg,
+    rgb(34 211 238 / 10%),
+    rgb(34 211 238 / 2%)
+  );
+  color: #a5f3fc;
+}
+
+.dashboard-hero {
+  background:
+    linear-gradient(115deg, rgb(7 25 44 / 96%), rgb(4 15 29 / 88%)),
+    #051322;
+  box-shadow:
+    0 25px 70px rgb(0 0 0 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 3%);
+}
+
+.hero-light {
+  position: absolute;
+  top: -150px;
+  right: -100px;
+  width: 430px;
+  height: 430px;
+  border-radius: 999px;
+  background: rgb(34 211 238 / 10%);
+  filter: blur(90px);
+}
+
+.module-card {
+  border: 1px solid rgb(103 232 249 / 11%);
+  border-radius: 1rem;
+  background:
+    linear-gradient(145deg, rgb(8 28 48 / 88%), rgb(3 14 27 / 94%)),
+    #061525;
+
+  box-shadow:
+    0 18px 45px rgb(0 0 0 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 3%);
+
+  transition:
+    transform 280ms ease,
+    border-color 280ms ease,
+    box-shadow 280ms ease;
+}
+
+.module-card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--accent-color) 55%,
+    transparent
+  );
+
+  box-shadow:
+    0 28px 65px rgb(0 0 0 / 32%),
+    0 0 32px color-mix(
+      in srgb,
+      var(--accent-color) 10%,
+      transparent
+    ),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+
+  transform: translateY(-6px);
+}
+
+.module-card-glow {
+  position: absolute;
+  top: -90px;
+  right: -80px;
+  width: 230px;
+  height: 230px;
+  border-radius: 999px;
+  background: var(--accent-color);
+  filter: blur(90px);
+  opacity: 0.08;
+  transition: opacity 280ms ease;
+}
+
+.module-card:hover .module-card-glow {
+  opacity: 0.16;
+}
+
+.module-icon {
+  border: 1px solid
+    color-mix(in srgb, var(--accent-color) 25%, transparent);
+  border-radius: 0.8rem;
+  color: var(--accent-color);
+  background: color-mix(
+    in srgb,
+    var(--accent-color) 8%,
+    transparent
+  );
+  box-shadow: inset 0 0 20px
+    color-mix(in srgb, var(--accent-color) 4%, transparent);
+}
+
+.module-open-button {
+  border: 1px solid
+    color-mix(in srgb, var(--accent-color) 20%, transparent);
+  border-radius: 0.6rem;
+  color: var(--accent-color);
+  background: color-mix(
+    in srgb,
+    var(--accent-color) 5%,
+    transparent
+  );
+  transition: 220ms ease;
+}
+
+.module-card:hover .module-open-button {
+  background: color-mix(
+    in srgb,
+    var(--accent-color) 13%,
+    transparent
+  );
+  transform: rotate(4deg) scale(1.05);
+}
+
+@media (max-width: 700px) {
+  .login-background {
+    justify-content: center;
+    background-position: 32% center;
+  }
+
+  .login-card {
+    background: rgb(3 16 31 / 92%);
+  }
+}

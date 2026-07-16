@@ -1,0 +1,40 @@
+# Packages
+node_modules/
+
+# Build results
+dist/
+.vite/
+src-tauri/target/
+target/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Internal documents
+*.pdf
+*.xlsx
+*.xls
