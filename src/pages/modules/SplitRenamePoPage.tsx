@@ -1,19 +1,382 @@
-import { Files } from "lucide-react";
-import { ModulePlaceholder } from "../../components/ModulePlaceholder";
+import {
+  ArrowLeft,
+  FileCheck2,
+  Files,
+  ScanSearch,
+} from "lucide-react";
+
+import {
+  FileUploadCard,
+} from "../../components/split-rename-po/FileUploadCard";
+
+import {
+  IvNumberInput,
+} from "../../components/split-rename-po/IvNumberInput";
+
+import {
+  PoPreviewTable,
+} from "../../components/split-rename-po/PoPreviewTable";
+
+import {
+  PoProcessingSummary,
+} from "../../components/split-rename-po/PoProcessingSummary";
+
+import {
+  ProcessingOverlay,
+} from "../../components/split-rename-po/ProcessingOverlay";
+
+import {
+  usePoProcessor,
+} from "../../hooks/usePoProcessor";
+
+interface SplitRenamePoPageProps {
+  onBack: () => void;
+}
 
 export function SplitRenamePoPage({
   onBack,
-}: {
-  onBack: () => void;
-}) {
+}: SplitRenamePoPageProps) {
+  const processor =
+    usePoProcessor();
+
+  const busy =
+    processor.activity !==
+    "idle";
+
   return (
-    <ModulePlaceholder
-      title="แยก และเปลี่ยนชื่อ PO"
-      subtitle="SPLIT & RENAME PO"
-      description="ระบบแยกเอกสาร PDF ออกเป็นราย PO และเปลี่ยนชื่อไฟล์ตามข้อมูลในเอกสารโดยอัตโนมัติ"
-      icon={Files}
-      color="#60a5fa"
-      onBack={onBack}
-    />
+    <div
+      className="
+        mx-auto
+        max-w-[1500px]
+        px-6
+        py-8
+        lg:px-10
+      "
+    >
+      <ProcessingOverlay
+        activity={
+          processor.activity
+        }
+      />
+
+      <header
+        className="
+          flex
+          flex-col
+          justify-between
+          gap-5
+          md:flex-row
+          md:items-end
+        "
+      >
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="
+              mb-5
+              flex
+              items-center
+              gap-2
+              text-sm
+              text-slate-500
+              transition
+              hover:text-cyan-300
+            "
+          >
+            <ArrowLeft
+              size={17}
+            />
+
+            กลับหน้าแดชบอร์ด
+          </button>
+
+          <p
+            className="
+              text-[10px]
+              font-semibold
+              tracking-[0.24em]
+              text-blue-300
+            "
+          >
+            SPLIT &amp; RENAME PO
+          </p>
+
+          <h2
+            className="
+              mt-2
+              text-3xl
+              font-semibold
+              text-white
+            "
+          >
+            แยก และเปลี่ยนชื่อ PO
+          </h2>
+
+          <p
+            className="
+              mt-3
+              max-w-3xl
+              text-sm
+              leading-6
+              text-slate-400
+            "
+          >
+            อ่านข้อมูล PO จาก PDF
+            จับคู่สินค้ากับ Excel
+            Template
+            และจัดทำใบจัดสินค้าอัตโนมัติ
+          </p>
+        </div>
+
+        <div
+          className="
+            flex
+            h-12
+            w-12
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-blue-300/20
+            bg-blue-300/[0.07]
+            text-blue-300
+          "
+        >
+          <Files size={23} />
+        </div>
+      </header>
+
+      <section
+        className="
+          mt-7
+          grid
+          gap-4
+          lg:grid-cols-[1fr_1fr_0.9fr]
+        "
+      >
+        <FileUploadCard
+          kind="pdf"
+          title="อัปโหลดไฟล์ PDF"
+          description="ไฟล์รายงาน PO จาก CP ALL"
+          path={
+            processor.pdfPath
+          }
+          disabled={busy}
+          onSelect={() => {
+            void processor
+              .choosePdf();
+          }}
+        />
+
+        <FileUploadCard
+          kind="excel"
+          title="อัปโหลด Excel Template"
+          description="Template ใบจัดสินค้าที่ยังไม่ได้แก้ไข"
+          path={
+            processor
+              .templatePath
+          }
+          disabled={busy}
+          onSelect={() => {
+            void processor
+              .chooseTemplate();
+          }}
+        />
+
+        <IvNumberInput
+          value={
+            processor.startIv
+          }
+          disabled={busy}
+          onChange={
+            processor.setStartIv
+          }
+        />
+      </section>
+
+      {processor.error && (
+        <div
+          className="
+            mt-5
+            rounded-xl
+            border
+            border-red-300/20
+            bg-red-300/[0.07]
+            px-5
+            py-4
+            text-sm
+            leading-6
+            text-red-200
+          "
+        >
+          <p className="font-medium">
+            ไม่สามารถดำเนินการได้
+          </p>
+
+          <p className="mt-1 text-xs text-red-200/80">
+            {
+              processor.error
+            }
+          </p>
+        </div>
+      )}
+
+      {processor.success && (
+        <div
+          className="
+            mt-5
+            rounded-xl
+            border
+            border-emerald-300/20
+            bg-emerald-300/[0.07]
+            px-5
+            py-4
+            text-sm
+            leading-6
+            text-emerald-200
+          "
+        >
+          {
+            processor.success
+          }
+        </div>
+      )}
+
+      <div
+        className="
+          mt-6
+          flex
+          flex-col
+          justify-end
+          gap-3
+          sm:flex-row
+        "
+      >
+        <button
+          type="button"
+          disabled={
+            !processor.canPreview ||
+            busy
+          }
+          onClick={() => {
+            void processor
+              .buildPreview();
+          }}
+          className="
+            flex
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            border
+            border-cyan-300/25
+            bg-cyan-300/[0.08]
+            px-6
+            py-3
+            text-sm
+            font-medium
+            text-cyan-200
+            transition
+            hover:-translate-y-0.5
+            hover:bg-cyan-300/[0.14]
+            disabled:cursor-not-allowed
+            disabled:opacity-35
+          "
+        >
+          <ScanSearch
+            size={18}
+          />
+
+          ประมวลผลและแสดง Preview
+        </button>
+
+        <button
+          type="button"
+          disabled={
+            !processor.canExport ||
+            busy
+          }
+          onClick={() => {
+            void processor
+              .exportWorkbook();
+          }}
+          className="
+            flex
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            border
+            border-emerald-300/30
+            bg-emerald-300/10
+            px-6
+            py-3
+            text-sm
+            font-medium
+            text-emerald-200
+            transition
+            hover:-translate-y-0.5
+            hover:bg-emerald-300/15
+            disabled:cursor-not-allowed
+            disabled:opacity-35
+          "
+        >
+          <FileCheck2
+            size={18}
+          />
+
+          สร้างไฟล์ Excel
+        </button>
+      </div>
+
+      {processor.preview && (
+        <section
+          className="
+            mt-7
+            space-y-5
+          "
+        >
+          <PoProcessingSummary
+            result={
+              processor.preview
+            }
+          />
+
+          {processor.preview
+            .unused_sheets
+            .length > 0 && (
+            <div
+              className="
+                rounded-xl
+                border
+                border-blue-300/15
+                bg-blue-300/[0.05]
+                px-5
+                py-3
+                text-xs
+                leading-6
+                text-blue-200
+              "
+            >
+              ชีตที่เก็บไว้
+              โดยไม่เขียนข้อมูล:{" "}
+              {
+                processor.preview
+                  .unused_sheets
+                  .join(", ")
+              }
+            </div>
+          )}
+
+          <PoPreviewTable
+            records={
+              processor.preview
+                .records
+            }
+          />
+        </section>
+      )}
+    </div>
   );
 }
