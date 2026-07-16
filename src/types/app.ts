@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-
-export type PublicScreen = "login" | "splash";
+import type {
+  LucideIcon,
+} from "lucide-react";
 
 export type WorkRoute =
   | "dashboard"
@@ -10,7 +10,14 @@ export type WorkRoute =
   | "daily-summary"
   | "po-data";
 
-export type AppRoute = PublicScreen | WorkRoute;
+export type AppRoute =
+  | "login"
+  | "splash"
+  | WorkRoute;
+
+export type SystemStatus =
+  | "online"
+  | "offline";
 
 export interface SystemModule {
   id: number;
@@ -20,5 +27,5 @@ export interface SystemModule {
   description: string;
   icon: LucideIcon;
   color: string;
-  status: "ready" | "development";
+  status: SystemStatus;
 }

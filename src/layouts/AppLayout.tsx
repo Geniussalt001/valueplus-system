@@ -1,37 +1,89 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
+
 import {
   ChevronRight,
   Home,
   LogOut,
   Server,
+  UserRound,
 } from "lucide-react";
 
-import { BrandLogo } from "../components/BrandLogo";
-import { LiveClock } from "../components/LiveClock";
-import { systemModules } from "../data/systemModules";
-import type { WorkRoute } from "../types/app";
+import type {
+  AppUser,
+} from "../auth/auth.types";
+
+import {
+  BrandLogo,
+} from "../components/BrandLogo";
+
+import {
+  LiveClock,
+} from "../components/LiveClock";
+
+import {
+  systemModules,
+} from "../data/systemModules";
+
+import type {
+  WorkRoute,
+} from "../types/app";
 
 interface AppLayoutProps {
   children: ReactNode;
   currentRoute: WorkRoute;
-  onNavigate: (route: WorkRoute) => void;
+  currentUser: AppUser;
+  onNavigate: (
+    route: WorkRoute,
+  ) => void;
   onLogout: () => void;
+}
+
+function getWorkspaceName(
+  currentUser: AppUser,
+): string {
+  const userCode = String(
+    currentUser.userCode || "",
+  )
+    .trim()
+    .toUpperCase();
+
+  if (userCode === "OFFICE") {
+    return "Office";
+  }
+
+  if (userCode === "HEADOFFICE") {
+    return "Headoffice";
+  }
+
+  return String(
+    currentUser.displayName || "",
+  ).trim();
 }
 
 export function AppLayout({
   children,
   currentRoute,
+  currentUser,
   onNavigate,
   onLogout,
 }: AppLayoutProps) {
-  const currentModule = systemModules.find(
-    (module) => module.route === currentRoute,
-  );
+  const currentModule =
+    systemModules.find(
+      (module) =>
+        module.route ===
+        currentRoute,
+    );
 
   const pageTitle =
     currentRoute === "dashboard"
       ? "ValuePlus Dashboard"
-      : currentModule?.title ?? "ValuePlus System";
+      : currentModule?.title ??
+        "ValuePlus System";
+
+  const workspaceName =
+    getWorkspaceName(currentUser);
 
   return (
     <main className="dashboard min-h-screen bg-[#020812] text-white">
@@ -40,8 +92,11 @@ export function AppLayout({
       <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col border-r border-cyan-300/10 bg-[#030d19]/95 p-6 backdrop-blur-xl lg:flex">
         <button
           type="button"
-          onClick={() => onNavigate("dashboard")}
+          onClick={() =>
+            onNavigate("dashboard")
+          }
           className="text-left"
+          aria-label="กลับหน้าแดชบอร์ด"
         >
           <BrandLogo size="medium" />
         </button>
@@ -55,62 +110,90 @@ export function AppLayout({
         <nav className="mt-4 space-y-1.5">
           <button
             type="button"
-            onClick={() => onNavigate("dashboard")}
+            onClick={() =>
+              onNavigate("dashboard")
+            }
             className={`sidebar-item ${
-              currentRoute === "dashboard"
+              currentRoute ===
+              "dashboard"
                 ? "sidebar-item-active"
                 : ""
             }`}
           >
             <Home size={17} />
+
             <span>แดชบอร์ด</span>
-            <ChevronRight size={14} className="ml-auto" />
+
+            <ChevronRight
+              size={14}
+              className="ml-auto"
+            />
           </button>
 
           <p className="px-3 pb-1 pt-5 text-[10px] tracking-[0.2em] text-slate-700">
             WORK MODULES
           </p>
 
-          {systemModules.map((module) => {
-            const Icon = module.icon;
-            const isActive = currentRoute === module.route;
+          {systemModules.map(
+            (module) => {
+              const Icon =
+                module.icon;
 
-            return (
-              <button
-                key={module.route}
-                type="button"
-                onClick={() => onNavigate(module.route)}
-                className={`sidebar-item ${
-                  isActive ? "sidebar-item-active" : ""
-                }`}
-              >
-                <Icon
-                  size={17}
-                  style={{
-                    color: isActive ? module.color : undefined,
-                  }}
-                />
+              const isActive =
+                currentRoute ===
+                module.route;
 
-                <span className="truncate">{module.title}</span>
-
-                {isActive && (
-                  <span
-                    className="ml-auto h-1.5 w-1.5 rounded-full"
+              return (
+                <button
+                  key={module.route}
+                  type="button"
+                  onClick={() =>
+                    onNavigate(
+                      module.route,
+                    )
+                  }
+                  className={`sidebar-item ${
+                    isActive
+                      ? "sidebar-item-active"
+                      : ""
+                  }`}
+                >
+                  <Icon
+                    size={17}
                     style={{
-                      backgroundColor: module.color,
-                      boxShadow: `0 0 8px ${module.color}`,
+                      color: isActive
+                        ? module.color
+                        : undefined,
                     }}
                   />
-                )}
-              </button>
-            );
-          })}
+
+                  <span className="truncate">
+                    {module.title}
+                  </span>
+
+                  {isActive && (
+                    <span
+                      className="ml-auto h-1.5 w-1.5 rounded-full"
+                      style={{
+                        backgroundColor:
+                          module.color,
+                        boxShadow: `0 0 8px ${module.color}`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            },
+          )}
         </nav>
 
         <div className="mt-auto">
           <div className="rounded-xl border border-cyan-300/10 bg-cyan-300/[0.035] p-4">
             <div className="flex items-center gap-3">
-              <Server size={18} className="text-emerald-300" />
+              <Server
+                size={18}
+                className="text-emerald-300"
+              />
 
               <div>
                 <p className="text-xs text-slate-300">
@@ -142,7 +225,24 @@ export function AppLayout({
             </h1>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
+            <div className="hidden items-center gap-2.5 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] px-3 py-2 sm:flex">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+              </span>
+
+              <UserRound
+                size={15}
+                className="text-cyan-300"
+              />
+
+              <span className="text-xs font-medium tracking-[0.08em] text-cyan-100">
+                {workspaceName}
+              </span>
+            </div>
+
             <LiveClock />
 
             <button
@@ -150,6 +250,7 @@ export function AppLayout({
               onClick={onLogout}
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 text-slate-400 transition hover:border-red-400/50 hover:text-red-300"
               aria-label="ออกจากระบบ"
+              title="ออกจากระบบ"
             >
               <LogOut size={18} />
             </button>

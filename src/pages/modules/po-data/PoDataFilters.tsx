@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+
 import { poStatusOptions } from "./poData.config";
 import type { PoStatus } from "./poData.types";
 
@@ -6,7 +7,9 @@ interface PoDataFiltersProps {
   search: string;
   status: "all" | PoStatus;
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: "all" | PoStatus) => void;
+  onStatusChange: (
+    value: "all" | PoStatus,
+  ) => void;
 }
 
 export function PoDataFilters({
@@ -26,9 +29,11 @@ export function PoDataFilters({
         <input
           value={search}
           onChange={(event) =>
-            onSearchChange(event.target.value)
+            onSearchChange(
+              event.target.value,
+            )
           }
-          placeholder="ค้นหา IV, PO, สาขา หรือผู้รับผิดชอบ..."
+          placeholder="ค้นหา PO, IV, Reference, Customer name หรือ Assignee..."
           className="h-11 w-full rounded-xl border border-slate-700/70 bg-[#020b16]/70 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40"
         />
       </label>
@@ -37,15 +42,22 @@ export function PoDataFilters({
         value={status}
         onChange={(event) =>
           onStatusChange(
-            event.target.value as "all" | PoStatus,
+            event.target.value as
+              | "all"
+              | PoStatus,
           )
         }
         className="h-11 rounded-xl border border-slate-700/70 bg-[#020b16] px-4 text-sm text-slate-300 outline-none focus:border-cyan-300/40"
       >
-        <option value="all">ทุกสถานะ</option>
+        <option value="all">
+          ทุกสถานะ
+        </option>
 
         {poStatusOptions.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+          >
             {option.label}
           </option>
         ))}

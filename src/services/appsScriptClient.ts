@@ -1,4 +1,10 @@
-import { fetch } from "@tauri-apps/plugin-http";
+import {
+  fetch,
+} from "@tauri-apps/plugin-http";
+
+import {
+  getSessionToken,
+} from "../auth/authSession";
 
 interface AppsScriptResponse<T> {
   success: boolean;
@@ -6,15 +12,21 @@ interface AppsScriptResponse<T> {
   message?: string;
 }
 
-const apiUrl = import.meta.env
-  .VITE_APPS_SCRIPT_URL as string | undefined;
+interface RequestOptions {
+  requireSession?: boolean;
+}
 
-const apiToken = import.meta.env
-  .VITE_APPS_SCRIPT_TOKEN as string | undefined;
+const apiUrl =
+  import.meta.env
+    .VITE_APPS_SCRIPT_URL as
+    | string
+    | undefined;
 
-const userCode =
-  (import.meta.env.VITE_USER_CODE as string | undefined) ??
-  "LOCAL";
+const apiToken =
+  import.meta.env
+    .VITE_APPS_SCRIPT_TOKEN as
+    | string
+    | undefined;
 
 function validateConfiguration() {
   if (!apiUrl) {
@@ -33,21 +45,45 @@ function validateConfiguration() {
 export async function callAppsScript<T>(
   action: string,
   data: unknown = {},
+  options: RequestOptions = {},
 ): Promise<T> {
   validateConfiguration();
 
-  const response = await fetch(apiUrl!, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
+  const requireSession =
+    options.requireSession !==
+    false;
+
+  const sessionToken =
+    getSessionToken();
+
+  if (
+    requireSession &&
+    !sessionToken
+  ) {
+    throw new Error(
+      "SESSION_REQUIRED",
+    );
+  }
+
+  const response = await fetch(
+    apiUrl!,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "text/plain;charset=utf-8",
+      },
+
+      body: JSON.stringify({
+        action,
+        token: apiToken,
+        sessionToken:
+          sessionToken || "",
+        data,
+      }),
     },
-    body: JSON.stringify({
-      action,
-      token: apiToken,
-      userCode,
-      data,
-    }),
-  });
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -56,16 +92,22 @@ export async function callAppsScript<T>(
   }
 
   const result =
-    (await response.json()) as AppsScriptResponse<T>;
+    (await response.json()) as
+      AppsScriptResponse<T>;
 
   if (!result.success) {
     throw new Error(
-      result.message || "Apps Script ไม่สามารถทำรายการได้",
+      result.message ||
+        "Apps Script ไม่สามารถดำเนินการได้",
     );
   }
 
-  if (result.data === undefined) {
-    throw new Error("Apps Script ไม่ได้ส่งข้อมูลกลับมา");
+  if (
+    result.data === undefined
+  ) {
+    throw new Error(
+      "Apps Script ไม่ได้ส่งข้อมูลกลับมา",
+    );
   }
 
   return result.data;

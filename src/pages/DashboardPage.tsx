@@ -5,21 +5,44 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { SystemCard } from "../components/SystemCard";
-import { systemModules } from "../data/systemModules";
+import {
+  SystemCard,
+} from "../components/SystemCard";
+
+import {
+  systemModules,
+} from "../data/systemModules";
+
 import type {
   SystemModule,
   WorkRoute,
 } from "../types/app";
 
 interface DashboardPageProps {
-  onNavigate: (route: WorkRoute) => void;
+  onNavigate: (
+    route: WorkRoute,
+  ) => void;
 }
 
 export function DashboardPage({
   onNavigate,
 }: DashboardPageProps) {
-  const openModule = (module: SystemModule) => {
+  const onlineCount =
+    systemModules.filter(
+      (module) =>
+        module.status === "online",
+    ).length;
+
+  const availability =
+    Math.round(
+      (onlineCount /
+        systemModules.length) *
+        100,
+    );
+
+  const openModule = (
+    module: SystemModule,
+  ) => {
     onNavigate(module.route);
   };
 
@@ -51,15 +74,17 @@ export function DashboardPage({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <StatusBox
               icon={Boxes}
-              value="05"
+              value={String(
+                systemModules.length,
+              ).padStart(2, "0")}
               label="ระบบงาน"
               color="text-cyan-300"
             />
 
             <StatusBox
               icon={Activity}
-              value="100%"
-              label="สถานะระบบ"
+              value={`${availability}%`}
+              label="พร้อมใช้งาน"
               color="text-emerald-300"
             />
 
@@ -91,13 +116,15 @@ export function DashboardPage({
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-          {systemModules.map((module) => (
-            <SystemCard
-              key={module.id}
-              module={module}
-              onOpen={openModule}
-            />
-          ))}
+          {systemModules.map(
+            (module) => (
+              <SystemCard
+                key={module.id}
+                module={module}
+                onOpen={openModule}
+              />
+            ),
+          )}
         </div>
       </section>
     </div>
@@ -119,9 +146,14 @@ function StatusBox({
 }: StatusBoxProps) {
   return (
     <div className="min-w-32 rounded-xl border border-white/[0.07] bg-white/[0.035] p-4">
-      <Icon size={17} className={color} />
+      <Icon
+        size={17}
+        className={color}
+      />
 
-      <p className={`mt-4 text-xl font-semibold ${color}`}>
+      <p
+        className={`mt-4 text-xl font-semibold ${color}`}
+      >
         {value}
       </p>
 

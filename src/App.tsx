@@ -1,38 +1,138 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import { AppLayout } from "./layouts/AppLayout";
-import { DashboardPage } from "./pages/DashboardPage";
-import { LoginPage } from "./pages/LoginPage";
-import { SplashPage } from "./pages/SplashPage";
-import { DailyPickingPage } from "./pages/modules/DailyPickingPage";
-import { DailySoPage } from "./pages/modules/DailySoPage";
-import { DailySummaryPage } from "./pages/modules/DailySummaryPage";
-import { PoDataPage } from "./pages/modules/po-data/PoDataPage";
-import { SplitRenamePoPage } from "./pages/modules/SplitRenamePoPage";
-import type { AppRoute, WorkRoute } from "./types/app";
+import {
+  authService,
+} from "./auth/authService";
+
+import {
+  clearAuthSession,
+  getAuthSession,
+} from "./auth/authSession";
+
+import type {
+  AppUser,
+  AuthSession,
+} from "./auth/auth.types";
+
+import {
+  AppLayout,
+} from "./layouts/AppLayout";
+
+import {
+  DashboardPage,
+} from "./pages/DashboardPage";
+
+import {
+  LoginPage,
+} from "./pages/LoginPage";
+
+import {
+  SplashPage,
+} from "./pages/SplashPage";
+
+import {
+  DailyPickingPage,
+} from "./pages/modules/DailyPickingPage";
+
+import {
+  DailySoPage,
+} from "./pages/modules/DailySoPage";
+
+import {
+  DailySummaryPage,
+} from "./pages/modules/DailySummaryPage";
+
+import {
+  PoDataPage,
+} from "./pages/modules/po-data/PoDataPage";
+
+import {
+  SplitRenamePoPage,
+} from "./pages/modules/SplitRenamePoPage";
+
+import type {
+  AppRoute,
+  WorkRoute,
+} from "./types/app";
+
+const savedSession =
+  getAuthSession();
 
 function App() {
-  const [route, setRoute] = useState<AppRoute>("login");
+  const [
+    currentUser,
+    setCurrentUser,
+  ] = useState<AppUser | null>(
+    savedSession?.user ?? null,
+  );
+
+  const [
+    route,
+    setRoute,
+  ] = useState<AppRoute>(
+    savedSession
+      ? "dashboard"
+      : "login",
+  );
 
   useEffect(() => {
-    if (route !== "splash") return;
+    if (route !== "splash") {
+      return;
+    }
 
-    const timer = window.setTimeout(() => {
-      setRoute("dashboard");
-    }, 2200);
+    const timer =
+      window.setTimeout(() => {
+        setRoute("dashboard");
+      }, 2200);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [route]);
 
-  if (route === "login") {
-    return <LoginPage onLogin={() => setRoute("splash")} />;
+  const handleLogin = (
+    session: AuthSession,
+  ) => {
+    setCurrentUser(
+      session.user,
+    );
+
+    setRoute("splash");
+  };
+
+  const handleLogout =
+    async () => {
+      try {
+        await authService.logout();
+      } catch {
+        clearAuthSession();
+      } finally {
+        setCurrentUser(null);
+        setRoute("login");
+      }
+    };
+
+  if (
+    route === "login" ||
+    !currentUser
+  ) {
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+      />
+    );
   }
 
   if (route === "splash") {
     return <SplashPage />;
   }
 
-  const navigate = (nextRoute: WorkRoute) => {
+  const navigate = (
+    nextRoute: WorkRoute,
+  ) => {
     setRoute(nextRoute);
   };
 
@@ -43,31 +143,73 @@ function App() {
   const renderPage = () => {
     switch (route) {
       case "daily-picking":
-        return <DailyPickingPage onBack={backToDashboard} />;
+        return (
+          <DailyPickingPage
+            onBack={
+              backToDashboard
+            }
+          />
+        );
 
       case "daily-so":
-        return <DailySoPage onBack={backToDashboard} />;
+        return (
+          <DailySoPage
+            onBack={
+              backToDashboard
+            }
+          />
+        );
 
       case "split-rename-po":
-        return <SplitRenamePoPage onBack={backToDashboard} />;
+        return (
+          <SplitRenamePoPage
+            onBack={
+              backToDashboard
+            }
+          />
+        );
 
       case "daily-summary":
-        return <DailySummaryPage onBack={backToDashboard} />;
+        return (
+          <DailySummaryPage
+            onBack={
+              backToDashboard
+            }
+          />
+        );
 
       case "po-data":
-        return <PoDataPage onBack={backToDashboard} />;
+        return (
+          <PoDataPage
+            currentUser={
+              currentUser
+            }
+            onBack={
+              backToDashboard
+            }
+          />
+        );
 
       case "dashboard":
       default:
-        return <DashboardPage onNavigate={navigate} />;
+        return (
+          <DashboardPage
+            onNavigate={
+              navigate
+            }
+          />
+        );
     }
   };
 
   return (
     <AppLayout
       currentRoute={route}
+      currentUser={currentUser}
       onNavigate={navigate}
-      onLogout={() => setRoute("login")}
+      onLogout={() => {
+        void handleLogout();
+      }}
     >
       {renderPage()}
     </AppLayout>

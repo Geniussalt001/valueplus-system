@@ -5,32 +5,40 @@ import {
   X,
 } from "lucide-react";
 
-import type { NewPoInput } from "./poData.types";
+import type {
+  NewPoInput,
+  PoRecord,
+} from "./poData.types";
 
-interface CreatePoModalProps {
+interface EditPoModalProps {
+  record: PoRecord;
   saving?: boolean;
   onClose: () => void;
-  onSave: (input: NewPoInput) => void;
+  onSave: (
+    id: string,
+    input: NewPoInput,
+  ) => void;
 }
 
-const initialForm: NewPoInput = {
-  poNumber: "",
-  ivNumber: "",
-  documentDate: new Date()
-    .toISOString()
-    .slice(0, 10),
-  reference: "",
-  customerName: "",
-  assignee: "",
-};
-
-export function CreatePoModal({
+export function EditPoModal({
+  record,
   saving = false,
   onClose,
   onSave,
-}: CreatePoModalProps) {
+}: EditPoModalProps) {
   const [form, setForm] =
-    useState(initialForm);
+    useState<NewPoInput>({
+      poNumber: record.poNumber,
+      ivNumber: record.ivNumber,
+      documentDate:
+        record.documentDate,
+      reference:
+        record.reference || "",
+      customerName:
+        record.customerName || "",
+      assignee:
+        record.assignee || "",
+    });
 
   const updateForm = (
     field: keyof NewPoInput,
@@ -55,21 +63,22 @@ export function CreatePoModal({
       return;
     }
 
-    onSave({
+    onSave(record.id, {
       ...form,
-      poNumber: form.poNumber
-        .trim()
-        .toUpperCase(),
-
-      ivNumber: form.ivNumber
-        .trim()
-        .toUpperCase(),
-
-      reference: form.reference.trim(),
+      poNumber:
+        form.poNumber
+          .trim()
+          .toUpperCase(),
+      ivNumber:
+        form.ivNumber
+          .trim()
+          .toUpperCase(),
+      reference:
+        form.reference.trim(),
       customerName:
         form.customerName.trim(),
-
-      assignee: form.assignee.trim(),
+      assignee:
+        form.assignee.trim(),
     });
   };
 
@@ -78,12 +87,12 @@ export function CreatePoModal({
       <section className="w-full max-w-3xl rounded-2xl border border-cyan-300/20 bg-[#061525] shadow-[0_30px_100px_rgba(0,0,0,0.65)]">
         <header className="flex items-center justify-between border-b border-white/[0.06] px-6 py-5">
           <div>
-            <p className="text-[10px] tracking-[0.2em] text-emerald-300">
-              CREATE PO RECORD
+            <p className="text-[10px] tracking-[0.2em] text-cyan-300">
+              EDIT PO RECORD
             </p>
 
             <h3 className="mt-1 text-xl font-semibold">
-              เพิ่มรายการ PO
+              แก้ไขรายการ PO
             </h3>
           </div>
 
@@ -98,28 +107,34 @@ export function CreatePoModal({
         </header>
 
         <div className="grid gap-5 p-6 md:grid-cols-2">
-          <FormInput
+          <EditInput
             label="PO Number"
             value={form.poNumber}
-            placeholder="เช่น 6907012"
             onChange={(value) =>
-              updateForm("poNumber", value)
+              updateForm(
+                "poNumber",
+                value,
+              )
             }
           />
 
-          <FormInput
+          <EditInput
             label="IV Number"
             value={form.ivNumber}
-            placeholder="เช่น VPR6907001"
             onChange={(value) =>
-              updateForm("ivNumber", value)
+              updateForm(
+                "ivNumber",
+                value,
+              )
             }
           />
 
-          <FormInput
+          <EditInput
             label="Date"
             type="date"
-            value={form.documentDate}
+            value={
+              form.documentDate
+            }
             onChange={(value) =>
               updateForm(
                 "documentDate",
@@ -128,19 +143,22 @@ export function CreatePoModal({
             }
           />
 
-          <FormInput
+          <EditInput
             label="Reference"
             value={form.reference}
-            placeholder="เลขอ้างอิงหรือรายละเอียดอ้างอิง"
             onChange={(value) =>
-              updateForm("reference", value)
+              updateForm(
+                "reference",
+                value,
+              )
             }
           />
 
-          <FormInput
+          <EditInput
             label="Customer name"
-            value={form.customerName}
-            placeholder="ชื่อลูกค้า"
+            value={
+              form.customerName
+            }
             onChange={(value) =>
               updateForm(
                 "customerName",
@@ -149,12 +167,14 @@ export function CreatePoModal({
             }
           />
 
-          <FormInput
+          <EditInput
             label="Assignee"
             value={form.assignee}
-            placeholder="ผู้รับผิดชอบ"
             onChange={(value) =>
-              updateForm("assignee", value)
+              updateForm(
+                "assignee",
+                value,
+              )
             }
           />
         </div>
@@ -164,7 +184,7 @@ export function CreatePoModal({
             type="button"
             disabled={saving}
             onClick={onClose}
-            className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm text-slate-400 transition hover:text-white disabled:opacity-40"
+            className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm text-slate-400 disabled:opacity-40"
           >
             ยกเลิก
           </button>
@@ -173,7 +193,7 @@ export function CreatePoModal({
             type="button"
             disabled={saving}
             onClick={submit}
-            className="flex min-w-36 items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-5 py-2.5 text-sm text-emerald-200 transition hover:bg-emerald-300/15 disabled:cursor-wait disabled:opacity-60"
+            className="flex min-w-36 items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-2.5 text-sm text-cyan-200 disabled:opacity-50"
           >
             {saving ? (
               <LoaderCircle
@@ -186,7 +206,7 @@ export function CreatePoModal({
 
             {saving
               ? "กำลังบันทึก..."
-              : "บันทึกรายการ"}
+              : "บันทึกการแก้ไข"}
           </button>
         </footer>
       </section>
@@ -194,23 +214,21 @@ export function CreatePoModal({
   );
 }
 
-interface FormInputProps {
+interface EditInputProps {
   label: string;
   value: string;
-  placeholder?: string;
   type?: string;
   onChange: (value: string) => void;
 }
 
-function FormInput({
+function EditInput({
   label,
   value,
-  placeholder,
   type = "text",
   onChange,
-}: FormInputProps) {
+}: EditInputProps) {
   return (
-    <label className="block">
+    <label>
       <span className="mb-2 block text-xs text-slate-400">
         {label}
       </span>
@@ -218,11 +236,12 @@ function FormInput({
       <input
         type={type}
         value={value}
-        placeholder={placeholder}
         onChange={(event) =>
-          onChange(event.target.value)
+          onChange(
+            event.target.value,
+          )
         }
-        className="h-11 w-full rounded-xl border border-slate-700/70 bg-[#020b16] px-4 text-sm text-white outline-none transition placeholder:text-slate-700 focus:border-cyan-300/40"
+        className="h-11 w-full rounded-xl border border-slate-700/70 bg-[#020b16] px-4 text-sm text-white outline-none focus:border-cyan-300/40"
       />
     </label>
   );

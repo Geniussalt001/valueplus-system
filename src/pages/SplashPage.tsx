@@ -1,4 +1,6 @@
-import { BrandLogo } from "../components/BrandLogo";
+import {
+  BrandLogo,
+} from "../components/BrandLogo";
 
 export function SplashPage() {
   return (
@@ -9,7 +11,10 @@ export function SplashPage() {
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="splash-logo-container flex h-44 w-80 items-center justify-center">
-          <BrandLogo size="large" />
+          <BrandLogo
+            size="large"
+            className="animate-[pulse_2.2s_ease-in-out_infinite]"
+          />
         </div>
 
         <p className="mt-7 text-xs tracking-[0.42em] text-cyan-300">
