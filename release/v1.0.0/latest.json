@@ -1,0 +1,11 @@
+{
+    "version":  "1.0.0",
+    "notes":  "Initial release with PO data management and automatic updates.",
+    "pub_date":  "2026-07-16T05:22:12Z",
+    "platforms":  {
+                      "windows-x86_64":  {
+                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTUUQ0eW53aVBTb3g4VjlGNThaY1I3N0lrL0hNZk8xK3Y0WUJwVlVGRE1PdjdPSkRIOFcwRkRBSjdXaVMwQk1CeXoxazd4cnZTVjZCclBwMExScDRPZmVsaDlQd0pJcmdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0MTc5MDkzCWZpbGU6VmFsdWVQbHVzIFN5c3RlbV8xLjAuMF94NjQtc2V0dXAuZXhlCmpqeVJ6QlQ2VGxkcjUvRm43UElScUsyVlpZOGpzanF2OTVBTVJwb3R6NXFQbW85NGpqUTBQczBLc2t1b1NFOGJjWWUrNVM2TWJCSmQxQlJBOENWMkJBPT0K",
+                                             "url":  "https://github.com/Geniussalt001/valueplus-system-releases/releases/download/v1.0.0/ValuePlus.System_1.0.0_x64-setup.exe"
+                                         }
+                  }
+}

@@ -1,0 +1,11 @@
+{
+    "version":  "1.0.2",
+    "notes":  "Bug fixes and stability improvements.",
+    "pub_date":  "2026-07-16T06:07:11Z",
+    "platforms":  {
+                      "windows-x86_64":  {
+                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTUUQ0eW53aVBTbzRUc0JZUUdjb0FLMWlaWGRrZFhHZmZOSjVPeHBzUXBTN2xJdFpVU1k2YWFKR2Yyem9ueHZDeFkxSXVNWHZ0Q2FsNzlFVm51dVVnZGt3Z0NmR2pKd2dBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0MTgyMDMwCWZpbGU6VmFsdWVQbHVzIFN5c3RlbV8xLjAuMl94NjQtc2V0dXAuZXhlCndrS2hPVkJzNUZZbTZ1UXFRMlFCREJ1TTFJUTJHOG1wVWVPL2pFdFBobDRQYmlyZXg3Q0ZOeTM4N3djSUNCVjl1Wk1xRE9kSjk4UlF3MFhSNG9KM0JBPT0K",
+                                             "url":  "https://github.com/Geniussalt001/valueplus-system-releases/releases/download/v1.0.2/ValuePlus.System_1.0.2_x64-setup.exe"
+                                         }
+                  }
+}

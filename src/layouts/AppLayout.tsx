@@ -5,6 +5,8 @@ import type {
 import {
   ChevronRight,
   Home,
+  Link2,
+  LockKeyhole,
   LogOut,
   Server,
   UserRound,
@@ -21,6 +23,10 @@ import {
 import {
   LiveClock,
 } from "../components/LiveClock";
+
+import {
+  UpdateCenter,
+} from "../components/update/UpdateCenter";
 
 import {
   systemModules,
@@ -143,27 +149,56 @@ export function AppLayout({
                 currentRoute ===
                 module.route;
 
+              const isOnline =
+                module.status ===
+                "online";
+
               return (
                 <button
                   key={module.route}
                   type="button"
-                  onClick={() =>
+                  disabled={!isOnline}
+                  onClick={() => {
+                    if (!isOnline) {
+                      return;
+                    }
+
                     onNavigate(
                       module.route,
-                    )
+                    );
+                  }}
+                  title={
+                    isOnline
+                      ? module.title
+                      : "ระบบนี้ยังไม่เปิดใช้งาน"
                   }
-                  className={`sidebar-item ${
-                    isActive
-                      ? "sidebar-item-active"
-                      : ""
-                  }`}
+                  aria-label={
+                    isOnline
+                      ? `เปิดระบบ ${module.title}`
+                      : `${module.title} ยังไม่เปิดใช้งาน`
+                  }
+                  className={`
+                    sidebar-item
+                    ${
+                      isActive
+                        ? "sidebar-item-active"
+                        : ""
+                    }
+                    ${
+                      isOnline
+                        ? ""
+                        : "cursor-not-allowed opacity-45 grayscale disabled:pointer-events-none"
+                    }
+                  `}
                 >
                   <Icon
                     size={17}
                     style={{
-                      color: isActive
-                        ? module.color
-                        : undefined,
+                      color:
+                        isActive &&
+                        isOnline
+                          ? module.color
+                          : undefined,
                     }}
                   />
 
@@ -171,7 +206,15 @@ export function AppLayout({
                     {module.title}
                   </span>
 
-                  {isActive && (
+                  {!isOnline ? (
+                    <span className="ml-auto flex items-center gap-1 text-red-300/70">
+                      <Link2 size={11} />
+
+                      <LockKeyhole
+                        size={13}
+                      />
+                    </span>
+                  ) : isActive ? (
                     <span
                       className="ml-auto h-1.5 w-1.5 rounded-full"
                       style={{
@@ -180,6 +223,11 @@ export function AppLayout({
                         boxShadow: `0 0 8px ${module.color}`,
                       }}
                     />
+                  ) : (
+                    <ChevronRight
+                      size={13}
+                      className="ml-auto opacity-40"
+                    />
                   )}
                 </button>
               );
@@ -187,7 +235,9 @@ export function AppLayout({
           )}
         </nav>
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-3">
+          <UpdateCenter />
+
           <div className="rounded-xl border border-cyan-300/10 bg-cyan-300/[0.035] p-4">
             <div className="flex items-center gap-3">
               <Server
@@ -207,8 +257,8 @@ export function AppLayout({
             </div>
           </div>
 
-          <p className="mt-5 text-[10px] tracking-[0.15em] text-slate-700">
-            VALUEPLUS SYSTEM · V1.0
+          <p className="pt-2 text-[10px] tracking-[0.15em] text-slate-700">
+            VALUEPLUS SYSTEM · AUTO UPDATE
           </p>
         </div>
       </aside>

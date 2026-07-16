@@ -4,6 +4,8 @@ import type {
 
 import {
   ArrowUpRight,
+  Link2,
+  LockKeyhole,
 } from "lucide-react";
 
 import type {
@@ -33,16 +35,43 @@ export function SystemCard({
 
   const accentStyle = {
     "--accent-color":
-      module.color,
+      isOnline
+        ? module.color
+        : "#64748b",
   } as CSSProperties;
+
+  const openModule = () => {
+    if (!isOnline) {
+      return;
+    }
+
+    onOpen(module);
+  };
 
   return (
     <button
       type="button"
-      onClick={() =>
-        onOpen(module)
+      disabled={!isOnline}
+      onClick={openModule}
+      title={
+        isOnline
+          ? `เปิดระบบ ${module.title}`
+          : "ระบบนี้ยังไม่เปิดใช้งาน"
       }
-      className="module-card group relative min-h-[285px] overflow-hidden p-6 text-left"
+      aria-label={
+        isOnline
+          ? `เปิดระบบ ${module.title}`
+          : `${module.title} ยังไม่เปิดใช้งาน`
+      }
+      className={`
+        module-card group relative min-h-[285px]
+        overflow-hidden p-6 text-left
+        ${
+          isOnline
+            ? "cursor-pointer"
+            : "cursor-not-allowed opacity-65 grayscale-[0.2]"
+        }
+      `}
       style={accentStyle}
     >
       <div className="module-card-glow" />
@@ -53,15 +82,34 @@ export function SystemCard({
         ).padStart(2, "0")}
       </span>
 
+      {!isOnline && (
+        <div className="absolute right-5 top-5 z-20 flex items-center gap-1.5 rounded-lg border border-red-300/20 bg-red-400/[0.08] px-2.5 py-1.5 text-red-300 shadow-[0_0_18px_rgba(248,113,113,0.08)]">
+          <Link2 size={13} />
+          <LockKeyhole size={14} />
+        </div>
+      )}
+
       <div className="relative z-10 flex h-full flex-col">
-        <div className="module-icon flex h-14 w-14 items-center justify-center">
+        <div
+          className={`
+            module-icon flex h-14 w-14
+            items-center justify-center
+            ${
+              isOnline
+                ? ""
+                : "border-red-300/15 text-slate-500"
+            }
+          `}
+        >
           <Icon size={25} />
         </div>
 
         <p
           className="mt-7 text-[10px] font-semibold tracking-[0.22em]"
           style={{
-            color: module.color,
+            color: isOnline
+              ? module.color
+              : "#94a3b8",
           }}
         >
           {module.subtitle}
@@ -77,7 +125,7 @@ export function SystemCard({
 
         <div className="mt-auto flex items-center justify-between pt-7">
           <span
-            className="inline-flex items-center gap-2 text-xs font-medium"
+            className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.08em]"
             style={{
               color: statusColor,
             }}
@@ -108,13 +156,25 @@ export function SystemCard({
               : "OFFLINE"}
           </span>
 
-          <span className="module-open-button flex h-9 w-9 items-center justify-center">
-            <ArrowUpRight
-              size={17}
-            />
-          </span>
+          {isOnline ? (
+            <span className="module-open-button flex h-9 w-9 items-center justify-center">
+              <ArrowUpRight
+                size={17}
+              />
+            </span>
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-300/15 bg-red-300/[0.05] text-red-300/70">
+              <LockKeyhole
+                size={16}
+              />
+            </span>
+          )}
         </div>
       </div>
+
+      {!isOnline && (
+        <div className="pointer-events-none absolute inset-0 z-[5] bg-[#020812]/10" />
+      )}
     </button>
   );
 }
