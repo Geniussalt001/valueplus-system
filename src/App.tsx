@@ -3,18 +3,8 @@ import {
   useState,
 } from "react";
 
-import {
-  authService,
-} from "./auth/authService";
-
-import {
-  clearAuthSession,
-  getAuthSession,
-} from "./auth/authSession";
-
 import type {
   AppUser,
-  AuthSession,
 } from "./auth/auth.types";
 
 import {
@@ -58,24 +48,18 @@ import type {
   WorkRoute,
 } from "./types/app";
 
-const savedSession =
-  getAuthSession();
+const systemUser: AppUser = {
+  userCode: "VALUEPLUS",
+  displayName: "ValuePlus System",
+  role: "admin",
+};
 
 function App() {
-  const [
-    currentUser,
-    setCurrentUser,
-  ] = useState<AppUser | null>(
-    savedSession?.user ?? null,
-  );
-
   const [
     route,
     setRoute,
   ] = useState<AppRoute>(
-    savedSession
-      ? "dashboard"
-      : "login",
+    "login",
   );
 
   useEffect(() => {
@@ -85,43 +69,36 @@ function App() {
 
     const timer =
       window.setTimeout(() => {
-        setRoute("dashboard");
+        setRoute(
+          "dashboard",
+        );
       }, 2200);
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        timer,
+      );
     };
   }, [route]);
 
-  const handleLogin = (
-    session: AuthSession,
-  ) => {
-    setCurrentUser(
-      session.user,
+  const handleLogin = () => {
+    setRoute(
+      "splash",
     );
-
-    setRoute("splash");
   };
 
-  const handleLogout =
-    async () => {
-      try {
-        await authService.logout();
-      } catch {
-        clearAuthSession();
-      } finally {
-        setCurrentUser(null);
-        setRoute("login");
-      }
-    };
+  const handleLogout = () => {
+    setRoute(
+      "login",
+    );
+  };
 
-  if (
-    route === "login" ||
-    !currentUser
-  ) {
+  if (route === "login") {
     return (
       <LoginPage
-        onLogin={handleLogin}
+        onLogin={
+          handleLogin
+        }
       />
     );
   }
@@ -133,11 +110,15 @@ function App() {
   const navigate = (
     nextRoute: WorkRoute,
   ) => {
-    setRoute(nextRoute);
+    setRoute(
+      nextRoute,
+    );
   };
 
   const backToDashboard = () => {
-    setRoute("dashboard");
+    setRoute(
+      "dashboard",
+    );
   };
 
   const renderPage = () => {
@@ -182,7 +163,7 @@ function App() {
         return (
           <PoDataPage
             currentUser={
-              currentUser
+              systemUser
             }
             onBack={
               backToDashboard
@@ -205,11 +186,15 @@ function App() {
   return (
     <AppLayout
       currentRoute={route}
-      currentUser={currentUser}
-      onNavigate={navigate}
-      onLogout={() => {
-        void handleLogout();
-      }}
+      currentUser={
+        systemUser
+      }
+      onNavigate={
+        navigate
+      }
+      onLogout={
+        handleLogout
+      }
     >
       {renderPage()}
     </AppLayout>
