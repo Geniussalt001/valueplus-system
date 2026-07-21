@@ -17,6 +17,18 @@
         },
         {
           "path": "$HOME/Desktop/รายงานใบจัดรายวัน/**/*"
+        },
+        {
+          "path": "$HOME/Desktop/Po Cpall"
+        },
+        {
+          "path": "$HOME/Desktop/Po Cpall/**/*"
+        },
+        {
+          "path": "$HOME/Desktop/รายงาน SOรายวัน"
+        },
+        {
+          "path": "$HOME/Desktop/รายงาน SOรายวัน/**/*"
         }
       ]
     },

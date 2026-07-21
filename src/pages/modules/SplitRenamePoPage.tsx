@@ -41,10 +41,12 @@ import {
 
 interface SplitRenamePoPageProps {
   onBack: () => void;
+  onNextProcess: (pdfPath: string) => void;
 }
 
 export function SplitRenamePoPage({
   onBack,
+  onNextProcess,
 }: SplitRenamePoPageProps) {
   const processor =
     usePoProcessor();
@@ -452,6 +454,55 @@ export function SplitRenamePoPage({
           </button>
         )}
       </div>
+
+      {processor.savedOutputPath && processor.pdfPath && (
+        <div
+          className="
+            mt-5
+            flex
+            justify-end
+          "
+        >
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              onNextProcess(
+                processor.pdfPath,
+              );
+            }}
+            className="
+              flex
+              items-center
+              justify-center
+              gap-3
+              rounded-xl
+              border
+              border-sky-300/35
+              bg-gradient-to-r
+              from-sky-400/20
+              to-cyan-300/10
+              px-7
+              py-3.5
+              text-sm
+              font-semibold
+              text-sky-100
+              shadow-lg
+              shadow-sky-500/10
+              transition
+              hover:-translate-y-0.5
+              hover:border-sky-300/55
+              hover:from-sky-400/30
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            <span>Next Process</span>
+            <span className="text-sky-300">ลงยอด SO รายวัน</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      )}
 
       {processor.preview && (
         <section

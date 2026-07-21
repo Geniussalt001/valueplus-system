@@ -1,19 +1,1579 @@
-import { FileSpreadsheet } from "lucide-react";
-import { ModulePlaceholder } from "../../components/ModulePlaceholder";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  ArrowLeft,
+  CheckCircle2,
+  FileCheck2,
+  FileSpreadsheet,
+  FolderOpen,
+  Check,
+  LoaderCircle,
+  LockKeyhole,
+  PencilLine,
+  RotateCcw,
+  ScanSearch,
+  TriangleAlert,
+  Upload,
+  Warehouse,
+} from "lucide-react";
+
+import {
+  dailySoService,
+} from "../../services/dailySoService";
+
+import type {
+  DailySoGroup,
+  DailySoPaths,
+  DailySoResult,
+} from "../../types/dailySo.types";
+
+interface DailySoPageProps {
+  onBack: () => void;
+  initialPdfPath?: string;
+  onInitialPdfConsumed?: () => void;
+}
+
+type Activity =
+  | "idle"
+  | "preview"
+  | "export";
+
+type QuantityEdits =
+  Record<
+    string,
+    number | ""
+  >;
 
 export function DailySoPage({
   onBack,
-}: {
-  onBack: () => void;
-}) {
-  return (
-    <ModulePlaceholder
-      title="ลงยอด SO รายวัน"
-      subtitle="DAILY SO IMPORT"
-      description="ระบบอ่านข้อมูลจากเอกสารและจัดเตรียมข้อมูลสำหรับนำเข้าสู่รายงาน SO ประจำวัน"
-      icon={FileSpreadsheet}
-      color="#38bdf8"
-      onBack={onBack}
-    />
+  initialPdfPath = "",
+  onInitialPdfConsumed,
+}: DailySoPageProps) {
+  const autoProcessedPdfRef =
+    useRef("");
+
+  const [
+    paths,
+    setPaths,
+  ] = useState<
+    DailySoPaths | null
+  >(
+    null,
   );
+
+  const [
+    pdfPath,
+    setPdfPath,
+  ] = useState(
+    "",
+  );
+
+  const [
+    preview,
+    setPreview,
+  ] = useState<
+    DailySoResult | null
+  >(
+    null,
+  );
+
+  const [
+    activity,
+    setActivity,
+  ] = useState<Activity>(
+    "idle",
+  );
+
+  const [
+    error,
+    setError,
+  ] = useState(
+    "",
+  );
+
+  const [
+    success,
+    setSuccess,
+  ] = useState(
+    "",
+  );
+
+  const [
+    adjusting,
+    setAdjusting,
+  ] = useState(
+    false,
+  );
+
+  const [
+    quantityEdits,
+    setQuantityEdits,
+  ] = useState<QuantityEdits>(
+    {},
+  );
+
+  const busy =
+    activity !== "idle";
+
+  const hasQuantityEdits =
+    Object.keys(
+      quantityEdits,
+    ).length > 0;
+
+  const invalidQuantityEdit =
+    Object.values(
+      quantityEdits,
+    ).some(
+      (value) => (
+        value === "" ||
+        !Number.isFinite(
+          value,
+        ) ||
+        value < 0
+      ),
+    );
+
+  useEffect(() => {
+    let active = true;
+
+    void dailySoService
+      .getPaths()
+      .then((nextPaths) => {
+        if (active) {
+          setPaths(
+            nextPaths,
+          );
+        }
+      })
+      .catch((reason) => {
+        if (active) {
+          setError(
+            getErrorMessage(
+              reason,
+            ),
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const choosePdf = async () => {
+    if (busy) {
+      return;
+    }
+
+    try {
+      setError(
+        "",
+      );
+
+      setSuccess(
+        "",
+      );
+
+      const selected =
+        await dailySoService
+          .selectPdf();
+
+      if (!selected) {
+        return;
+      }
+
+      setPdfPath(
+        selected,
+      );
+
+      setPreview(
+        null,
+      );
+
+      setAdjusting(
+        false,
+      );
+
+      setQuantityEdits(
+        {},
+      );
+    } catch (reason) {
+      setError(
+        getErrorMessage(
+          reason,
+        ),
+      );
+    }
+  };
+
+  const buildPreview = async () => {
+    if (
+      busy ||
+      !paths ||
+      !pdfPath
+    ) {
+      return;
+    }
+
+    setActivity(
+      "preview",
+    );
+
+    setError(
+      "",
+    );
+
+    setSuccess(
+      "",
+    );
+
+    try {
+      const result =
+        await dailySoService
+          .preview({
+            pdfPath,
+            templatePath:
+              paths.templatePath,
+          });
+
+      setPreview(
+        result,
+      );
+
+      setAdjusting(
+        false,
+      );
+
+      setQuantityEdits(
+        {},
+      );
+    } catch (reason) {
+      setPreview(
+        null,
+      );
+
+      setError(
+        getErrorMessage(
+          reason,
+        ),
+      );
+    } finally {
+      setActivity(
+        "idle",
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (
+      !initialPdfPath ||
+      !paths ||
+      autoProcessedPdfRef.current === initialPdfPath
+    ) {
+      return;
+    }
+
+    autoProcessedPdfRef.current = initialPdfPath;
+    setPdfPath(initialPdfPath);
+    setPreview(null);
+    setAdjusting(false);
+    setQuantityEdits({});
+    setActivity("preview");
+    setError("");
+    setSuccess(
+      "รับไฟล์ PDF จากขั้นตอนออกใบจัดรายวันแล้ว กำลังประมวลผล...",
+    );
+
+    void dailySoService
+      .preview({
+        pdfPath: initialPdfPath,
+        templatePath: paths.templatePath,
+      })
+      .then((result) => {
+        setPreview(result);
+        setSuccess(
+          "ประมวลผล PDF จากขั้นตอนออกใบจัดรายวันเรียบร้อยแล้ว",
+        );
+      })
+      .catch((reason) => {
+        setPreview(null);
+        setSuccess("");
+        setError(
+          getErrorMessage(reason),
+        );
+      })
+      .finally(() => {
+        setActivity("idle");
+        onInitialPdfConsumed?.();
+      });
+  }, [
+    initialPdfPath,
+    onInitialPdfConsumed,
+    paths,
+  ]);
+
+  const exportFiles = async () => {
+    if (
+      busy ||
+      !paths ||
+      !pdfPath ||
+      !preview ||
+      preview.error_count > 0 ||
+      invalidQuantityEdit
+    ) {
+      return;
+    }
+
+    setActivity(
+      "export",
+    );
+
+    setError(
+      "",
+    );
+
+    setSuccess(
+      "",
+    );
+
+    try {
+      const quantityOverrides:
+        Record<string, number> = {};
+
+      for (
+        const [key, value]
+        of Object.entries(
+          quantityEdits,
+        )
+      ) {
+        if (value !== "") {
+          quantityOverrides[key] =
+            value;
+        }
+      }
+
+      const result =
+        await dailySoService
+          .process({
+            pdfPath,
+            templatePath:
+              paths.templatePath,
+            outputFolder:
+              paths.outputFolder,
+            quantityOverrides,
+          });
+
+      setPreview(
+        result,
+      );
+
+      setSuccess(
+        "สร้างไฟล์ Q19 และ Q20 เรียบร้อยแล้ว",
+      );
+
+      setAdjusting(
+        false,
+      );
+
+      setQuantityEdits(
+        {},
+      );
+    } catch (reason) {
+      setError(
+        getErrorMessage(
+          reason,
+        ),
+      );
+    } finally {
+      setActivity(
+        "idle",
+      );
+    }
+  };
+
+  return (
+    <div
+      className="
+        mx-auto
+        max-w-[1600px]
+        px-6
+        py-8
+        lg:px-10
+      "
+    >
+      <header
+        className="
+          flex
+          flex-col
+          justify-between
+          gap-5
+          md:flex-row
+          md:items-end
+        "
+      >
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={busy}
+            className="
+              mb-5
+              flex
+              items-center
+              gap-2
+              text-sm
+              text-slate-500
+              transition
+              hover:text-sky-300
+              disabled:opacity-40
+            "
+          >
+            <ArrowLeft
+              size={17}
+            />
+
+            กลับหน้าแดชบอร์ด
+          </button>
+
+          <p
+            className="
+              text-[10px]
+              font-semibold
+              tracking-[0.24em]
+              text-sky-300
+            "
+          >
+            DAILY SO IMPORT
+          </p>
+
+          <h2
+            className="
+              mt-2
+              text-3xl
+              font-semibold
+              text-white
+            "
+          >
+            ลงยอด SO รายวัน
+          </h2>
+
+          <p
+            className="
+              mt-3
+              max-w-3xl
+              text-sm
+              leading-6
+              text-slate-400
+            "
+          >
+            อ่าน PO จาก PDF จับคู่สินค้ากับ
+            Data-SO.Import และรวมยอดแยกเป็น
+            Q19 กับ Q20
+          </p>
+        </div>
+
+        <div
+          className="
+            flex
+            h-12
+            w-12
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-sky-300/20
+            bg-sky-300/[0.07]
+            text-sky-300
+          "
+        >
+          <FileSpreadsheet
+            size={23}
+          />
+        </div>
+      </header>
+
+      <section
+        className="
+          mt-7
+          grid
+          gap-4
+          lg:grid-cols-2
+        "
+      >
+        <button
+          type="button"
+          onClick={() => {
+            void choosePdf();
+          }}
+          disabled={busy}
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-4
+            rounded-2xl
+            border
+            border-sky-300/25
+            bg-sky-300/[0.06]
+            p-5
+            text-left
+            transition
+            hover:border-sky-300/45
+            hover:bg-sky-300/[0.1]
+            disabled:opacity-40
+          "
+        >
+          <div
+            className="
+              flex
+              h-12
+              w-12
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-sky-300/25
+              bg-sky-300/10
+              text-sky-300
+            "
+          >
+            <Upload
+              size={20}
+            />
+          </div>
+
+          <div className="min-w-0">
+            <p
+              className="
+                font-medium
+                text-white
+              "
+            >
+              อัปโหลดไฟล์ PDF
+            </p>
+
+            <p
+              className={`
+                mt-2
+                truncate
+                text-xs
+                ${
+                  pdfPath
+                    ? "text-emerald-300"
+                    : "text-slate-500"
+                }
+              `}
+            >
+              {
+                pdfPath ||
+                "เลือกไฟล์ PO จากโฟลเดอร์รายงาน SOรายวัน"
+              }
+            </p>
+          </div>
+        </button>
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-4
+            rounded-2xl
+            border
+            border-slate-600/50
+            bg-slate-800/25
+            p-5
+          "
+        >
+          <div
+            className="
+              flex
+              h-12
+              w-12
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800/60
+              text-slate-400
+            "
+          >
+            <LockKeyhole
+              size={19}
+            />
+          </div>
+
+          <div className="min-w-0">
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+              "
+            >
+              <p
+                className="
+                  font-medium
+                  text-white
+                "
+              >
+                Excel Template
+              </p>
+
+              <span
+                className="
+                  rounded-full
+                  border
+                  border-sky-300/20
+                  px-2
+                  py-0.5
+                  text-[10px]
+                  font-semibold
+                  text-sky-300
+                "
+              >
+                LOCKED
+              </span>
+            </div>
+
+            <p
+              className="
+                mt-2
+                text-xs
+                text-slate-300
+              "
+            >
+              Data-SO.Import.xlsx
+            </p>
+
+            <p
+              className="
+                mt-1
+                truncate
+                text-[11px]
+                text-slate-600
+              "
+            >
+              {
+                paths?.templatePath ||
+                "กำลังตรวจสอบตำแหน่ง Template..."
+              }
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {error && (
+        <MessageBox
+          kind="error"
+          title="ไม่สามารถดำเนินการได้"
+          message={error}
+        />
+      )}
+
+      {success && (
+        <MessageBox
+          kind="success"
+          title={success}
+          message={
+            preview?.output_paths
+              .join(" | ") ?? ""
+          }
+        />
+      )}
+
+      <div
+        className="
+          mt-6
+          flex
+          flex-wrap
+          justify-end
+          gap-3
+        "
+      >
+        <button
+          type="button"
+          disabled={
+            busy ||
+            !pdfPath ||
+            !paths
+          }
+          onClick={() => {
+            void buildPreview();
+          }}
+          className="
+            flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-sky-300/25
+            bg-sky-300/[0.08]
+            px-6
+            py-3
+            text-sm
+            font-medium
+            text-sky-200
+            transition
+            hover:bg-sky-300/[0.14]
+            disabled:cursor-not-allowed
+            disabled:opacity-35
+          "
+        >
+          {activity ===
+          "preview" ? (
+            <LoaderCircle
+              className="animate-spin"
+              size={18}
+            />
+          ) : (
+            <ScanSearch
+              size={18}
+            />
+          )}
+
+          ประมวลผลและแสดง Preview
+        </button>
+
+        {preview && (
+          <button
+            type="button"
+            disabled={
+              busy ||
+              preview.error_count > 0 ||
+              invalidQuantityEdit
+            }
+            onClick={() => {
+              setAdjusting(
+                (current) =>
+                  !current,
+              );
+            }}
+            className={`
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              px-6
+              py-3
+              text-sm
+              font-medium
+              transition
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+              ${
+                adjusting
+                  ? "border-amber-300/35 bg-amber-300/15 text-amber-200"
+                  : "border-amber-300/25 bg-amber-300/[0.08] text-amber-200"
+              }
+            `}
+          >
+            {adjusting ? (
+              <Check size={18} />
+            ) : (
+              <PencilLine
+                size={18}
+              />
+            )}
+
+            {adjusting
+              ? "ยืนยันยอดที่แก้ไข"
+              : "ตัดยอด"}
+          </button>
+        )}
+
+        {hasQuantityEdits && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setQuantityEdits(
+                {},
+              );
+            }}
+            className="
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800/40
+              px-5
+              py-3
+              text-sm
+              text-slate-300
+              disabled:opacity-35
+            "
+          >
+            <RotateCcw
+              size={17}
+            />
+
+            คืนยอดเดิม
+          </button>
+        )}
+
+        <button
+          type="button"
+          disabled={
+            busy ||
+            !preview ||
+            preview.error_count > 0 ||
+            invalidQuantityEdit ||
+            adjusting
+          }
+          onClick={() => {
+            void exportFiles();
+          }}
+          className="
+            flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-emerald-300/30
+            bg-emerald-300/10
+            px-6
+            py-3
+            text-sm
+            font-medium
+            text-emerald-200
+            transition
+            hover:bg-emerald-300/15
+            disabled:cursor-not-allowed
+            disabled:opacity-35
+          "
+        >
+          {activity ===
+          "export" ? (
+            <LoaderCircle
+              className="animate-spin"
+              size={18}
+            />
+          ) : (
+            <FileCheck2
+              size={18}
+            />
+          )}
+
+          บันทึกไฟล์ Q19 และ Q20
+        </button>
+
+        {preview?.output_folder && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              void dailySoService
+                .openFolder(
+                  preview
+                    .output_folder,
+                );
+            }}
+            className="
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-violet-300/25
+              bg-violet-300/[0.08]
+              px-6
+              py-3
+              text-sm
+              font-medium
+              text-violet-200
+            "
+          >
+            <FolderOpen
+              size={18}
+            />
+
+            เปิดโฟลเดอร์ผลลัพธ์
+          </button>
+        )}
+      </div>
+
+      <section className="mt-7">
+        <div
+          className="
+            mb-4
+            flex
+            items-center
+            justify-between
+          "
+        >
+          <div>
+            <p
+              className="
+                text-[10px]
+                font-semibold
+                tracking-[0.22em]
+                text-slate-500
+              "
+            >
+              PREVIEW
+            </p>
+
+            <h3
+              className="
+                mt-1
+                text-xl
+                font-semibold
+                text-white
+              "
+            >
+              ตรวจสอบข้อมูลก่อนบันทึก
+            </h3>
+          </div>
+
+          {preview && (
+            <div
+              className="
+                text-right
+                text-xs
+                text-slate-400
+              "
+            >
+              <p>
+                วันที่ PO {preview.document_date}
+              </p>
+
+              <p className="mt-1 text-sky-300">
+                {preview.po_count} PO · {preview.item_line_count} รายการต้นทาง
+              </p>
+            </div>
+          )}
+        </div>
+
+        {!preview ? (
+          <div
+            className="
+              flex
+              min-h-[360px]
+              flex-col
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-dashed
+              border-slate-700
+              bg-slate-800/15
+              text-slate-600
+            "
+          >
+            <FileSpreadsheet
+              size={36}
+            />
+
+            <p
+              className="
+                mt-3
+                text-sm
+              "
+            >
+              อัปโหลด PDF แล้วกดประมวลผล
+            </p>
+          </div>
+        ) : (
+          <div
+            className="
+              grid
+              gap-5
+              xl:grid-cols-2
+            "
+          >
+            {preview.groups.map(
+              (group) => (
+                <GroupPreview
+                  key={group.code}
+                  group={group}
+                  adjusting={
+                    adjusting
+                  }
+                  quantityEdits={
+                    quantityEdits
+                  }
+                  onQuantityChange={(
+                    key,
+                    value,
+                  ) => {
+                    setQuantityEdits(
+                      (current) => ({
+                        ...current,
+                        [key]: value,
+                      }),
+                    );
+                  }}
+                />
+              ),
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function GroupPreview({
+  group,
+  adjusting,
+  quantityEdits,
+  onQuantityChange,
+}: {
+  group: DailySoGroup;
+  adjusting: boolean;
+  quantityEdits:
+    QuantityEdits;
+  onQuantityChange: (
+    key: string,
+    value: number | "",
+  ) => void;
+}) {
+  const q19 =
+    group.code === "Q19";
+
+  const adjustedTotal =
+    group.records.reduce(
+      (total, record) => {
+        const key =
+          quantityEditKey(
+            group.code,
+            record.item_code,
+          );
+
+        const editedValue =
+          quantityEdits[key];
+
+        return total + (
+          typeof editedValue ===
+          "number"
+            ? editedValue
+            : record.quantity
+        );
+      },
+      0,
+    );
+
+  return (
+    <article
+      className={`
+        min-w-0
+        overflow-hidden
+        rounded-2xl
+        border
+        ${
+          q19
+            ? "border-violet-300/25 bg-violet-300/[0.045]"
+            : "border-cyan-300/25 bg-cyan-300/[0.045]"
+        }
+      `}
+    >
+      <div
+        className="
+          border-b
+          border-slate-700/60
+          p-5
+        "
+      >
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-4
+          "
+        >
+          <div>
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+              "
+            >
+              <Warehouse
+                className={
+                  q19
+                    ? "text-violet-300"
+                    : "text-cyan-300"
+                }
+                size={19}
+              />
+
+              <h4
+                className="
+                  text-xl
+                  font-semibold
+                  text-white
+                "
+              >
+                {group.code}
+              </h4>
+            </div>
+
+            <p
+              className="
+                mt-2
+                text-xs
+                leading-5
+                text-slate-400
+              "
+            >
+              {group.warehouses.join(" · ")}
+            </p>
+          </div>
+
+          <div
+            className="
+              text-right
+              text-xs
+              text-slate-400
+            "
+          >
+            <p>{group.po_count} PO</p>
+
+            <p className="mt-1 text-emerald-300">
+              {formatNumber(adjustedTotal)} ชิ้น
+            </p>
+          </div>
+        </div>
+
+        <p
+          className="
+            mt-4
+            break-words
+            rounded-xl
+            border
+            border-slate-700/50
+            bg-slate-950/25
+            px-3
+            py-2
+            text-[11px]
+            leading-5
+            text-slate-400
+          "
+        >
+          {group.po_text}
+        </p>
+      </div>
+
+      <div
+        className="
+          max-h-[560px]
+          overflow-auto
+        "
+      >
+        <table
+          className="
+            w-full
+            min-w-[680px]
+            text-left
+            text-xs
+          "
+        >
+          <thead
+            className="
+              sticky
+              top-0
+              z-10
+              bg-[#0a1724]
+              text-slate-400
+            "
+          >
+            <tr>
+              <th className="px-4 py-3">
+                รหัสสินค้า
+              </th>
+
+              <th className="px-4 py-3">
+                รายการสินค้า
+              </th>
+
+              <th className="px-4 py-3 text-right">
+                จำนวนรวม
+              </th>
+
+              <th className="px-4 py-3 text-right">
+                ราคา
+              </th>
+
+              <th className="px-4 py-3">
+                สถานะ
+              </th>
+            </tr>
+          </thead>
+
+          <tbody
+            className="
+              divide-y
+              divide-slate-800
+            "
+          >
+            {group.records.map(
+              (record, index) => {
+                const editKey =
+                  quantityEditKey(
+                    group.code,
+                    record.item_code,
+                  );
+
+                const editedValue =
+                  quantityEdits[
+                    editKey
+                  ];
+
+                const displayQuantity =
+                  editedValue ===
+                  undefined
+                    ? record.quantity
+                    : editedValue;
+
+                const changed =
+                  typeof editedValue ===
+                    "number" &&
+                  editedValue !==
+                    record.quantity;
+
+                return (
+                <tr
+                  key={`${record.item_code}-${record.pdf_name}-${index}`}
+                  className="
+                    align-top
+                    text-slate-300
+                  "
+                >
+                  <td
+                    className="
+                      whitespace-nowrap
+                      px-4
+                      py-3
+                      text-sky-300
+                    "
+                  >
+                    {record.item_code || "-"}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <p
+                      className="
+                        font-medium
+                        text-slate-200
+                      "
+                    >
+                      {record.item_name || record.pdf_name}
+                    </p>
+
+                    {record.message && (
+                      <p
+                        className="
+                          mt-1
+                          text-[11px]
+                          text-amber-300
+                        "
+                      >
+                        {record.message}
+                      </p>
+                    )}
+                  </td>
+
+                  <td
+                    className="
+                      px-4
+                      py-3
+                      text-right
+                      text-base
+                      font-semibold
+                      text-emerald-300
+                    "
+                  >
+                    {adjusting ? (
+                      <div
+                        className="
+                          ml-auto
+                          w-28
+                        "
+                      >
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={
+                            displayQuantity
+                          }
+                          onChange={(event) => {
+                            const value =
+                              event.target
+                                .value;
+
+                            onQuantityChange(
+                              editKey,
+                              value === ""
+                                ? ""
+                                : Number(
+                                    value,
+                                  ),
+                            );
+                          }}
+                          className="
+                            w-full
+                            rounded-lg
+                            border
+                            border-amber-300/35
+                            bg-slate-950/70
+                            px-3
+                            py-2
+                            text-right
+                            text-base
+                            font-semibold
+                            text-amber-200
+                            outline-none
+                            focus:border-amber-300/70
+                          "
+                        />
+
+                        {changed && (
+                          <p
+                            className="
+                              mt-1
+                              whitespace-nowrap
+                              text-[10px]
+                              font-normal
+                              text-slate-500
+                            "
+                          >
+                            เดิม {formatNumber(record.quantity)}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <span>
+                          {
+                            formatNumber(
+                              typeof displayQuantity ===
+                                "number"
+                                ? displayQuantity
+                                : record.quantity,
+                            )
+                          }
+                        </span>
+
+                        {changed && (
+                          <p
+                            className="
+                              mt-1
+                              whitespace-nowrap
+                              text-[10px]
+                              font-normal
+                              text-amber-300
+                            "
+                          >
+                            ตัดจาก {formatNumber(record.quantity)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </td>
+
+                  <td
+                    className="
+                      px-4
+                      py-3
+                      text-right
+                      text-slate-200
+                    "
+                  >
+                    {formatNumber(record.price)}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <StatusBadge
+                      status={record.status}
+                    />
+                  </td>
+                </tr>
+                );
+              },
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div
+        className="
+          flex
+          flex-wrap
+          items-center
+          justify-between
+          gap-3
+          border-t
+          border-slate-700/60
+          px-5
+          py-4
+          text-xs
+          text-slate-400
+        "
+      >
+        <span>{group.output_name}</span>
+
+        <span>
+          พร้อม {group.ready_count} · ตรวจสอบ {group.review_count} · ผิดพลาด {group.error_count}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function StatusBadge({
+  status,
+}: {
+  status:
+    "ready" | "review" | "error";
+}) {
+  const label =
+    status === "ready"
+      ? "พร้อม"
+      : status === "review"
+        ? "ตรวจสอบราคา"
+        : "ผิดพลาด";
+
+  const className =
+    status === "ready"
+      ? "border-emerald-300/20 bg-emerald-300/[0.08] text-emerald-300"
+      : status === "review"
+        ? "border-amber-300/20 bg-amber-300/[0.08] text-amber-300"
+        : "border-red-300/20 bg-red-300/[0.08] text-red-300";
+
+  return (
+    <span
+      className={`
+        inline-flex
+        whitespace-nowrap
+        rounded-full
+        border
+        px-2.5
+        py-1
+        text-[10px]
+        ${className}
+      `}
+    >
+      {label}
+    </span>
+  );
+}
+
+function MessageBox({
+  kind,
+  title,
+  message,
+}: {
+  kind: "error" | "success";
+  title: string;
+  message: string;
+}) {
+  const success =
+    kind === "success";
+
+  return (
+    <div
+      className={`
+        mt-5
+        flex
+        items-start
+        gap-3
+        rounded-xl
+        border
+        px-5
+        py-4
+        text-sm
+        ${
+          success
+            ? "border-emerald-300/20 bg-emerald-300/[0.07] text-emerald-200"
+            : "border-red-300/20 bg-red-300/[0.07] text-red-200"
+        }
+      `}
+    >
+      {success ? (
+        <CheckCircle2
+          className="mt-0.5 shrink-0"
+          size={18}
+        />
+      ) : (
+        <TriangleAlert
+          className="mt-0.5 shrink-0"
+          size={18}
+        />
+      )}
+
+      <div className="min-w-0">
+        <p className="font-medium">
+          {title}
+        </p>
+
+        {message && (
+          <p
+            className="
+              mt-1
+              break-all
+              text-xs
+              opacity-80
+            "
+          >
+            {message}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function quantityEditKey(
+  groupCode: string,
+  itemCode: string,
+): string {
+  return `${groupCode}|${itemCode}`;
+}
+
+const numberFormatter =
+  new Intl.NumberFormat(
+    "th-TH",
+    {
+      maximumFractionDigits: 2,
+    },
+  );
+
+function formatNumber(
+  value: number,
+): string {
+  return numberFormatter.format(
+    value,
+  );
+}
+
+function getErrorMessage(
+  reason: unknown,
+): string {
+  if (
+    reason instanceof Error
+  ) {
+    return reason.message;
+  }
+
+  if (
+    typeof reason === "string"
+  ) {
+    return reason;
+  }
+
+  return "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
 }
