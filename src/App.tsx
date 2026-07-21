@@ -43,6 +43,10 @@ import {
   SplitRenamePoPage,
 } from "./pages/modules/SplitRenamePoPage";
 
+import {
+  ProductCatalogPage,
+} from "./pages/modules/product-catalog/ProductCatalogPage";
+
 import type {
   AppRoute,
   WorkRoute,
@@ -55,51 +59,38 @@ const systemUser: AppUser = {
 };
 
 function App() {
-  const [
-    route,
-    setRoute,
-  ] = useState<AppRoute>(
-    "login",
-  );
+  const [route, setRoute] =
+    useState<AppRoute>("login");
+
+  const [nextProcessPdfPath, setNextProcessPdfPath] =
+    useState("");
 
   useEffect(() => {
     if (route !== "splash") {
       return;
     }
 
-    const timer =
-      window.setTimeout(() => {
-        setRoute(
-          "dashboard",
-        );
-      }, 2200);
+    const timer = window.setTimeout(() => {
+      setRoute("dashboard");
+    }, 2200);
 
     return () => {
-      window.clearTimeout(
-        timer,
-      );
+      window.clearTimeout(timer);
     };
   }, [route]);
 
   const handleLogin = () => {
-    setRoute(
-      "splash",
-    );
+    setRoute("splash");
   };
 
   const handleLogout = () => {
-    setRoute(
-      "login",
-    );
+    setNextProcessPdfPath("");
+    setRoute("login");
   };
 
   if (route === "login") {
     return (
-      <LoginPage
-        onLogin={
-          handleLogin
-        }
-      />
+      <LoginPage onLogin={handleLogin} />
     );
   }
 
@@ -107,52 +98,55 @@ function App() {
     return <SplashPage />;
   }
 
-  const navigate = (
-    nextRoute: WorkRoute,
-  ) => {
-    setRoute(
-      nextRoute,
-    );
+  const navigate = (nextRoute: WorkRoute) => {
+    setRoute(nextRoute);
   };
 
   const backToDashboard = () => {
-    setRoute(
-      "dashboard",
-    );
+    setRoute("dashboard");
+  };
+
+  const continueToDailySo = (pdfPath: string) => {
+    setNextProcessPdfPath(pdfPath);
+    setRoute("daily-so");
+  };
+
+  const consumeNextProcessPdf = () => {
+    setNextProcessPdfPath("");
   };
 
   const renderPage = () => {
     switch (route) {
       case "daily-picking":
         return (
-          <DailyPickingPage
-            onBack={
-              backToDashboard
-            }
-          />
+          <DailyPickingPage onBack={backToDashboard} />
         );
 
       case "daily-so":
         return (
           <DailySoPage
-            onBack={
-              backToDashboard
-            }
+            onBack={backToDashboard}
+            initialPdfPath={nextProcessPdfPath}
+            onInitialPdfConsumed={consumeNextProcessPdf}
           />
         );
 
       case "split-rename-po":
         return (
           <SplitRenamePoPage
-            onBack={
-              backToDashboard
-            }
+            onBack={backToDashboard}
+            onNextProcess={continueToDailySo}
           />
         );
 
       case "daily-summary":
         return (
-          <DailySummaryPage
+          <DailySummaryPage onBack={backToDashboard} />
+        );
+
+      case "product-catalog":
+        return (
+          <ProductCatalogPage
             onBack={
               backToDashboard
             }
@@ -162,23 +156,15 @@ function App() {
       case "po-data":
         return (
           <PoDataPage
-            currentUser={
-              systemUser
-            }
-            onBack={
-              backToDashboard
-            }
+            currentUser={systemUser}
+            onBack={backToDashboard}
           />
         );
 
       case "dashboard":
       default:
         return (
-          <DashboardPage
-            onNavigate={
-              navigate
-            }
-          />
+          <DashboardPage onNavigate={navigate} />
         );
     }
   };
@@ -186,15 +172,9 @@ function App() {
   return (
     <AppLayout
       currentRoute={route}
-      currentUser={
-        systemUser
-      }
-      onNavigate={
-        navigate
-      }
-      onLogout={
-        handleLogout
-      }
+      currentUser={systemUser}
+      onNavigate={navigate}
+      onLogout={handleLogout}
     >
       {renderPage()}
     </AppLayout>

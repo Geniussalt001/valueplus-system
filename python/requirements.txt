@@ -1,3 +1,4 @@
 pdfplumber==0.11.8
 openpyxl==3.1.5
 pywin32==311
+pypdf==6.10.0

@@ -1,5 +1,18 @@
 mod commands;
 
+use commands::daily_so::{
+    preview_daily_so,
+    process_daily_so,
+};
+
+use commands::express_summary::{
+    process_express_summary,
+};
+
+use commands::pdf_splitter::{
+    split_po_pdf,
+};
+
 use commands::po_processor::{
     preview_po_documents,
     process_po_documents,
@@ -7,6 +20,10 @@ use commands::po_processor::{
 
 use commands::print_processor::{
     print_po_workbook,
+};
+
+use commands::product_catalog::{
+    manage_product_catalog,
 };
 
 #[tauri::command]
@@ -51,9 +68,14 @@ pub fn run() {
         .invoke_handler(
             tauri::generate_handler![
                 greet,
+                manage_product_catalog,
                 preview_po_documents,
                 process_po_documents,
                 print_po_workbook,
+                split_po_pdf,
+                process_express_summary,
+                preview_daily_so,
+                process_daily_so,
             ],
         )
         .run(

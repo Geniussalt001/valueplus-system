@@ -4,6 +4,7 @@ import {
   Database,
   FileSpreadsheet,
   Files,
+  PackageSearch,
 } from "lucide-react";
 
 import type {
@@ -14,126 +15,117 @@ export const systemModules:
   SystemModule[] = [
     {
       id: 1,
-
       route:
         "daily-picking",
-
       title:
-        "ออกใบจัดรายวัน",
-
+        "แยก และเปลี่ยนชื่อ PO",
       subtitle:
-        "DAILY PICKING",
-
+        "SPLIT & RENAME PO",
       description:
-        "จัดเตรียม ตรวจสอบ และสร้างรายงานใบจัดสินค้าประจำวัน",
-
+        "แยกเฉพาะหน้าที่มีรายการสินค้า เปลี่ยนชื่อไฟล์ และจัดเก็บตามวันที่เอกสาร PO",
       icon:
-        ClipboardList,
-
+        Files,
       color:
         "#22d3ee",
-
       status:
-        "offline",
+        "online",
     },
 
     {
       id: 2,
-
       route:
         "daily-so",
-
       title:
         "ลงยอด SO รายวัน",
-
       subtitle:
         "DAILY SO IMPORT",
-
       description:
-        "ประมวลผลเอกสารและนำข้อมูลยอดขายเข้าสู่ระบบ",
-
+        "อ่าน PO จับคู่สินค้า รวมยอด และสร้างไฟล์ Q19 กับ Q20 อัตโนมัติ",
       icon:
         FileSpreadsheet,
-
       color:
         "#38bdf8",
-
       status:
-        "offline",
+        "online",
     },
 
     {
       id: 3,
-
       route:
         "split-rename-po",
-
       title:
-        "แยก และเปลี่ยนชื่อ PO",
-
+        "ออกใบจัดรายวัน",
       subtitle:
-        "SPLIT & RENAME PO",
-
+        "DAILY PICKING",
       description:
         "อ่านข้อมูลจาก PDF จับคู่สินค้ากับ Template และจัดทำใบจัดสินค้าอัตโนมัติ",
-
       icon:
-        Files,
-
+        ClipboardList,
       color:
         "#60a5fa",
-
       status:
         "online",
     },
 
     {
       id: 4,
-
       route:
         "daily-summary",
-
       title:
         "สรุปยอดรายวัน",
-
       subtitle:
         "DAILY SUMMARY",
-
       description:
-        "รวบรวม ตรวจสอบ และสรุปผลการดำเนินงานประจำวัน",
-
+        "เลือกสรุปยอด Express หรือสรุปยอดตุ๊กตา",
       icon:
         BarChart3,
-
       color:
         "#a78bfa",
-
       status:
-        "offline",
+        "online",
     },
 
     {
       id: 5,
-
       route:
         "po-data",
-
       title:
         "ระบบลงข้อมูล PO",
-
       subtitle:
         "PO DATA SYSTEM",
-
       description:
         "ลงทะเบียน ติดตาม และตรวจสอบสถานะเอกสาร PO",
-
       icon:
         Database,
-
       color:
         "#34d399",
+      status:
+        "online",
+    },
+
+    {
+      id: 6,
+
+      route:
+        "product-catalog",
+
+      title:
+        "จัดการข้อมูลสินค้า",
+
+      subtitle:
+        "PRODUCT CATALOG",
+
+      description:
+        "เพิ่ม แก้ไข เปิด ปิด และกำหนดชื่อสินค้าสำหรับสรุปยอด",
+
+      icon:
+        PackageSearch,
+
+      color:
+        "#2dd4bf",
 
       status:
         "online",
     },
+
   ];
