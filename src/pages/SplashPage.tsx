@@ -4,10 +4,10 @@ import {
 
 export function SplashPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020812]">
-      <div className="tron-grid pointer-events-none absolute inset-0 opacity-20" />
+    <main className="splash-red-white relative flex min-h-screen items-center justify-center overflow-hidden">
+      <div className="tron-grid pointer-events-none absolute inset-0 opacity-40" />
 
-      <div className="splash-aura absolute h-[460px] w-[460px] rounded-full bg-cyan-400/10 blur-[110px]" />
+      <div className="absolute h-[460px] w-[460px] rounded-full bg-red-500/10 blur-[110px]" />
 
       <div className="relative z-10 flex flex-col items-center">
         <div className="splash-logo-container flex h-44 w-80 items-center justify-center">
@@ -17,7 +17,7 @@ export function SplashPage() {
           />
         </div>
 
-        <p className="mt-7 text-xs tracking-[0.42em] text-cyan-300">
+        <p className="mt-7 text-xs font-semibold tracking-[0.42em] text-red-700">
           VALUEPLUS SYSTEM
         </p>
 

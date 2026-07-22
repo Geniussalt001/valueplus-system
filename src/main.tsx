@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import "./styles.css";
 import "./styles/base.css";
 import "./styles/effects.css";
+import "./styles/red-white-theme.css";
 
 import App from "./App";
 

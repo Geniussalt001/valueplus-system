@@ -6,6 +6,7 @@ import {
 
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   FileCheck2,
   FileSpreadsheet,
@@ -35,6 +36,7 @@ interface DailySoPageProps {
   onBack: () => void;
   initialPdfPath?: string;
   onInitialPdfConsumed?: () => void;
+  onNextProcess: (pdfPath: string) => void;
 }
 
 type Activity =
@@ -52,6 +54,7 @@ export function DailySoPage({
   onBack,
   initialPdfPath = "",
   onInitialPdfConsumed,
+  onNextProcess,
 }: DailySoPageProps) {
   const autoProcessedPdfRef =
     useRef("");
@@ -322,9 +325,17 @@ export function DailySoPage({
       !paths ||
       !pdfPath ||
       !preview ||
-      preview.error_count > 0 ||
       invalidQuantityEdit
     ) {
+      return;
+    }
+
+    if (preview.error_count > 0) {
+      setError(
+        getPreviewBlockingMessage(
+          preview,
+        ),
+      );
       return;
     }
 
@@ -356,6 +367,12 @@ export function DailySoPage({
         }
       }
 
+      const outputFolder =
+        await dailySoService
+          .getOutputFolder(
+            preview.document_date,
+          );
+
       const result =
         await dailySoService
           .process({
@@ -363,7 +380,7 @@ export function DailySoPage({
             templatePath:
               paths.templatePath,
             outputFolder:
-              paths.outputFolder,
+              outputFolder,
             quantityOverrides,
           });
 
@@ -747,7 +764,6 @@ export function DailySoPage({
             type="button"
             disabled={
               busy ||
-              preview.error_count > 0 ||
               invalidQuantityEdit
             }
             onClick={() => {
@@ -827,9 +843,7 @@ export function DailySoPage({
           disabled={
             busy ||
             !preview ||
-            preview.error_count > 0 ||
-            invalidQuantityEdit ||
-            adjusting
+            invalidQuantityEdit
           }
           onClick={() => {
             void exportFiles();
@@ -899,6 +913,44 @@ export function DailySoPage({
             />
 
             เปิดโฟลเดอร์ผลลัพธ์
+          </button>
+        )}
+
+        {preview &&
+          preview.output_paths.length > 0 &&
+          pdfPath && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              onNextProcess(
+                pdfPath,
+              );
+            }}
+            className="
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-sky-400/40
+              bg-sky-500
+              px-6
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              shadow-lg
+              shadow-sky-500/20
+              transition
+              hover:-translate-y-0.5
+              hover:bg-sky-600
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            Next Process
+            <ArrowRight size={18} />
           </button>
         )}
       </div>
@@ -1049,6 +1101,7 @@ function GroupPreview({
           quantityEditKey(
             group.code,
             record.item_code,
+            record.price,
           );
 
         const editedValue =
@@ -1225,6 +1278,7 @@ function GroupPreview({
                   quantityEditKey(
                     group.code,
                     record.item_code,
+                    record.price,
                   );
 
                 const editedValue =
@@ -1540,8 +1594,9 @@ function MessageBox({
 function quantityEditKey(
   groupCode: string,
   itemCode: string,
+  price: number,
 ): string {
-  return `${groupCode}|${itemCode}`;
+  return `${groupCode}|${itemCode}|${price}`;
 }
 
 const numberFormatter =
@@ -1576,4 +1631,35 @@ function getErrorMessage(
   }
 
   return "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+}
+
+function getPreviewBlockingMessage(
+  result: DailySoResult,
+): string {
+  const details = [
+    ...result.unknown_warehouses.map(
+      (warehouse) =>
+        `ไม่รู้จักคลัง ${warehouse}`,
+    ),
+    ...result.groups.flatMap(
+      (group) =>
+        group.records
+          .filter(
+            (record) =>
+              record.status === "error",
+          )
+          .map(
+            (record) =>
+              `${group.code}: ${record.pdf_name || "ไม่ทราบชื่อสินค้า"} — ${record.message}`,
+          ),
+    ),
+  ];
+
+  const summary = details
+    .slice(0, 5)
+    .join(" · ");
+
+  return summary
+    ? `ยังบันทึกไม่ได้ กรุณาตรวจสอบรายการต่อไปนี้: ${summary}`
+    : "ยังบันทึกไม่ได้ เนื่องจาก Preview มีรายการผิดพลาด กรุณาตรวจสอบรายการสีแดง";
 }

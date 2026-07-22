@@ -35,6 +35,11 @@ def main() -> int:
         action="store_true",
     )
 
+    parser.add_argument(
+        "--quantity-overrides-json",
+        default="{}",
+    )
+
     arguments = parser.parse_args()
 
     try:
@@ -51,6 +56,18 @@ def main() -> int:
                     "กรุณาระบุโฟลเดอร์ปลายทาง",
                 )
 
+            quantity_overrides = json.loads(
+                arguments.quantity_overrides_json,
+            )
+
+            if not isinstance(
+                quantity_overrides,
+                dict,
+            ):
+                raise ValueError(
+                    "ข้อมูลตัดยอดไม่ถูกต้อง",
+                )
+
             result = process_daily_so(
                 pdf_path=arguments.pdf,
                 template_path=(
@@ -58,6 +75,9 @@ def main() -> int:
                 ),
                 output_folder=(
                     arguments.output_folder
+                ),
+                quantity_overrides=(
+                    quantity_overrides
                 ),
             )
 

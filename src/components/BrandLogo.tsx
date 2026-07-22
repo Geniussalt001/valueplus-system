@@ -18,13 +18,12 @@ export function BrandLogo({
       role="img"
       aria-label="ValuePlus Retail Co., Ltd."
       className={`
+        brand-logo
         ${logoSizes[size]}
         ${className}
       `}
       style={{
         aspectRatio: "650 / 239",
-        background:
-          "linear-gradient(105deg, #ffffff 0%, #cffafe 38%, #67e8f9 68%, #38bdf8 100%)",
         maskImage:
           "url('/images/valueplus-logo.png')",
         maskPosition: "center",
@@ -38,8 +37,6 @@ export function BrandLogo({
           "no-repeat",
         WebkitMaskSize:
           "contain",
-        filter:
-          "drop-shadow(0 0 13px rgba(34, 211, 238, 0.25))",
       }}
     />
   );

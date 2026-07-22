@@ -150,6 +150,7 @@ def process_daily_so(
     pdf_path: str | Path,
     template_path: str | Path,
     output_folder: str | Path,
+    quantity_overrides: dict[str, float] | None = None,
 ) -> dict:
     preview = preview_daily_so(
         pdf_path,
@@ -172,6 +173,11 @@ def process_daily_so(
     )
 
     output_paths = []
+
+    _apply_quantity_overrides(
+        preview["groups"],
+        quantity_overrides or {},
+    )
 
     for group in preview["groups"]:
         output_path = (
@@ -202,6 +208,72 @@ def process_daily_so(
     )
 
     return preview
+
+
+def _apply_quantity_overrides(
+    groups: list[dict],
+    overrides: dict[str, float],
+) -> None:
+    for group in groups:
+        for record in group["records"]:
+            key = (
+                f'{group["code"]}|'
+                f'{record["item_code"]}|'
+                f'{record["price"]}'
+            )
+
+            legacy_key = (
+                f'{group["code"]}|'
+                f'{record["item_code"]}'
+            )
+
+            override_key = (
+                key
+                if key in overrides
+                else legacy_key
+            )
+
+            if override_key not in overrides:
+                continue
+
+            try:
+                next_quantity = float(
+                    overrides[override_key],
+                )
+            except (
+                TypeError,
+                ValueError,
+            ) as error:
+                raise DailySoError(
+                    f"ยอดที่แก้ไขไม่ถูกต้อง: {key}",
+                ) from error
+
+            if next_quantity < 0:
+                raise DailySoError(
+                    f"ยอดที่แก้ไขต้องไม่น้อยกว่า 0: {key}",
+                )
+
+            original_quantity = (
+                record["quantity"]
+            )
+            record["original_quantity"] = (
+                original_quantity
+            )
+            record["quantity"] = (
+                _clean_number(
+                    next_quantity,
+                )
+            )
+            record["adjusted"] = True
+
+        group["total_quantity"] = (
+            _clean_number(
+                sum(
+                    record["quantity"]
+                    for record in group["records"]
+                ),
+            )
+        )
 
 
 def _validate_file(
@@ -571,7 +643,7 @@ def _build_group(
     for document in documents:
         if not document.items:
             errors.append(
-                f"{document.po_number} ไม่มีรายการสินค้า",
+                f"{document.po_number} ไม่มีรายการสินค้า ระบบข้าม PO นี้",
             )
             continue
 
@@ -587,7 +659,8 @@ def _build_group(
             if product is None:
                 key = (
                     f"UNMATCHED:{item.barcode}:"
-                    f"{item.pdf_name}"
+                    f"{item.pdf_name}:"
+                    f"{_clean_number(item.price)}"
                 )
 
                 record = records.get(
@@ -621,7 +694,10 @@ def _build_group(
                 )
                 continue
 
-            key = product.item_code
+            key = (
+                f"{product.item_code}|"
+                f"{_clean_number(item.price)}"
+            )
             record = records.get(
                 key,
             )
@@ -662,17 +738,6 @@ def _build_group(
                     item.barcode,
                 )
 
-            if not _same_price(
-                record["price"],
-                item.price,
-            ):
-                record["status"] = (
-                    "error"
-                )
-                record["message"] = (
-                    "พบราคาต่อหน่วยมากกว่า 1 ราคาในกลุ่มเดียวกัน"
-                )
-
             if (
                 product.price is not None
                 and not _same_price(
@@ -710,7 +775,7 @@ def _build_group(
         1
         for record in clean_records
         if record["status"] == "error"
-    ) + len(errors)
+    )
 
     review_count = sum(
         1
@@ -726,8 +791,8 @@ def _build_group(
     return {
         "code": group_code,
         "po_numbers": po_numbers,
-        "po_text": " , ".join(
-            po_numbers,
+        "po_text": (
+            f"รวม {len(po_numbers)} คลัง"
         ),
         "warehouses": list(
             OrderedDict.fromkeys(
@@ -978,12 +1043,19 @@ def _write_group_workbook(
         workbook.close()
         workbook = None
 
-        if output_path.exists():
-            output_path.unlink()
+        try:
+            if output_path.exists():
+                output_path.unlink()
 
-        temporary_path.replace(
-            output_path,
-        )
+            temporary_path.replace(
+                output_path,
+            )
+        except PermissionError as error:
+            raise DailySoError(
+                "ไม่สามารถบันทึกไฟล์ SO ได้ "
+                "กรุณาปิดไฟล์ Q19/Q20 ที่เปิดอยู่ใน Excel "
+                f"แล้วลองใหม่อีกครั้ง: {output_path}",
+            ) from error
     except Exception:
         temporary_path.unlink(
             missing_ok=True,
@@ -1068,6 +1140,16 @@ def _normalize_warehouse(
         "โคราช",
     }:
         return "โคราช"
+
+    if normalized.startswith(
+        "เชียงใหม่",
+    ):
+        return "เชียงใหม่"
+
+    if normalized.startswith(
+        "ขอนแก่น",
+    ):
+        return "ขอนแก่น"
 
     return normalized
 

@@ -66,6 +66,29 @@ export const dailySoService = {
     };
   },
 
+  async getOutputFolder(
+    documentDate: string,
+  ): Promise<string> {
+    const paths =
+      await this.getPaths();
+
+    const parsed =
+      parseDocumentDate(
+        documentDate,
+      );
+
+    return join(
+      paths.baseFolder,
+      "Retail",
+      String(parsed.year),
+      String(parsed.month).padStart(
+        2,
+        "0",
+      ),
+      String(parsed.day),
+    );
+  },
+
   async selectPdf():
     Promise<string | null>
   {
@@ -124,3 +147,53 @@ export const dailySoService = {
     );
   },
 };
+
+function parseDocumentDate(
+  value: string,
+): {
+  day: number;
+  month: number;
+  year: number;
+} {
+  const match = value
+    .trim()
+    .match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+    );
+
+  if (!match) {
+    throw new Error(
+      `รูปแบบวันที่เอกสารไม่ถูกต้อง: ${value}`,
+    );
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  let year = Number(match[3]);
+
+  if (year >= 2400) {
+    year -= 543;
+  }
+
+  const testDate = new Date(
+    year,
+    month - 1,
+    day,
+  );
+
+  if (
+    testDate.getFullYear() !== year ||
+    testDate.getMonth() !== month - 1 ||
+    testDate.getDate() !== day
+  ) {
+    throw new Error(
+      `วันที่เอกสารไม่ถูกต้อง: ${value}`,
+    );
+  }
+
+  return {
+    day,
+    month,
+    year,
+  };
+}

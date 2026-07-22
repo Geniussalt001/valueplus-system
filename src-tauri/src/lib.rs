@@ -5,6 +5,10 @@ use commands::daily_so::{
     process_daily_so,
 };
 
+use commands::doll_summary::{
+    manage_doll_summary,
+};
+
 use commands::express_summary::{
     process_express_summary,
 };
@@ -69,6 +73,7 @@ pub fn run() {
             tauri::generate_handler![
                 greet,
                 manage_product_catalog,
+                manage_doll_summary,
                 preview_po_documents,
                 process_po_documents,
                 print_po_workbook,

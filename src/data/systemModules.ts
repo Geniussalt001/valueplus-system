@@ -16,15 +16,15 @@ export const systemModules:
     {
       id: 1,
       route:
-        "daily-picking",
+        "split-rename-po",
       title:
-        "แยก และเปลี่ยนชื่อ PO",
+        "ออกใบจัดรายวัน",
       subtitle:
-        "SPLIT & RENAME PO",
+        "DAILY PICKING",
       description:
-        "แยกเฉพาะหน้าที่มีรายการสินค้า เปลี่ยนชื่อไฟล์ และจัดเก็บตามวันที่เอกสาร PO",
+        "อ่านข้อมูลจาก PDF จับคู่สินค้ากับ Template และจัดทำใบจัดสินค้าอัตโนมัติ",
       icon:
-        Files,
+        ClipboardList,
       color:
         "#22d3ee",
       status:
@@ -52,15 +52,15 @@ export const systemModules:
     {
       id: 3,
       route:
-        "split-rename-po",
+        "daily-picking",
       title:
-        "ออกใบจัดรายวัน",
+        "แยก และเปลี่ยนชื่อ PO",
       subtitle:
-        "DAILY PICKING",
+        "SPLIT & RENAME PO",
       description:
-        "อ่านข้อมูลจาก PDF จับคู่สินค้ากับ Template และจัดทำใบจัดสินค้าอัตโนมัติ",
+        "แยกเฉพาะหน้าที่มีรายการสินค้า เปลี่ยนชื่อไฟล์ และจัดเก็บตามวันที่เอกสาร PO",
       icon:
-        ClipboardList,
+        Files,
       color:
         "#60a5fa",
       status:

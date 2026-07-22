@@ -11,6 +11,7 @@ import {
 
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   FileText,
   Files,
@@ -35,6 +36,9 @@ import type {
 
 interface DailyPickingPageProps {
   onBack: () => void;
+  initialPdfPath?: string;
+  onInitialPdfConsumed?: () => void;
+  onNextProcess: () => void;
 }
 
 interface VisibleLog {
@@ -45,7 +49,13 @@ interface VisibleLog {
 
 export function DailyPickingPage({
   onBack,
+  initialPdfPath = "",
+  onInitialPdfConsumed,
+  onNextProcess,
 }: DailyPickingPageProps) {
+  const receivedPdfRef =
+    useRef("");
+
   const [
     pdfPath,
     setPdfPath,
@@ -116,6 +126,37 @@ export function DailyPickingPage({
         );
       });
   }, []);
+
+  useEffect(() => {
+    if (
+      !initialPdfPath ||
+      receivedPdfRef.current === initialPdfPath
+    ) {
+      return;
+    }
+
+    receivedPdfRef.current =
+      initialPdfPath;
+
+    setPdfPath(
+      initialPdfPath,
+    );
+    setResult(null);
+    setError("");
+    logSequence.current += 1;
+    setLogs([
+      {
+        id: logSequence.current,
+        level: "info",
+        message:
+          "รับไฟล์ PDF จากขั้นตอนลงยอด SO รายวันเรียบร้อยแล้ว",
+      },
+    ]);
+    onInitialPdfConsumed?.();
+  }, [
+    initialPdfPath,
+    onInitialPdfConsumed,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -779,6 +820,39 @@ export function DailyPickingPage({
             <FolderOpen size={18} />
 
             เปิดโฟลเดอร์ที่บันทึก
+          </button>
+        )}
+
+        {result && (
+          <button
+            type="button"
+            disabled={processing}
+            onClick={onNextProcess}
+            className="
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-sky-400/40
+              bg-sky-500
+              px-6
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              shadow-lg
+              shadow-sky-500/20
+              transition
+              hover:-translate-y-0.5
+              hover:bg-sky-600
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            Next Process
+            <ArrowRight size={18} />
           </button>
         )}
       </div>

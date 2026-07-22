@@ -111,6 +111,16 @@ function App() {
     setRoute("daily-so");
   };
 
+  const continueToPdfSplitter = (pdfPath: string) => {
+    setNextProcessPdfPath(pdfPath);
+    setRoute("daily-picking");
+  };
+
+  const continueToDailySummary = () => {
+    setNextProcessPdfPath("");
+    setRoute("daily-summary");
+  };
+
   const consumeNextProcessPdf = () => {
     setNextProcessPdfPath("");
   };
@@ -119,7 +129,12 @@ function App() {
     switch (route) {
       case "daily-picking":
         return (
-          <DailyPickingPage onBack={backToDashboard} />
+          <DailyPickingPage
+            onBack={backToDashboard}
+            initialPdfPath={nextProcessPdfPath}
+            onInitialPdfConsumed={consumeNextProcessPdf}
+            onNextProcess={continueToDailySummary}
+          />
         );
 
       case "daily-so":
@@ -128,6 +143,7 @@ function App() {
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
             onInitialPdfConsumed={consumeNextProcessPdf}
+            onNextProcess={continueToPdfSplitter}
           />
         );
 
