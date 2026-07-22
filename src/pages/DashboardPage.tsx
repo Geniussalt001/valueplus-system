@@ -78,21 +78,24 @@ export function DashboardPage({
                 systemModules.length,
               ).padStart(2, "0")}
               label="ระบบงาน"
-              color="text-cyan-300"
+              color="text-cyan-600"
+              statusClass="status-online"
             />
 
             <StatusBox
               icon={Activity}
               value={`${availability}%`}
               label="พร้อมใช้งาน"
-              color="text-emerald-300"
+              color="text-emerald-600"
+              statusClass="status-success"
             />
 
             <StatusBox
               icon={ShieldCheck}
               value="LOCAL"
               label="การเชื่อมต่อ"
-              color="text-blue-300"
+              color="text-blue-600"
+              statusClass="status-online"
             />
           </div>
         </div>
@@ -136,6 +139,7 @@ interface StatusBoxProps {
   value: string;
   label: string;
   color: string;
+  statusClass: string;
 }
 
 function StatusBox({
@@ -143,9 +147,15 @@ function StatusBox({
   value,
   label,
   color,
+  statusClass,
 }: StatusBoxProps) {
   return (
-    <div className="min-w-32 rounded-xl border border-white/[0.07] bg-white/[0.035] p-4">
+    <div className="relative min-w-32 rounded-xl border border-cyan-700/15 bg-white/70 p-4 shadow-sm">
+      <span
+        className={`status-light absolute right-4 top-4 ${statusClass}`}
+        aria-hidden="true"
+      />
+
       <Icon
         size={17}
         className={color}
