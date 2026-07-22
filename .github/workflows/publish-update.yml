@@ -32,6 +32,11 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Cache Rust build
         uses: swatinem/rust-cache@v2
         with:
@@ -39,6 +44,44 @@ jobs:
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build bundled ValuePlus Engine
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r python/requirements.txt pyinstaller
+          New-Item -ItemType Directory -Path src-tauri/binaries -Force | Out-Null
+          New-Item -ItemType Directory -Path build/valueplus-engine -Force | Out-Null
+          New-Item -ItemType Directory -Path build/valueplus-engine-spec -Force | Out-Null
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --name valueplus-engine `
+            --distpath src-tauri/binaries `
+            --workpath build/valueplus-engine `
+            --specpath build/valueplus-engine-spec `
+            --paths python `
+            --hidden-import pythoncom `
+            --hidden-import pywintypes `
+            --hidden-import win32timezone `
+            --hidden-import win32com.client `
+            python/valueplus_engine.py
+
+          $source = "src-tauri/binaries/valueplus-engine.exe"
+          $target = "src-tauri/binaries/valueplus-engine-x86_64-pc-windows-msvc.exe"
+
+          if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "PyInstaller did not create $source"
+          }
+
+          Move-Item -LiteralPath $source -Destination $target -Force
+
+          & $target product-catalog --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Bundled ValuePlus Engine self-test failed"
+          }
 
       - name: Build, sign and publish update
         uses: tauri-apps/tauri-action@v1

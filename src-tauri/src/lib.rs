@@ -1,4 +1,6 @@
 mod commands;
+mod default_files;
+mod python_engine;
 
 use commands::daily_so::{
     preview_daily_so,
@@ -47,6 +49,20 @@ fn greet(
 pub fn run() {
     let builder =
         tauri::Builder::default()
+            .setup(|app| {
+                if let Err(error) =
+                    default_files::install(
+                        app.handle(),
+                    )
+                {
+                    eprintln!(
+                        "Default template installation warning: {}",
+                        error,
+                    );
+                }
+
+                Ok(())
+            })
             .plugin(
                 tauri_plugin_http::init(),
             )

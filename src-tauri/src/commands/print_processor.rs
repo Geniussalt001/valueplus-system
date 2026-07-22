@@ -1,10 +1,9 @@
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+use crate::python_engine::engine_command;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,23 +48,6 @@ fn run_print_command(
 ) -> Result<Value, String> {
     validate_input(&input)?;
 
-    let project_path = get_project_path()?;
-
-    let python_folder = project_path.join(
-        "python",
-    );
-
-    let print_cli_path = python_folder.join(
-        "print_cli.py",
-    );
-
-    if !print_cli_path.is_file() {
-        return Err(format!(
-            "ไม่พบ Print Engine ที่ {}",
-            print_cli_path.display(),
-        ));
-    }
-
     let print_jobs_json = serde_json::to_string(
         &input.warehouses,
     )
@@ -76,29 +58,12 @@ fn run_print_command(
         )
     })?;
 
-    let python_path = get_python_path(
-        &project_path,
-    );
-
-    let mut command = Command::new(
-        python_path,
-    );
+    let mut command = engine_command(
+        "print",
+        "print_cli.py",
+    )?;
 
     command
-        .current_dir(&project_path)
-        .env(
-            "PYTHONUTF8",
-            "1",
-        )
-        .env(
-            "PYTHONIOENCODING",
-            "utf-8",
-        )
-        .env(
-            "PYTHONPATH",
-            &python_folder,
-        )
-        .arg(&print_cli_path)
         .arg("--workbook")
         .arg(&input.workbook_path)
         .arg("--jobs-json")
@@ -241,54 +206,4 @@ fn validate_input(
     }
 
     Ok(())
-}
-
-fn get_project_path()
-    -> Result<PathBuf, String>
-{
-    let cargo_folder = PathBuf::from(
-        env!("CARGO_MANIFEST_DIR"),
-    );
-
-    cargo_folder
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or_else(|| {
-            "ไม่พบโฟลเดอร์โปรเจกต์"
-                .to_string()
-        })
-}
-
-fn get_python_path(
-    project_path: &Path,
-) -> PathBuf {
-    #[cfg(target_os = "windows")]
-    let virtual_python = project_path
-        .join(".venv")
-        .join("Scripts")
-        .join("python.exe");
-
-    #[cfg(not(target_os = "windows"))]
-    let virtual_python = project_path
-        .join(".venv")
-        .join("bin")
-        .join("python");
-
-    if virtual_python.is_file() {
-        return virtual_python;
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        PathBuf::from(
-            "python",
-        )
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    {
-        PathBuf::from(
-            "python3",
-        )
-    }
 }

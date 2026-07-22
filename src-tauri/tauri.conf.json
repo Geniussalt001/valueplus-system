@@ -27,6 +27,12 @@
             },
     "bundle":  {
                    "active":  true,
+                   "externalBin":  [
+                                       "binaries/valueplus-engine"
+                                   ],
+                   "resources":  [
+                                     "resources/templates/*.xlsx"
+                                 ],
                    "targets":  [
                                    "nsis"
                                ],
