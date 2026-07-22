@@ -227,6 +227,11 @@ function RecordStatus({
           text-emerald-300
         "
       >
+        <span
+          className="status-light status-success"
+          aria-hidden="true"
+        />
+
         <CheckCircle2
           size={14}
         />
@@ -259,6 +264,11 @@ function RecordStatus({
           text-amber-300
         "
       >
+        <span
+          className="status-light status-waiting"
+          aria-hidden="true"
+        />
+
         <TriangleAlert
           size={14}
         />
@@ -287,6 +297,11 @@ function RecordStatus({
         text-red-300
       "
     >
+      <span
+        className="status-light status-error"
+        aria-hidden="true"
+      />
+
       <CircleAlert
         size={14}
       />
