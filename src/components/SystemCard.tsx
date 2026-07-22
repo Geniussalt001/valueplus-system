@@ -28,16 +28,11 @@ export function SystemCard({
   const isOnline =
     module.status === "online";
 
-  const statusColor =
-    isOnline
-      ? "#34d399"
-      : "#f87171";
-
   const accentStyle = {
     "--accent-color":
       isOnline
         ? module.color
-        : "#64748b",
+        : "#94a3b8",
   } as CSSProperties;
 
   const openModule = () => {
@@ -76,14 +71,14 @@ export function SystemCard({
     >
       <div className="module-card-glow" />
 
-      <span className="pointer-events-none absolute right-7 top-5 text-5xl font-bold text-white/[0.025]">
+      <span className="pointer-events-none absolute right-7 top-5 text-5xl font-bold text-slate-900/[0.035]">
         {String(
           module.id,
         ).padStart(2, "0")}
       </span>
 
       {!isOnline && (
-        <div className="absolute right-5 top-5 z-20 flex items-center gap-1.5 rounded-lg border border-red-300/20 bg-red-400/[0.08] px-2.5 py-1.5 text-red-300 shadow-[0_0_18px_rgba(248,113,113,0.08)]">
+        <div className="absolute right-5 top-5 z-20 flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1.5 text-slate-500">
           <Link2 size={13} />
           <LockKeyhole size={14} />
         </div>
@@ -97,7 +92,7 @@ export function SystemCard({
             ${
               isOnline
                 ? ""
-                : "border-red-300/15 text-slate-500"
+                : "text-slate-500"
             }
           `}
         >
@@ -109,47 +104,35 @@ export function SystemCard({
           style={{
             color: isOnline
               ? module.color
-              : "#94a3b8",
+              : "#7b8fa3",
           }}
         >
           {module.subtitle}
         </p>
 
-        <h3 className="mt-3 text-xl font-semibold text-white">
+        <h3 className="mt-3 text-xl font-semibold">
           {module.title}
         </h3>
 
-        <p className="mt-3 text-sm leading-6 text-slate-400">
+        <p className="mt-3 text-sm leading-6">
           {module.description}
         </p>
 
         <div className="mt-auto flex items-center justify-between pt-7">
           <span
-            className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.08em]"
-            style={{
-              color: statusColor,
-            }}
+            className={`
+              inline-flex items-center gap-2 text-xs
+              font-semibold tracking-[0.08em]
+              ${isOnline ? "text-emerald-700" : "text-slate-500"}
+            `}
           >
-            <span className="relative flex h-2 w-2">
-              {isOnline && (
-                <span
-                  className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-50"
-                  style={{
-                    backgroundColor:
-                      statusColor,
-                  }}
-                />
-              )}
-
-              <span
-                className="relative inline-flex h-2 w-2 rounded-full"
-                style={{
-                  backgroundColor:
-                    statusColor,
-                  boxShadow: `0 0 9px ${statusColor}`,
-                }}
-              />
-            </span>
+            <span
+              className={`
+                status-light
+                ${isOnline ? "status-online" : "status-offline"}
+              `}
+              aria-hidden="true"
+            />
 
             {isOnline
               ? "ONLINE"
@@ -163,7 +146,7 @@ export function SystemCard({
               />
             </span>
           ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-300/15 bg-red-300/[0.05] text-red-300/70">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-slate-500">
               <LockKeyhole
                 size={16}
               />
@@ -173,7 +156,7 @@ export function SystemCard({
       </div>
 
       {!isOnline && (
-        <div className="pointer-events-none absolute inset-0 z-[5] bg-[#020812]/10" />
+        <div className="pointer-events-none absolute inset-0 z-[5] bg-slate-100/10" />
       )}
     </button>
   );
