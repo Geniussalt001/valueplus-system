@@ -1,6 +1,6 @@
 [package]
 name = "valueplus-system"
-version = "1.0.2"
+version = "1.0.3"
 description = "ValuePlus Internal Management System"
 authors = ["ValuePlus Retail Co., Ltd."]
 edition = "2021"
