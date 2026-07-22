@@ -188,14 +188,20 @@ export function UpdateCenter() {
     status === "installing";
 
   const indicatorClass =
-    status === "available"
-      ? "bg-amber-300 shadow-[0_0_9px_#fcd34d]"
-      : status === "error"
-        ? "bg-red-400 shadow-[0_0_9px_#f87171]"
-        : "bg-emerald-300 shadow-[0_0_9px_#6ee7b7]";
+    status === "checking" ||
+    status === "downloading" ||
+    status === "installing"
+      ? "status-processing"
+      : status === "available"
+        ? "status-waiting"
+        : status === "error"
+          ? "status-error"
+          : status === "latest"
+            ? "status-success"
+            : "status-online";
 
   return (
-    <section className="rounded-xl border border-cyan-300/10 bg-cyan-300/[0.035] p-4">
+    <section className="rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.17em] text-cyan-300">
@@ -211,7 +217,9 @@ export function UpdateCenter() {
         </div>
 
         <span
-          className={`mt-1 h-2 w-2 rounded-full ${indicatorClass}`}
+          className={`status-light mt-1 ${indicatorClass}`}
+          aria-label={message}
+          title={message}
         />
       </div>
 
@@ -248,7 +256,7 @@ export function UpdateCenter() {
       {(status === "downloading" ||
         status === "installing") && (
         <div className="mt-3">
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-300 transition-[width] duration-300"
               style={{
