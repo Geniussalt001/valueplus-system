@@ -26,7 +26,7 @@ export const systemModules:
       icon:
         ClipboardList,
       color:
-        "#22d3ee",
+        "#00c7ed",
       status:
         "online",
     },
@@ -44,7 +44,7 @@ export const systemModules:
       icon:
         FileSpreadsheet,
       color:
-        "#38bdf8",
+        "#247bff",
       status:
         "online",
     },
@@ -62,7 +62,7 @@ export const systemModules:
       icon:
         Files,
       color:
-        "#60a5fa",
+        "#5965d8",
       status:
         "online",
     },
@@ -80,7 +80,7 @@ export const systemModules:
       icon:
         BarChart3,
       color:
-        "#a78bfa",
+        "#e58a00",
       status:
         "online",
     },
@@ -98,7 +98,7 @@ export const systemModules:
       icon:
         Database,
       color:
-        "#34d399",
+        "#526b82",
       status:
         "online",
     },
@@ -122,7 +122,7 @@ export const systemModules:
         PackageSearch,
 
       color:
-        "#2dd4bf",
+        "#00b887",
 
       status:
         "online",
