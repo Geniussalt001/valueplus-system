@@ -7,7 +7,7 @@ from valueplus_po.pdf_splitter import split_po_pdf
 
 def emit(payload: dict, *, error: bool = False) -> None:
     print(
-        json.dumps(payload, ensure_ascii=False),
+        json.dumps(payload, ensure_ascii=True),
         file=sys.stderr if error else sys.stdout,
         flush=True,
     )
