@@ -59,13 +59,13 @@ export function DailySummaryPage({
           <button
             type="button"
             onClick={onBack}
-            className="mb-5 flex items-center gap-2 text-sm text-slate-500 transition hover:text-red-600"
+            className="mb-5 flex items-center gap-2 text-sm text-slate-500 transition hover:text-cyan-700"
           >
             <ArrowLeft size={17} />
             กลับหน้าแดชบอร์ด
           </button>
 
-          <p className="text-[10px] font-semibold tracking-[0.24em] text-red-600">
+          <p className="text-[10px] font-semibold tracking-[0.24em] text-cyan-700">
             DAILY SUMMARY
           </p>
 
@@ -78,7 +78,7 @@ export function DailySummaryPage({
           </p>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-300/30 bg-red-300/10 text-red-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-600/30 bg-cyan-100/70 text-cyan-700">
           <BarChart3 size={23} />
         </div>
       </header>
