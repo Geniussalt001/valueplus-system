@@ -31,13 +31,13 @@ def main() -> int:
                 args.output,
             )
 
-        print(json.dumps({"success": True, "data": result}, ensure_ascii=False))
+        print(json.dumps({"success": True, "data": result}, ensure_ascii=True))
         return 0
     except Exception as error:
         print(
             json.dumps(
                 {"success": False, "message": str(error)},
-                ensure_ascii=False,
+                ensure_ascii=True,
             ),
             file=sys.stderr,
         )
