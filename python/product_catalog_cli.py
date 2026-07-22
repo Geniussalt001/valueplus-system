@@ -131,7 +131,7 @@ def main() -> int:
                     "success": True,
                     "data": data,
                 },
-                ensure_ascii=False,
+                ensure_ascii=True,
             ),
         )
         return 0
@@ -142,7 +142,7 @@ def main() -> int:
                     "success": False,
                     "message": str(error),
                 },
-                ensure_ascii=False,
+                ensure_ascii=True,
             ),
             file=sys.stderr,
         )
