@@ -140,7 +140,7 @@ def save_draft(
         """,
         (
             summary_date,
-            json.dumps(quantities, ensure_ascii=False),
+            json.dumps(quantities, ensure_ascii=True),
             total,
             warehouse_count,
             now,
@@ -187,11 +187,11 @@ def main() -> int:
             else:
                 data = delete_draft(connection, arguments.date)
 
-        print(json.dumps({"success": True, "data": data}, ensure_ascii=False))
+        print(json.dumps({"success": True, "data": data}, ensure_ascii=True))
         return 0
     except Exception as error:
         print(
-            json.dumps({"success": False, "message": str(error)}, ensure_ascii=False),
+            json.dumps({"success": False, "message": str(error)}, ensure_ascii=True),
             file=sys.stderr,
         )
         return 1
