@@ -77,6 +77,18 @@ jobs:
 
           Move-Item -LiteralPath $source -Destination $target -Force
 
+          $encodingTest = & $target encoding-test
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Bundled ValuePlus Engine encoding test failed to run"
+          }
+
+          if ($encodingTest -notmatch "ทดสอบภาษาไทย" -or
+              $encodingTest -notmatch "มหาชัย" -or
+              $encodingTest -notmatch "เชียงใหม่") {
+            throw "Bundled ValuePlus Engine did not return valid Thai UTF-8 text: $encodingTest"
+          }
+
           & $target product-catalog --help
 
           if ($LASTEXITCODE -ne 0) {
