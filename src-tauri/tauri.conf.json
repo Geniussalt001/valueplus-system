@@ -41,7 +41,7 @@
                },
     "plugins":  {
                     "updater":  {
-                                    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEEzRDIyM0MyQTc4QzBGOTAKUldTUUQ0eW53aVBTb3dTV1JrQm9PbXhhdGVIOStHS2VqN1B3RllmSmZoREpoNEtMNGkyMXNobXIK",
+                                    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIwMjRFMzA2OTFFM0RFRTkKUldUcDN1T1JCdU1rc0VhTkt0TnYrS2V0aVZZTDJ2ZVhOanJRL293bitGMDd6NWlqbGdhc1BzZW8K",
                                     "endpoints":  [
                                                       "https://github.com/Geniussalt001/valueplus-system-releases/releases/latest/download/latest.json"
                                                   ],
