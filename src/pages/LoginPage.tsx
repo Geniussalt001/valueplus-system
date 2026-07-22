@@ -19,7 +19,7 @@ export function LoginPage({
       className="login-red-white relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-20"
       style={{
         backgroundImage:
-          "url('/images/login-background-red-white.png')",
+          "url('/images/login-background-white-tron.webp')",
       }}
     >
       <section className="login-red-card relative z-10 w-full max-w-[480px] overflow-hidden p-8 backdrop-blur-xl sm:p-10">
