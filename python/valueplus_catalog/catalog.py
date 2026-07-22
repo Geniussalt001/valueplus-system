@@ -22,6 +22,106 @@ CSV_ENCODINGS = (
     "cp874",
 )
 
+# Canonical names are used only to recover text that was irreversibly replaced
+# by an older Windows/PyInstaller pipe. Valid user-edited names are preserved.
+RECOVERY_PRODUCT_NAMES = {
+    "01-0000-29": (
+        "ยูมิยูมิ มิลล์เค้ก 55 กรัม",
+        "มิลล์เค้ก",
+        "มิลล์เค้ก",
+    ),
+    "01-0000-10": (
+        "ยูมิยูมิ เค้กไข่ชีส 78 กรัม",
+        "เค้กไข่ชีส",
+        "เค้กไข่ชีส",
+    ),
+    "01-0000-14": (
+        "ยูมิยูมิ อัลมอนด์เค้ก 75 กรัม",
+        "อัลมอนด์เค้ก",
+        "อัลมอนด์เค้ก",
+    ),
+    "01-0000-16": (
+        "ยูมิยูมิ โรลช็อกโกแลตเค้ก 55 กรัม",
+        "โรลช็อกโกแลต",
+        "โรลช็อกโกแลต",
+    ),
+    "01-0000-18": (
+        "ยูมิยูมิ มินิครีมเค้ก 40 กรัม",
+        "มินิครีมเค้ก",
+        "มินิครีมเค้ก",
+    ),
+    "01-0000-22": (
+        "ยูมิยูมิ เค้กครีมไก่หยองน้ำสลัด 75 กรัม",
+        "เค้กครีมไก่หยองน้ำสลัด",
+        "เค้กครีมไก่หยองน้ำสลัด",
+    ),
+    "01-0000-23": (
+        "ยูมิยูมิ ชิสึเค้ก 70 กรัม",
+        "ชิสึเค้ก",
+        "ชิสึเค้ก",
+    ),
+    "01-0000-24": (
+        "ยูมิยูมิ บลูเบอร์รี่เค้ก 52 กรัม",
+        "บลูเบอร์รี่เค้ก",
+        "บลูเบอร์รี่เค้ก",
+    ),
+    "01-0000-28": (
+        "ยูมิยูมิ เค้กสาหร่ายไก่หยอง 75 กรัม",
+        "เค้กสาหร่ายไก่หยอง",
+        "เค้กสาหร่ายไก่หยอง",
+    ),
+    "01-0000-26": (
+        "ยูมิยูมิ ชิฟฟอนชีสเค้ก 75 กรัม",
+        "ชิฟฟอนชีสเค้ก",
+        "ชิฟฟอนชีสเค้ก",
+    ),
+    "01-0000-30": (
+        "ยูมิยูมิ วาฟเฟิลสอดไส้ครีมรสมะพร้าว 62 กรัม",
+        "วาฟเฟิลครีมโคโคนัทมิลค์",
+        "วาฟเฟิลครีมโคโคนัทมิลค์",
+    ),
+    "01-0000-31": (
+        "ยูมิยูมิ เค้กโรลรสนม (สีชมพู) 55 กรัม",
+        "เค้กโรลนมชมพู",
+        "เค้กโรลนมชมพู",
+    ),
+    "01-0000-32": (
+        "ยูมิยูมิ วาฟเฟิลสอดไส้ครีมราสเบอร์รี่ 62 กรัม",
+        "วาฟเฟิลราสเบอร์รี่",
+        "วาฟเฟิลราสเบอร์รี่",
+    ),
+    "01-0000-33": (
+        "ยูมิยูมิ ขนมปังมอนสเตอร์รสบลูเบอร์รี่ 50 กรัม",
+        "ขนมปังมอนสเตอร์บลูเบอร์รี่",
+        "ขนมปังมอนสเตอร์บลูเบอร์รี่",
+    ),
+    "01-0000-35": (
+        "ยูมิยูมิ ขนมปังมอนสเตอร์รสเยลโล่พีช 50 กรัม",
+        "ขนมปังมอนสเตอร์เยลโล่พีช",
+        "ขนมปังมอนสเตอร์เยลโล่พีช",
+    ),
+    "01-0000-34": (
+        "ยูมิยูมิ เค้กโรลมัตจะ 55 กรัม",
+        "เค้กโรลมัตจะ",
+        "เค้กโรลมัตจะ",
+    ),
+    "01-0000-37": (
+        "ยูมิยูมิ มินิเค้ก (สอดไส้ครีมกลิ่นกล้วยหอม) 40 กรัม",
+        "มินิเค้กกลิ่นกล้วยหอม",
+        "มินิเค้กกลิ่นกล้วยหอม",
+    ),
+    "01-0000-27": (
+        "ยูมิยูมิ เค้กช็อกโกแลตเฮเซลนัท 75 กรัม",
+        "เค้กช็อกโกแลตเฮเซลนัท",
+        "เค้กช็อกโกแลตเฮเซลนัท",
+    ),
+    "01-0000-36": (
+        "ยูมิยูมิ ขนมปังมอนสเตอร์รสสตอเบอร์รี่ 50 กรัม",
+        "ขนมปังมอนสเตอร์สตอเบอร์รี่",
+        "ขนมปังมอนสเตอร์สตอเบอร์รี่",
+    ),
+}
+
 
 class CatalogError(ValueError):
     pass
@@ -548,6 +648,94 @@ def update_product(
 
     return _get_product(database, product_code)
 
+
+
+def _repair_corrupted_product_names(
+    connection: sqlite3.Connection,
+) -> None:
+    now = _utc_now()
+
+    for product_code, names in RECOVERY_PRODUCT_NAMES.items():
+        row = connection.execute(
+            """
+            SELECT source_name, display_name, line_name
+            FROM products
+            WHERE product_code = ?
+            """,
+            (product_code,),
+        ).fetchone()
+
+        if row is None:
+            continue
+
+        source_name, display_name, line_name = names
+        source_corrupted = _is_corrupted_text(
+            row["source_name"],
+        )
+        display_corrupted = _is_corrupted_text(
+            row["display_name"],
+        )
+        line_corrupted = _is_corrupted_text(
+            row["line_name"],
+        )
+
+        if not (
+            source_corrupted
+            or display_corrupted
+            or line_corrupted
+        ):
+            continue
+
+        next_source_name = (
+            source_name
+            if source_corrupted
+            else row["source_name"]
+        )
+        next_display_name = (
+            display_name
+            if display_corrupted
+            else row["display_name"]
+        )
+        next_line_name = (
+            line_name
+            if line_corrupted
+            or (
+                display_corrupted
+                and not str(row["line_name"]).strip()
+            )
+            else row["line_name"]
+        )
+
+        connection.execute(
+            """
+            UPDATE products
+            SET source_name = ?,
+                display_name = ?,
+                line_name = ?,
+                updated_at = ?
+            WHERE product_code = ?
+            """,
+            (
+                next_source_name,
+                next_display_name,
+                next_line_name,
+                now,
+                product_code,
+            ),
+        )
+
+
+def _is_corrupted_text(
+    value: str | None,
+) -> bool:
+    text = str(value or "")
+
+    return (
+        "\ufffd" in text
+        or "à¸" in text
+        or "à¹" in text
+        or text.count("?") >= 3
+    )
 
 def _extract_products(
     rows: list[list[str]],
