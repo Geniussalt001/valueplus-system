@@ -9,6 +9,13 @@ pub(crate) fn engine_command(
     engine_action: &str,
     development_script: &str,
 ) -> Result<Command, String> {
+    // Development must use the current source files. Otherwise Tauri can pick
+    // up an older sidecar from target/debug and hide encoding or parser fixes.
+    #[cfg(debug_assertions)]
+    if let Ok(command) = development_command(development_script) {
+        return Ok(command);
+    }
+
     if let Some(engine_path) = find_bundled_engine() {
         let mut command = Command::new(engine_path);
         command.arg(engine_action);
@@ -16,6 +23,12 @@ pub(crate) fn engine_command(
         return Ok(command);
     }
 
+    development_command(development_script)
+}
+
+fn development_command(
+    development_script: &str,
+) -> Result<Command, String> {
     let project_path = find_development_project()?;
     let python_folder = project_path.join("python");
     let script_path = python_folder.join(development_script);
