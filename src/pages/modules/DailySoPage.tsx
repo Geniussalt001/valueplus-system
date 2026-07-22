@@ -1508,10 +1508,19 @@ function StatusBadge({
         ? "border-amber-300/20 bg-amber-300/[0.08] text-amber-300"
         : "border-red-300/20 bg-red-300/[0.08] text-red-300";
 
+  const statusClass =
+    status === "ready"
+      ? "status-success"
+      : status === "review"
+        ? "status-waiting"
+        : "status-error";
+
   return (
     <span
       className={`
         inline-flex
+        items-center
+        gap-2
         whitespace-nowrap
         rounded-full
         border
@@ -1521,6 +1530,11 @@ function StatusBadge({
         ${className}
       `}
     >
+      <span
+        className={`status-light ${statusClass}`}
+        aria-hidden="true"
+      />
+
       {label}
     </span>
   );
