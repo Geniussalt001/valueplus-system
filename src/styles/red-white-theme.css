@@ -63,10 +63,12 @@ body {
   background: var(--vp-blue);
 }
 
-/* ValuePlus remains the brand signature; functional UI uses Tron cyan. */
+/* White Tron brand signature: midnight navy, cyan and electric blue. */
 .brand-logo {
-  background: linear-gradient(105deg, #6f0b18 0%, #a91527 45%, #dc3346 100%) !important;
-  filter: drop-shadow(0 7px 15px rgb(111 11 24 / 16%)) !important;
+  background: linear-gradient(105deg, #071a2b 0%, #009fc8 48%, #247bff 100%) !important;
+  filter:
+    drop-shadow(0 7px 15px rgb(7 26 43 / 16%))
+    drop-shadow(0 0 12px rgb(0 199 237 / 16%)) !important;
 }
 
 .tron-grid {
@@ -606,6 +608,11 @@ body {
   box-shadow:
     0 0 0 3px color-mix(in srgb, var(--status-color, var(--vp-gray)) 12%, transparent),
     0 0 11px color-mix(in srgb, var(--status-color, var(--vp-gray)) 75%, transparent);
+}
+
+.status-light.status-corner {
+  position: absolute;
+  z-index: 2;
 }
 
 .status-light::after {
