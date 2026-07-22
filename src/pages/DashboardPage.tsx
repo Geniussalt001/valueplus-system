@@ -152,7 +152,7 @@ function StatusBox({
   return (
     <div className="relative min-w-32 rounded-xl border border-cyan-700/15 bg-white/70 p-4 shadow-sm">
       <span
-        className={`status-light absolute right-4 top-4 ${statusClass}`}
+        className={`status-light status-corner right-4 top-4 ${statusClass}`}
         aria-hidden="true"
       />
 
