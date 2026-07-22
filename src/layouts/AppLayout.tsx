@@ -92,10 +92,10 @@ export function AppLayout({
     getWorkspaceName(currentUser);
 
   return (
-    <main className="dashboard min-h-screen bg-[#020812] text-white">
+    <main className="dashboard min-h-screen bg-[#f4faff] text-[#10243a]">
       <div className="tron-grid pointer-events-none fixed inset-0 opacity-[0.08]" />
 
-      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col border-r border-cyan-300/10 bg-[#030d19]/95 p-6 backdrop-blur-xl lg:flex">
+      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col border-r border-cyan-600/15 bg-white/95 p-6 backdrop-blur-xl lg:flex">
         <button
           type="button"
           onClick={() =>
@@ -216,12 +216,8 @@ export function AppLayout({
                     </span>
                   ) : isActive ? (
                     <span
-                      className="ml-auto h-1.5 w-1.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          module.color,
-                        boxShadow: `0 0 8px ${module.color}`,
-                      }}
+                      className="status-light status-processing ml-auto"
+                      aria-hidden="true"
                     />
                   ) : (
                     <ChevronRight
@@ -238,11 +234,16 @@ export function AppLayout({
         <div className="mt-auto space-y-3">
           <UpdateCenter />
 
-          <div className="rounded-xl border border-cyan-300/10 bg-cyan-300/[0.035] p-4">
+          <div className="rounded-xl border border-cyan-600/15 bg-cyan-50/70 p-4 shadow-sm">
             <div className="flex items-center gap-3">
+              <span
+                className="status-light status-online"
+                aria-hidden="true"
+              />
+
               <Server
                 size={18}
-                className="text-emerald-300"
+                className="text-emerald-600"
               />
 
               <div>
@@ -264,7 +265,7 @@ export function AppLayout({
       </aside>
 
       <section className="relative z-10 min-h-screen lg:ml-72">
-        <header className="sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-cyan-300/10 bg-[#03101f]/85 px-6 backdrop-blur-xl lg:px-10">
+        <header className="app-red-header sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-cyan-600/15 bg-white/90 px-6 backdrop-blur-xl lg:px-10">
           <div>
             <p className="text-[10px] tracking-[0.22em] text-cyan-300">
               VALUEPLUS WORKSPACE
@@ -277,11 +278,10 @@ export function AppLayout({
 
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-2.5 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] px-3 py-2 sm:flex">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
-
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
-              </span>
+              <span
+                className="status-light status-online"
+                aria-hidden="true"
+              />
 
               <UserRound
                 size={15}
@@ -298,7 +298,7 @@ export function AppLayout({
             <button
               type="button"
               onClick={onLogout}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/60 text-slate-400 transition hover:border-red-400/50 hover:text-red-300"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 shadow-sm transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600"
               aria-label="ออกจากระบบ"
               title="ออกจากระบบ"
             >
@@ -307,7 +307,12 @@ export function AppLayout({
           </div>
         </header>
 
-        {children}
+        <div
+          key={currentRoute}
+          className="page-motion"
+        >
+          {children}
+        </div>
       </section>
     </main>
   );
