@@ -6,6 +6,7 @@ import {
   PackageSearch,
   PencilLine,
   RotateCcw,
+  Search,
   X,
 } from "lucide-react";
 
@@ -74,6 +75,11 @@ export function PickingAdjustmentModal({
   ] = useState<Set<string>>(
     new Set(),
   );
+
+  const [
+    selectedProductKey,
+    setSelectedProductKey,
+  ] = useState("");
 
   const adjustableRecords =
     useMemo(
@@ -177,13 +183,103 @@ export function PickingAdjustmentModal({
       [records, overrides],
     );
 
+  const selectedProduct =
+    realtimeProducts.find(
+      (product) =>
+        product.key ===
+        selectedProductKey,
+    );
+
+  const visibleRecords =
+    useMemo(
+      () => {
+        if (!selectedProductKey) {
+          return adjustableRecords;
+        }
+
+        return adjustableRecords
+          .map(
+            ({ record, items }) => ({
+              record,
+              items:
+                items.filter(
+                  (item) =>
+                    getProductKey(
+                      item,
+                    ) ===
+                    selectedProductKey,
+                ),
+            }),
+          )
+          .filter(
+            ({ items }) =>
+              items.length > 0,
+          );
+      },
+      [
+        adjustableRecords,
+        selectedProductKey,
+      ],
+    );
+
+  const visibleRealtimeProducts =
+    selectedProduct
+      ? [selectedProduct]
+      : realtimeProducts;
+
+  useEffect(() => {
+    if (
+      !selectedProductKey
+    ) {
+      return;
+    }
+
+    const matchingSheets =
+      adjustableRecords
+        .filter(
+          ({ items }) =>
+            items.some(
+              (item) =>
+                getProductKey(
+                  item,
+                ) ===
+                selectedProductKey,
+            ),
+        )
+        .map(
+          ({ record }) =>
+            record.target_sheet,
+        );
+
+    setExpandedSheets(
+      new Set(
+        matchingSheets,
+      ),
+    );
+  }, [
+    selectedProductKey,
+    adjustableRecords,
+  ]);
+
+  useEffect(() => {
+    if (
+      selectedProductKey &&
+      !selectedProduct
+    ) {
+      setSelectedProductKey("");
+    }
+  }, [
+    selectedProductKey,
+    selectedProduct,
+  ]);
+
   if (!open) {
     return null;
   }
 
   const allExpanded =
-    adjustableRecords.length > 0 &&
-    adjustableRecords.every(
+    visibleRecords.length > 0 &&
+    visibleRecords.every(
       ({ record }) =>
         expandedSheets.has(
           record.target_sheet,
@@ -219,7 +315,7 @@ export function PickingAdjustmentModal({
 
     setExpandedSheets(
       new Set(
-        adjustableRecords.map(
+        visibleRecords.map(
           ({ record }) =>
             record.target_sheet,
         ),
@@ -499,13 +595,182 @@ export function PickingAdjustmentModal({
 
             <div
               className="
+                shrink-0
+                border-b
+                border-sky-100
+                bg-gradient-to-r
+                from-cyan-50/80
+                to-white
+                px-4
+                py-3
+              "
+            >
+              <label
+                htmlFor="picking-product-filter"
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  text-xs
+                  font-semibold
+                  text-slate-800
+                "
+              >
+                <Search
+                  size={15}
+                  className="
+                    text-sky-600
+                  "
+                />
+                เลือกสินค้าที่ต้องการตัดยอด
+              </label>
+
+              <div
+                className="
+                  mt-2
+                  flex
+                  flex-col
+                  gap-2
+                  sm:flex-row
+                  sm:items-center
+                "
+              >
+                <select
+                  id="picking-product-filter"
+                  value={
+                    selectedProductKey
+                  }
+                  onChange={(event) => {
+                    setSelectedProductKey(
+                      event.target.value,
+                    );
+                  }}
+                  disabled={disabled}
+                  className="
+                    min-w-0
+                    flex-1
+                    rounded-xl
+                    border
+                    border-sky-200
+                    bg-white
+                    px-3
+                    py-2.5
+                    text-sm
+                    font-medium
+                    text-slate-800
+                    outline-none
+                    transition
+                    focus:border-cyan-400
+                    focus:ring-2
+                    focus:ring-cyan-100
+                    disabled:opacity-50
+                  "
+                >
+                  <option value="">
+                    แสดงสินค้าทั้งหมด
+                  </option>
+
+                  {realtimeProducts.map(
+                    (product) => (
+                      <option
+                        key={product.key}
+                        value={product.key}
+                      >
+                        {product.name}
+                        {" · "}
+                        {formatNumber(
+                          product.current,
+                        )} ชิ้น
+                      </option>
+                    ),
+                  )}
+                </select>
+
+                {selectedProduct && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductKey(
+                        "",
+                      );
+                    }}
+                    className="
+                      rounded-xl
+                      border
+                      !border-sky-200
+                      !bg-white
+                      px-3
+                      py-2.5
+                      text-xs
+                      font-semibold
+                      !text-sky-700
+                      shadow-none
+                      transition
+                      hover:!bg-sky-50
+                    "
+                  >
+                    แสดงทั้งหมด
+                  </button>
+                )}
+              </div>
+
+              {selectedProduct && (
+                <div
+                  className="
+                    mt-2
+                    flex
+                    flex-wrap
+                    items-center
+                    gap-x-4
+                    gap-y-1
+                    rounded-lg
+                    border
+                    border-cyan-200
+                    bg-white/90
+                    px-3
+                    py-2
+                    text-[11px]
+                    text-slate-600
+                  "
+                >
+                  <span
+                    className="
+                      font-semibold
+                      text-sky-700
+                    "
+                  >
+                    แสดง {visibleRecords.length} คลัง
+                  </span>
+                  <span>
+                    ยอดเดิม{" "}
+                    {formatNumber(
+                      selectedProduct.original,
+                    )}
+                  </span>
+                  <span
+                    className="
+                      font-semibold
+                      text-emerald-600
+                    "
+                  >
+                    คงเหลือ{" "}
+                    {formatNumber(
+                      selectedProduct.current,
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div
+              className="
                 flex-1
                 space-y-3
                 overflow-y-auto
                 p-3
               "
             >
-              {adjustableRecords.map(
+              {visibleRecords.map(
                 ({ record, items }) => (
                   <WarehouseDrawer
                     key={
@@ -538,7 +803,7 @@ export function PickingAdjustmentModal({
           </section>
 
           <RealtimePanel
-            products={realtimeProducts}
+            products={visibleRealtimeProducts}
             adjustedTotal={adjustedTotal}
             originalTotal={originalTotal}
           />
@@ -1392,9 +1657,9 @@ function buildRealtimeProducts(
       )
     ) {
       const key =
-        item.barcode ||
-        item.target_name ||
-        item.pdf_name;
+        getProductKey(
+          item,
+        );
 
       const existing =
         products.get(key) ?? {
@@ -1438,6 +1703,16 @@ function buildRealtimeProducts(
 
   return Array.from(
     products.values(),
+  );
+}
+
+function getProductKey(
+  item: PoProductMatch,
+): string {
+  return (
+    item.barcode ||
+    item.target_name ||
+    item.pdf_name
   );
 }
 
