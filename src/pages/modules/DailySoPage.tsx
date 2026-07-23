@@ -1454,9 +1454,20 @@ function GroupPreview({
                           type="button"
                           onClick={() => {
                             if (removed) {
-                              onQuantityRestore(
-                                editKey,
-                              );
+                              if (
+                                record.adjusted &&
+                                record.original_quantity !==
+                                  undefined
+                              ) {
+                                onQuantityChange(
+                                  editKey,
+                                  record.original_quantity,
+                                );
+                              } else {
+                                onQuantityRestore(
+                                  editKey,
+                                );
+                              }
                             } else {
                               onQuantityChange(
                                 editKey,
