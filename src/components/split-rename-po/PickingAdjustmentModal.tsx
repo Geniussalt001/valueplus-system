@@ -15,6 +15,10 @@ import {
   useState,
 } from "react";
 
+import {
+  createPortal,
+} from "react-dom";
+
 import type {
   PoPreviewRecord,
   PoProductMatch,
@@ -223,17 +227,18 @@ export function PickingAdjustmentModal({
     );
   }
 
-  return (
+  return createPortal(
     <div
       className="
         fixed
         inset-0
-        z-[80]
+        z-[9999]
         flex
-        items-center
+        items-start
         justify-center
-        bg-slate-950/55
-        p-4
+        overflow-y-auto
+        bg-slate-950/45
+        p-3
         backdrop-blur-sm
       "
       role="dialog"
@@ -243,7 +248,7 @@ export function PickingAdjustmentModal({
       <div
         className="
           flex
-          h-[92vh]
+          h-[calc(100vh-1.5rem)]
           w-full
           max-w-[1420px]
           flex-col
@@ -474,15 +479,16 @@ export function PickingAdjustmentModal({
                 className="
                   rounded-lg
                   border
-                  border-sky-200
-                  bg-sky-50
+                  !border-sky-200
+                  !bg-cyan-50
                   px-3
                   py-1.5
                   text-[11px]
                   font-semibold
-                  text-sky-700
+                  !text-sky-700
+                  shadow-none
                   transition
-                  hover:bg-sky-100
+                  hover:!bg-cyan-100
                 "
               >
                 {allExpanded
@@ -619,7 +625,8 @@ export function PickingAdjustmentModal({
           </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -688,12 +695,16 @@ function WarehouseDrawer({
           items-center
           justify-between
           gap-3
-          bg-sky-50/80
+          !bg-gradient-to-r
+          !from-white
+          !to-cyan-50
           px-4
           py-3
           text-left
+          shadow-none
           transition
-          hover:bg-sky-100
+          hover:!from-cyan-50
+          hover:!to-sky-100
         "
         aria-expanded={expanded}
       >
@@ -1062,12 +1073,15 @@ function RealtimePanel({
       <div
         className="
           shrink-0
+          border-b
+          border-cyan-200
           bg-gradient-to-br
-          from-[#073a59]
-          to-[#0b5878]
+          from-cyan-50
+          via-white
+          to-sky-100
           px-5
           py-4
-          text-white
+          text-slate-900
         "
       >
         <div
@@ -1084,7 +1098,7 @@ function RealtimePanel({
                 text-[10px]
                 font-semibold
                 tracking-[0.18em]
-                text-cyan-200
+                text-sky-600
               "
             >
               REALTIME SUMMARY
@@ -1104,7 +1118,7 @@ function RealtimePanel({
           <PackageSearch
             size={22}
             className="
-              text-cyan-200
+              text-sky-600
             "
           />
         </div>
@@ -1121,8 +1135,8 @@ function RealtimePanel({
             className="
               rounded-xl
               border
-              border-white/20
-              bg-white/10
+              border-sky-200
+              bg-white/80
               px-3
               py-2
             "
@@ -1130,7 +1144,7 @@ function RealtimePanel({
             <p
               className="
                 text-[10px]
-                text-cyan-100
+                text-slate-500
               "
             >
               ยอดเดิม
@@ -1152,8 +1166,8 @@ function RealtimePanel({
             className="
               rounded-xl
               border
-              border-emerald-300/35
-              bg-emerald-300/15
+              border-emerald-200
+              bg-emerald-50
               px-3
               py-2
             "
@@ -1161,7 +1175,7 @@ function RealtimePanel({
             <p
               className="
                 text-[10px]
-                text-emerald-100
+                text-emerald-700
               "
             >
               ยอดคงเหลือ
@@ -1171,7 +1185,7 @@ function RealtimePanel({
                 mt-1
                 text-lg
                 font-bold
-                text-emerald-200
+                text-emerald-600
               "
             >
               {formatNumber(
