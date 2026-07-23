@@ -3,6 +3,7 @@ import {
   FileCheck2,
   Files,
   FolderOpen,
+  PencilLine,
   Printer,
   ScanSearch,
 } from "lucide-react";
@@ -18,6 +19,10 @@ import {
 import {
   LockedTemplateCard,
 } from "../../components/split-rename-po/LockedTemplateCard";
+
+import {
+  PickingAdjustmentModal,
+} from "../../components/split-rename-po/PickingAdjustmentModal";
 
 import {
   PoPreviewTable,
@@ -68,6 +73,42 @@ export function SplitRenamePoPage({
       <ProcessingOverlay
         activity={
           processor.activity
+        }
+      />
+
+      <PickingAdjustmentModal
+        open={
+          processor
+            .adjustmentModalOpen
+        }
+        records={
+          processor.preview
+            ?.records ?? []
+        }
+        overrides={
+          processor
+            .quantityOverrides
+        }
+        disabled={busy}
+        onClose={
+          processor
+            .closeAdjustmentModal
+        }
+        onChange={
+          processor
+            .setQuantityOverride
+        }
+        onRestore={
+          processor
+            .restoreQuantityOverride
+        }
+        onResetAll={
+          processor
+            .resetQuantityOverrides
+        }
+        onConfirm={
+          processor
+            .closeAdjustmentModal
         }
       />
 
@@ -342,6 +383,67 @@ export function SplitRenamePoPage({
           ประมวลผลและแสดง Preview
         </button>
 
+        {processor.preview && (
+          <button
+            type="button"
+            disabled={
+              !processor.canExport ||
+              busy
+            }
+            onClick={
+              processor
+                .openAdjustmentModal
+            }
+            className="
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-amber-400/40
+              bg-amber-400/15
+              px-6
+              py-3
+              text-sm
+              font-semibold
+              text-amber-700
+              shadow-sm
+              transition
+              hover:-translate-y-0.5
+              hover:bg-amber-400/25
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            <PencilLine
+              size={18}
+            />
+
+            ตัดยอด
+            {processor
+              .hasQuantityOverrides && (
+              <span
+                className="
+                  rounded-full
+                  bg-amber-600
+                  px-2
+                  py-0.5
+                  text-[10px]
+                  text-white
+                "
+              >
+                {
+                  Object.keys(
+                    processor
+                      .quantityOverrides,
+                  ).length
+                }
+              </span>
+            )}
+          </button>
+        )}
+
         <button
           type="button"
           disabled={
@@ -547,6 +649,10 @@ export function SplitRenamePoPage({
             records={
               processor.preview
                 .records
+            }
+            quantityOverrides={
+              processor
+                .quantityOverrides
             }
           />
         </section>
