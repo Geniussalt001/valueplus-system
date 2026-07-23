@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { poProcessorService } from "../services/poProcessorService";
 
-import type { PoPreviewResult } from "../types/poProcessor.types";
+import type {
+  PoPreviewResult,
+  PoQuantityOverrides,
+} from "../types/poProcessor.types";
+
+import {
+  poQuantityOverrideKey,
+} from "../utils/poQuantity";
 import type { WarehousePrintRequest } from "../types/print.types";
 
 export type ProcessorActivity =
@@ -32,6 +39,18 @@ export function usePoProcessor() {
 
   const [printModalOpen, setPrintModalOpen] =
     useState(false);
+
+  const [
+    adjustmentModalOpen,
+    setAdjustmentModalOpen,
+  ] = useState(false);
+
+  const [
+    quantityOverrides,
+    setQuantityOverrides,
+  ] = useState<
+    PoQuantityOverrides
+  >({});
 
   useEffect(() => {
     let active = true;
@@ -91,6 +110,8 @@ export function usePoProcessor() {
     setSavedFolder("");
     setSavedOutputPath("");
     setPrintModalOpen(false);
+    setAdjustmentModalOpen(false);
+    setQuantityOverrides({});
   }
 
   async function choosePdf() {
@@ -131,6 +152,8 @@ export function usePoProcessor() {
     setSavedFolder("");
     setSavedOutputPath("");
     setPrintModalOpen(false);
+    setAdjustmentModalOpen(false);
+    setQuantityOverrides({});
 
     try {
       const result =
@@ -174,6 +197,7 @@ export function usePoProcessor() {
           templatePath,
           startIv,
           outputPath: paths.outputPath,
+          quantityOverrides,
         });
 
       setPreview(result);
@@ -207,6 +231,110 @@ export function usePoProcessor() {
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     }
+  }
+
+  function openAdjustmentModal() {
+    if (!preview) {
+      return;
+    }
+
+    setError("");
+    setAdjustmentModalOpen(true);
+  }
+
+  function closeAdjustmentModal() {
+    if (activity !== "idle") {
+      return;
+    }
+
+    setAdjustmentModalOpen(false);
+  }
+
+  function setQuantityOverride(
+    key: string,
+    value: number,
+  ) {
+    if (
+      !Number.isFinite(value) ||
+      value < 0
+    ) {
+      return;
+    }
+
+    setQuantityOverrides(
+      (current) => ({
+        ...current,
+        [key]: value,
+      }),
+    );
+
+    setSavedFolder("");
+    setSavedOutputPath("");
+    setSuccess("");
+    setPrintModalOpen(false);
+  }
+
+  function restoreQuantityOverride(
+    key: string,
+  ) {
+    setQuantityOverrides(
+      (current) => {
+        const next = {
+          ...current,
+        };
+
+        delete next[key];
+
+        return next;
+      },
+    );
+
+    setSavedFolder("");
+    setSavedOutputPath("");
+    setSuccess("");
+    setPrintModalOpen(false);
+  }
+
+  function resetQuantityOverrides() {
+    if (!preview) {
+      setQuantityOverrides({});
+      return;
+    }
+
+    const restored:
+      PoQuantityOverrides = {};
+
+    for (
+      const record
+      of preview.records
+    ) {
+      for (
+        const item
+        of record.items
+      ) {
+        if (
+          item.adjusted &&
+          item.original_quantity !==
+            undefined
+        ) {
+          restored[
+            poQuantityOverrideKey(
+              record,
+              item,
+            )
+          ] = item.original_quantity;
+        }
+      }
+    }
+
+    setQuantityOverrides(
+      restored,
+    );
+
+    setSavedFolder("");
+    setSavedOutputPath("");
+    setSuccess("");
+    setPrintModalOpen(false);
   }
 
   function openPrintModal() {
@@ -270,6 +398,12 @@ export function usePoProcessor() {
     savedFolder,
     savedOutputPath,
     printModalOpen,
+    adjustmentModalOpen,
+    quantityOverrides,
+    hasQuantityOverrides:
+      Object.keys(
+        quantityOverrides,
+      ).length > 0,
     canPreview,
     canExport,
     canPrint,
@@ -278,6 +412,11 @@ export function usePoProcessor() {
     buildPreview,
     exportWorkbook,
     openSavedFolder,
+    openAdjustmentModal,
+    closeAdjustmentModal,
+    setQuantityOverride,
+    restoreQuantityOverride,
+    resetQuantityOverrides,
     openPrintModal,
     closePrintModal,
     printWorkbook,
