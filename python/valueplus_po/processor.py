@@ -1,3 +1,4 @@
+import math
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -296,6 +297,10 @@ def process_files(
     template_path: str | Path,
     start_iv: str,
     output_path: str | Path,
+    quantity_overrides: dict[
+        str,
+        int | float,
+    ] | None = None,
 ) -> dict:
     preview = build_preview(
         pdf_path,
@@ -312,6 +317,11 @@ def process_files(
             "ไม่ได้ เพราะมีรายการ"
             "ที่ต้องตรวจสอบ",
         )
+
+    _apply_quantity_overrides(
+        preview["records"],
+        quantity_overrides or {},
+    )
 
     sheet_updates: dict[
         str,
@@ -361,6 +371,23 @@ def process_files(
         for item in record[
             "items"
         ]:
+            if (
+                not item.get(
+                    "matched",
+                    False,
+                )
+                or item.get(
+                    "excel_row",
+                ) is None
+                or float(
+                    item.get(
+                        "quantity",
+                        0,
+                    ),
+                ) <= 0
+            ):
+                continue
+
             updates[
                 f'D{item["excel_row"]}'
             ] = item["quantity"]
@@ -383,6 +410,140 @@ def process_files(
 
     return preview
 
+
+
+def _apply_quantity_overrides(
+    records: list[dict],
+    quantity_overrides: dict[
+        str,
+        int | float,
+    ],
+) -> None:
+    for record in records:
+        target_sheet = str(
+            record.get(
+                "target_sheet",
+                "",
+            ),
+        )
+
+        for item in record.get(
+            "items",
+            [],
+        ):
+            excel_row = item.get(
+                "excel_row",
+            )
+
+            if (
+                not item.get(
+                    "matched",
+                    False,
+                )
+                or excel_row is None
+            ):
+                continue
+
+            barcode = str(
+                item.get(
+                    "barcode",
+                    "",
+                ),
+            )
+
+            key = (
+                f"{target_sheet}|"
+                f"{excel_row}|"
+                f"{barcode}"
+            )
+
+            legacy_key = (
+                f"{target_sheet}|"
+                f"{excel_row}"
+            )
+
+            if key in quantity_overrides:
+                raw_quantity = (
+                    quantity_overrides[
+                        key
+                    ]
+                )
+            elif (
+                legacy_key
+                in quantity_overrides
+            ):
+                raw_quantity = (
+                    quantity_overrides[
+                        legacy_key
+                    ]
+                )
+            else:
+                continue
+
+            try:
+                quantity = float(
+                    raw_quantity,
+                )
+            except (
+                TypeError,
+                ValueError,
+            ) as error:
+                raise ProcessingError(
+                    "จำนวนที่ตัดยอด"
+                    f"ไม่ถูกต้อง: {key}",
+                ) from error
+
+            if (
+                not math.isfinite(
+                    quantity,
+                )
+                or quantity < 0
+            ):
+                raise ProcessingError(
+                    "จำนวนที่ตัดยอด"
+                    f"ไม่ถูกต้อง: {key}",
+                )
+
+            original_quantity = (
+                item.get(
+                    "original_quantity",
+                    item.get(
+                        "quantity",
+                        0,
+                    ),
+                )
+            )
+
+            item[
+                "original_quantity"
+            ] = original_quantity
+            item[
+                "quantity"
+            ] = _clean_quantity(
+                quantity,
+            )
+            item[
+                "adjusted"
+            ] = True
+            item[
+                "excluded"
+            ] = quantity == 0
+
+
+def _clean_quantity(
+    quantity: float,
+) -> int | float:
+    rounded = round(
+        quantity,
+        6,
+    )
+
+    if rounded.is_integer():
+        return int(
+            rounded,
+        )
+
+    return rounded
 
 def _resolve_target_sheet(
     warehouse: str,
