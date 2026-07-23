@@ -1311,7 +1311,8 @@ function RealtimePanel({
                     </p>
                   </div>
 
-                  {difference > 0 && (
+                  {(difference > 0 ||
+                    product.excludedCount > 0) && (
                     <div
                       className="
                         mt-2
@@ -1340,6 +1341,9 @@ function RealtimePanel({
                           text-red-600
                         "
                       >
+                        {product.excludedCount > 0
+                          ? `ไม่ส่ง ${product.excludedCount} คลัง · `
+                          : ""}
                         ลด {formatNumber(
                           difference,
                         )}
@@ -1420,14 +1424,6 @@ function buildRealtimeProducts(
 
   return Array.from(
     products.values(),
-  ).sort(
-    (left, right) =>
-      right.current -
-        left.current ||
-      left.name.localeCompare(
-        right.name,
-        "th",
-      ),
   );
 }
 
