@@ -721,7 +721,7 @@ export function PickingAdjustmentModal({
                     text-sky-600
                   "
                 />
-                เลือกสินค้าที่ต้องการตัดยอด
+                1. เลือกสินค้าที่ต้องการตัดยอด
               </label>
 
               <div
@@ -813,6 +813,84 @@ export function PickingAdjustmentModal({
                 )}
               </div>
 
+              {!selectedProduct && (
+                <div
+                  className="
+                    mt-2
+                    grid
+                    gap-2
+                    rounded-xl
+                    border
+                    border-amber-200
+                    bg-amber-50/70
+                    p-3
+                    sm:grid-cols-[minmax(0,1fr)_auto]
+                    sm:items-end
+                  "
+                >
+                  <div>
+                    <p
+                      className="
+                        text-[11px]
+                        font-semibold
+                        text-amber-900
+                      "
+                    >
+                      2. ยอดคงเหลือสต็อก
+                    </p>
+
+                    <input
+                      type="text"
+                      value=""
+                      disabled
+                      placeholder="กรุณาเลือกสินค้าก่อน"
+                      className="
+                        mt-1
+                        w-full
+                        rounded-lg
+                        border
+                        border-amber-200
+                        bg-white/80
+                        px-3
+                        py-2
+                        text-sm
+                        text-slate-500
+                        disabled:cursor-not-allowed
+                      "
+                    />
+
+                    <p
+                      className="
+                        mt-1.5
+                        text-[10px]
+                        text-slate-500
+                      "
+                    >
+                      เลือกสินค้าด้านบน แล้วกรอกยอดที่ต้องการให้เหลือรวมทุกคลัง
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled
+                    className="
+                      rounded-xl
+                      border
+                      !border-amber-300
+                      !bg-amber-400
+                      px-4
+                      py-2.5
+                      text-xs
+                      font-semibold
+                      !text-white
+                      opacity-40
+                    "
+                  >
+                    จัดสรรตามสต็อก
+                  </button>
+                </div>
+              )}
+
               {selectedProduct && (
                 <div
                   className="
@@ -886,7 +964,7 @@ export function PickingAdjustmentModal({
                           text-amber-900
                         "
                       >
-                        ยอดคงเหลือสต็อก
+                        2. ยอดคงเหลือสต็อก
                       </label>
 
                       <div
