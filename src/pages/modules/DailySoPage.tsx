@@ -1450,69 +1450,6 @@ function GroupPreview({
                           "
                         />
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (removed) {
-                              if (
-                                record.adjusted &&
-                                record.original_quantity !==
-                                  undefined
-                              ) {
-                                onQuantityChange(
-                                  editKey,
-                                  record.original_quantity,
-                                );
-                              } else {
-                                onQuantityRestore(
-                                  editKey,
-                                );
-                              }
-                            } else {
-                              onQuantityChange(
-                                editKey,
-                                0,
-                              );
-                            }
-                          }}
-                          className={`
-                            mt-2
-                            inline-flex
-                            w-full
-                            items-center
-                            justify-center
-                            gap-1.5
-                            rounded-lg
-                            border
-                            px-2
-                            py-1.5
-                            text-[10px]
-                            font-semibold
-                            transition
-                            ${
-                              removed
-                                ? "border-sky-300/30 bg-sky-300/[0.08] text-sky-200"
-                                : "border-red-300/30 bg-red-300/[0.08] text-red-200 hover:bg-red-300/[0.14]"
-                            }
-                          `}
-                        >
-                          {removed ? (
-                            <RotateCcw
-                              size={12}
-                            />
-                          ) : (
-                            <Ban
-                              size={12}
-                            />
-                          )}
-
-                          {
-                            removed
-                              ? "คืนรายการ"
-                              : "ไม่ส่งสินค้า"
-                          }
-                        </button>
-
                         {changed && (
                           <p
                             className="
@@ -1573,7 +1510,75 @@ function GroupPreview({
                   </td>
 
                   <td className="px-4 py-3">
-                    {removed ? (
+                    {adjusting ? (
+                      <button
+                        type="button"
+                        title={
+                          removed
+                            ? "คืนรายการสินค้า"
+                            : "ไม่มีการส่งสินค้ารายการนี้"
+                        }
+                        onClick={() => {
+                          if (removed) {
+                            if (
+                              record.adjusted &&
+                              record.original_quantity !==
+                                undefined
+                            ) {
+                              onQuantityChange(
+                                editKey,
+                                record.original_quantity,
+                              );
+                            } else {
+                              onQuantityRestore(
+                                editKey,
+                              );
+                            }
+                          } else {
+                            onQuantityChange(
+                              editKey,
+                              0,
+                            );
+                          }
+                        }}
+                        className={`
+                          inline-flex
+                          h-8
+                          items-center
+                          justify-center
+                          gap-1.5
+                          whitespace-nowrap
+                          rounded-lg
+                          border
+                          px-2.5
+                          text-[10px]
+                          font-semibold
+                          leading-none
+                          transition
+                          ${
+                            removed
+                              ? "border-sky-400/35 bg-sky-400/10 text-sky-700 hover:bg-sky-400/20"
+                              : "border-red-400/35 bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                          }
+                        `}
+                      >
+                        {removed ? (
+                          <RotateCcw
+                            size={12}
+                          />
+                        ) : (
+                          <Ban
+                            size={12}
+                          />
+                        )}
+
+                        {
+                          removed
+                            ? "คืนรายการ"
+                            : "ไม่ส่งสินค้า"
+                        }
+                      </button>
+                    ) : removed ? (
                       <span
                         className="
                           inline-flex
@@ -1588,7 +1593,7 @@ function GroupPreview({
                           py-1
                           text-[10px]
                           font-semibold
-                          text-red-300
+                          text-red-500
                         "
                       >
                         <Ban size={11} />
