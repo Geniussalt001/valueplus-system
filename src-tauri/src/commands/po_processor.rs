@@ -17,6 +17,7 @@ pub struct PoProcessorInput {
     template_path: String,
     start_iv: String,
     output_path: Option<String>,
+    quantity_overrides: Option<Value>,
 }
 
 #[derive(
@@ -107,6 +108,18 @@ fn validate_input(
                     .to_string(),
             );
         }
+
+        if let Some(
+            quantity_overrides,
+        ) = &input.quantity_overrides
+        {
+            if !quantity_overrides.is_object() {
+                return Err(
+                    "ข้อมูลตัดยอดไม่ถูกต้อง"
+                        .to_string(),
+                );
+            }
+        }
     }
 
     Ok(())
@@ -171,12 +184,29 @@ fn run_python(
                     .to_string()
             })?;
 
+        let quantity_overrides =
+            input
+                .quantity_overrides
+                .clone()
+                .unwrap_or_else(|| {
+                    Value::Object(
+                        serde_json::Map::new(),
+                    )
+                });
+
         command
             .arg(
                 "--output",
             )
             .arg(
                 output_path,
+            )
+            .arg(
+                "--quantity-overrides-json",
+            )
+            .arg(
+                quantity_overrides
+                    .to_string(),
             );
     }
 
