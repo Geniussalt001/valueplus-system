@@ -81,6 +81,11 @@ export function PickingAdjustmentModal({
     setSelectedProductKey,
   ] = useState("");
 
+  const [
+    stockRemaining,
+    setStockRemaining,
+  ] = useState("");
+
   const adjustableRecords =
     useMemo(
       () =>
@@ -227,6 +232,34 @@ export function PickingAdjustmentModal({
       ? [selectedProduct]
       : realtimeProducts;
 
+  const stockRemainingValue =
+    stockRemaining.trim() === ""
+      ? Number.NaN
+      : Number(
+          stockRemaining,
+        );
+
+  const stockRemainingValid =
+    Boolean(
+      selectedProduct,
+    ) &&
+    Number.isFinite(
+      stockRemainingValue,
+    ) &&
+    stockRemainingValue >= 0 &&
+    stockRemainingValue <=
+      (
+        selectedProduct
+          ?.original ?? 0
+      );
+
+  const automaticCutAmount =
+    stockRemainingValid &&
+    selectedProduct
+      ? selectedProduct.original -
+        stockRemainingValue
+      : 0;
+
   useEffect(() => {
     if (
       !selectedProductKey
@@ -271,6 +304,12 @@ export function PickingAdjustmentModal({
   }, [
     selectedProductKey,
     selectedProduct,
+  ]);
+
+  useEffect(() => {
+    setStockRemaining("");
+  }, [
+    selectedProductKey,
   ]);
 
   if (!open) {
@@ -321,6 +360,66 @@ export function PickingAdjustmentModal({
         ),
       ),
     );
+  }
+
+  function applyStockRemaining() {
+    if (
+      !selectedProduct ||
+      !stockRemainingValid
+    ) {
+      return;
+    }
+
+    let quantityToCut =
+      selectedProduct.original -
+      stockRemainingValue;
+
+    for (
+      const {
+        record,
+        items,
+      } of adjustableRecords
+    ) {
+      for (const item of items) {
+        if (
+          getProductKey(
+            item,
+          ) !==
+          selectedProduct.key
+        ) {
+          continue;
+        }
+
+        const original =
+          getOriginalPoQuantity(
+            item,
+          );
+
+        const nextQuantity =
+          quantityToCut <= 0
+            ? original
+            : Math.max(
+                0,
+                original -
+                  quantityToCut,
+              );
+
+        onChange(
+          poQuantityOverrideKey(
+            record,
+            item,
+          ),
+          nextQuantity,
+        );
+
+        quantityToCut =
+          Math.max(
+            0,
+            quantityToCut -
+              original,
+          );
+      }
+    }
   }
 
   return createPortal(
@@ -718,46 +817,192 @@ export function PickingAdjustmentModal({
                 <div
                   className="
                     mt-2
-                    flex
-                    flex-wrap
-                    items-center
-                    gap-x-4
-                    gap-y-1
-                    rounded-lg
-                    border
-                    border-cyan-200
-                    bg-white/90
-                    px-3
-                    py-2
-                    text-[11px]
-                    text-slate-600
+                    space-y-2
                   "
                 >
-                  <span
+                  <div
                     className="
-                      font-semibold
-                      text-sky-700
+                      flex
+                      flex-wrap
+                      items-center
+                      gap-x-4
+                      gap-y-1
+                      rounded-lg
+                      border
+                      border-cyan-200
+                      bg-white/90
+                      px-3
+                      py-2
+                      text-[11px]
+                      text-slate-600
                     "
                   >
-                    แสดง {visibleRecords.length} คลัง
-                  </span>
-                  <span>
-                    ยอดเดิม{" "}
-                    {formatNumber(
-                      selectedProduct.original,
-                    )}
-                  </span>
-                  <span
+                    <span
+                      className="
+                        font-semibold
+                        text-sky-700
+                      "
+                    >
+                      แสดง {visibleRecords.length} คลัง
+                    </span>
+                    <span>
+                      ยอดสั่งรวม{" "}
+                      {formatNumber(
+                        selectedProduct.original,
+                      )}
+                    </span>
+                    <span
+                      className="
+                        font-semibold
+                        text-emerald-600
+                      "
+                    >
+                      คงเหลือปัจจุบัน{" "}
+                      {formatNumber(
+                        selectedProduct.current,
+                      )}
+                    </span>
+                  </div>
+
+                  <div
                     className="
-                      font-semibold
-                      text-emerald-600
+                      grid
+                      gap-2
+                      rounded-xl
+                      border
+                      border-amber-200
+                      bg-amber-50/70
+                      p-3
+                      sm:grid-cols-[minmax(0,1fr)_auto]
+                      sm:items-end
                     "
                   >
-                    คงเหลือ{" "}
-                    {formatNumber(
-                      selectedProduct.current,
-                    )}
-                  </span>
+                    <div>
+                      <label
+                        htmlFor="picking-stock-remaining"
+                        className="
+                          text-[11px]
+                          font-semibold
+                          text-amber-900
+                        "
+                      >
+                        ยอดคงเหลือสต็อก
+                      </label>
+
+                      <div
+                        className="
+                          mt-1
+                          flex
+                          items-center
+                          gap-2
+                        "
+                      >
+                        <input
+                          id="picking-stock-remaining"
+                          type="number"
+                          min={0}
+                          max={
+                            selectedProduct.original
+                          }
+                          step="1"
+                          inputMode="numeric"
+                          value={
+                            stockRemaining
+                          }
+                          onChange={(event) => {
+                            setStockRemaining(
+                              event.target.value,
+                            );
+                          }}
+                          disabled={disabled}
+                          placeholder="เช่น 800"
+                          className="
+                            min-w-0
+                            flex-1
+                            rounded-lg
+                            border
+                            border-amber-200
+                            bg-white
+                            px-3
+                            py-2
+                            text-sm
+                            font-semibold
+                            text-slate-900
+                            outline-none
+                            focus:border-amber-400
+                            focus:ring-2
+                            focus:ring-amber-100
+                            disabled:opacity-50
+                          "
+                        />
+
+                        <span
+                          className="
+                            shrink-0
+                            text-xs
+                            text-amber-800
+                          "
+                        >
+                          ชิ้น
+                        </span>
+                      </div>
+
+                      <p
+                        className={`
+                          mt-1.5
+                          text-[10px]
+                          ${stockRemaining.trim() &&
+                          !stockRemainingValid
+                            ? "text-red-600"
+                            : "text-slate-500"}
+                        `}
+                      >
+                        {stockRemaining.trim() &&
+                        !stockRemainingValid
+                          ? `กรอกตั้งแต่ 0 ถึง ${formatNumber(
+                              selectedProduct.original,
+                            )} ชิ้น`
+                          : `ระบบจะไล่ตัด ${formatNumber(
+                              automaticCutAmount,
+                            )} ชิ้น ตามลำดับคลัง`}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={
+                        applyStockRemaining
+                      }
+                      disabled={
+                        disabled ||
+                        !stockRemainingValid
+                      }
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+                        gap-2
+                        rounded-xl
+                        border
+                        !border-amber-400
+                        !bg-amber-500
+                        px-4
+                        py-2.5
+                        text-xs
+                        font-semibold
+                        !text-white
+                        shadow-md
+                        shadow-amber-500/15
+                        transition
+                        hover:!bg-amber-600
+                        disabled:cursor-not-allowed
+                        disabled:opacity-40
+                      "
+                    >
+                      <Check size={15} />
+                      จัดสรรตามสต็อก
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
