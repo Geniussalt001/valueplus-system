@@ -7,6 +7,8 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
+  Ban,
+  Boxes,
   CheckCircle2,
   FileCheck2,
   FileSpreadsheet,
@@ -1040,8 +1042,9 @@ export function DailySoPage({
           <div
             className="
               grid
+              items-start
               gap-5
-              xl:grid-cols-2
+              xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]
             "
           >
             {preview.groups.map(
@@ -1066,9 +1069,31 @@ export function DailySoPage({
                       }),
                     );
                   }}
+                  onQuantityRestore={(
+                    key,
+                  ) => {
+                    setQuantityEdits(
+                      (current) => {
+                        const next = {
+                          ...current,
+                        };
+
+                        delete next[key];
+
+                        return next;
+                      },
+                    );
+                  }}
                 />
               ),
             )}
+
+            <CombinedResultCard
+              groups={preview.groups}
+              quantityEdits={
+                quantityEdits
+              }
+            />
           </div>
         )}
       </section>
@@ -1081,6 +1106,7 @@ function GroupPreview({
   adjusting,
   quantityEdits,
   onQuantityChange,
+  onQuantityRestore,
 }: {
   group: DailySoGroup;
   adjusting: boolean;
@@ -1089,6 +1115,9 @@ function GroupPreview({
   onQuantityChange: (
     key: string,
     value: number | "",
+  ) => void;
+  onQuantityRestore: (
+    key: string,
   ) => void;
 }) {
   const q19 =
@@ -1292,19 +1321,45 @@ function GroupPreview({
                     ? record.quantity
                     : editedValue;
 
+                const originalQuantity =
+                  record.original_quantity ??
+                  record.quantity;
+
                 const changed =
-                  typeof editedValue ===
-                    "number" &&
-                  editedValue !==
-                    record.quantity;
+                  (
+                    typeof editedValue ===
+                      "number" &&
+                    editedValue !==
+                      record.quantity
+                  ) ||
+                  Boolean(
+                    record.adjusted &&
+                    originalQuantity !==
+                      record.quantity,
+                  );
+
+                const removed =
+                  displayQuantity === 0 &&
+                  (
+                    changed ||
+                    Boolean(
+                      record.adjusted,
+                    )
+                  );
 
                 return (
                 <tr
                   key={`${record.item_code}-${record.pdf_name}-${index}`}
-                  className="
+                  className={`
                     align-top
                     text-slate-300
-                  "
+                    transition
+                    ${
+                      removed
+                        ? "bg-red-500/[0.06] opacity-65"
+                        : ""
+                    }
+                  `}
                 >
                   <td
                     className="
@@ -1395,6 +1450,58 @@ function GroupPreview({
                           "
                         />
 
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (removed) {
+                              onQuantityRestore(
+                                editKey,
+                              );
+                            } else {
+                              onQuantityChange(
+                                editKey,
+                                0,
+                              );
+                            }
+                          }}
+                          className={`
+                            mt-2
+                            inline-flex
+                            w-full
+                            items-center
+                            justify-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            px-2
+                            py-1.5
+                            text-[10px]
+                            font-semibold
+                            transition
+                            ${
+                              removed
+                                ? "border-sky-300/30 bg-sky-300/[0.08] text-sky-200"
+                                : "border-red-300/30 bg-red-300/[0.08] text-red-200 hover:bg-red-300/[0.14]"
+                            }
+                          `}
+                        >
+                          {removed ? (
+                            <RotateCcw
+                              size={12}
+                            />
+                          ) : (
+                            <Ban
+                              size={12}
+                            />
+                          )}
+
+                          {
+                            removed
+                              ? "คืนรายการ"
+                              : "ไม่ส่งสินค้า"
+                          }
+                        </button>
+
                         {changed && (
                           <p
                             className="
@@ -1405,7 +1512,7 @@ function GroupPreview({
                               text-slate-500
                             "
                           >
-                            เดิม {formatNumber(record.quantity)}
+                            เดิม {formatNumber(originalQuantity)}
                           </p>
                         )}
                       </div>
@@ -1432,7 +1539,11 @@ function GroupPreview({
                               text-amber-300
                             "
                           >
-                            ตัดจาก {formatNumber(record.quantity)}
+                            {
+                              removed
+                                ? "ตัดรายการแล้ว"
+                                : `ตัดจาก ${formatNumber(originalQuantity)}`
+                            }
                           </p>
                         )}
                       </div>
@@ -1451,9 +1562,32 @@ function GroupPreview({
                   </td>
 
                   <td className="px-4 py-3">
-                    <StatusBadge
-                      status={record.status}
-                    />
+                    {removed ? (
+                      <span
+                        className="
+                          inline-flex
+                          items-center
+                          gap-2
+                          whitespace-nowrap
+                          rounded-full
+                          border
+                          border-red-300/25
+                          bg-red-300/[0.08]
+                          px-2.5
+                          py-1
+                          text-[10px]
+                          font-semibold
+                          text-red-300
+                        "
+                      >
+                        <Ban size={11} />
+                        ตัดรายการ
+                      </span>
+                    ) : (
+                      <StatusBadge
+                        status={record.status}
+                      />
+                    )}
                   </td>
                 </tr>
                 );
@@ -1485,6 +1619,441 @@ function GroupPreview({
         </span>
       </div>
     </article>
+  );
+}
+
+interface CombinedProduct {
+  key: string;
+  itemName: string;
+  itemCode: string;
+  q19: number;
+  q20: number;
+  total: number;
+}
+
+function CombinedResultCard({
+  groups,
+  quantityEdits,
+}: {
+  groups: DailySoGroup[];
+  quantityEdits:
+    QuantityEdits;
+}) {
+  const products =
+    new Map<
+      string,
+      CombinedProduct
+    >();
+
+  const groupTotals = {
+    Q19: 0,
+    Q20: 0,
+  };
+
+  for (const group of groups) {
+    for (const record of group.records) {
+      const editKey =
+        quantityEditKey(
+          group.code,
+          record.item_code,
+          record.price,
+        );
+
+      const editedValue =
+        quantityEdits[
+          editKey
+        ];
+
+      const quantity =
+        typeof editedValue ===
+          "number"
+          ? editedValue
+          : record.quantity;
+
+      groupTotals[group.code] +=
+        quantity;
+
+      const productKey =
+        record.item_code ||
+        record.pdf_name;
+
+      const current =
+        products.get(
+          productKey,
+        ) ?? {
+          key: productKey,
+          itemName:
+            record.item_name ||
+            record.pdf_name,
+          itemCode:
+            record.item_code,
+          q19: 0,
+          q20: 0,
+          total: 0,
+        };
+
+      if (group.code === "Q19") {
+        current.q19 += quantity;
+      } else {
+        current.q20 += quantity;
+      }
+
+      current.total += quantity;
+
+      products.set(
+        productKey,
+        current,
+      );
+    }
+  }
+
+  const combinedProducts =
+    Array.from(
+      products.values(),
+    )
+      .filter(
+        (product) =>
+          product.total > 0,
+      )
+      .sort(
+        (left, right) =>
+          right.total -
+          left.total,
+      );
+
+  const grandTotal =
+    groupTotals.Q19 +
+    groupTotals.Q20;
+
+  return (
+    <aside
+      className="
+        sticky
+        top-6
+        min-w-0
+        overflow-hidden
+        rounded-2xl
+        border
+        border-cyan-300/30
+        bg-[#062f46]
+        text-white
+        shadow-xl
+        shadow-cyan-950/15
+      "
+    >
+      <div
+        className="
+          border-b
+          border-white/10
+          bg-gradient-to-br
+          from-cyan-400/15
+          to-blue-500/10
+          p-5
+        "
+      >
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-3
+          "
+        >
+          <div>
+            <p
+              className="
+                text-[10px]
+                font-semibold
+                tracking-[0.2em]
+                text-cyan-200
+              "
+            >
+              COMBINED RESULT
+            </p>
+
+            <h4
+              className="
+                mt-2
+                text-xl
+                font-semibold
+                text-white
+              "
+            >
+              ผลลัพธ์รวม Q19 + Q20
+            </h4>
+          </div>
+
+          <Boxes
+            className="
+              text-cyan-200
+            "
+            size={22}
+          />
+        </div>
+
+        <div
+          className="
+            mt-5
+            grid
+            grid-cols-2
+            gap-2
+          "
+        >
+          <ResultMetric
+            label="ยอด Q19"
+            value={
+              groupTotals.Q19
+            }
+            tone="violet"
+          />
+
+          <ResultMetric
+            label="ยอด Q20"
+            value={
+              groupTotals.Q20
+            }
+            tone="cyan"
+          />
+        </div>
+
+        <div
+          className="
+            mt-2
+            rounded-xl
+            border
+            border-emerald-300/30
+            bg-emerald-300/10
+            px-4
+            py-3
+          "
+        >
+          <p
+            className="
+              text-[10px]
+              font-medium
+              text-emerald-100/80
+            "
+          >
+            ยอดรวมทั้ง 2 คลัง
+          </p>
+
+          <p
+            className="
+              mt-1
+              text-2xl
+              font-bold
+              text-emerald-200
+            "
+          >
+            {formatNumber(grandTotal)}
+            <span
+              className="
+                ml-1
+                text-xs
+                font-medium
+              "
+            >
+              ชิ้น
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          border-b
+          border-white/10
+          px-5
+          py-3
+        "
+      >
+        <p
+          className="
+            text-xs
+            font-semibold
+            text-white
+          "
+        >
+          รวมตามรายการสินค้า
+        </p>
+
+        <span
+          className="
+            rounded-full
+            border
+            border-cyan-200/20
+            px-2
+            py-1
+            text-[9px]
+            text-cyan-100
+          "
+        >
+          {combinedProducts.length} รายการ
+        </span>
+      </div>
+
+      <div
+        className="
+          max-h-[470px]
+          space-y-2
+          overflow-auto
+          p-3
+        "
+      >
+        {combinedProducts.map(
+          (product) => (
+            <div
+              key={product.key}
+              className="
+                rounded-xl
+                border
+                border-white/10
+                bg-white/[0.06]
+                px-3
+                py-3
+              "
+            >
+              <div
+                className="
+                  flex
+                  items-start
+                  justify-between
+                  gap-3
+                "
+              >
+                <div className="min-w-0">
+                  <p
+                    className="
+                      truncate
+                      text-xs
+                      font-medium
+                      text-white
+                    "
+                    title={
+                      product.itemName
+                    }
+                  >
+                    {product.itemName}
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      text-[9px]
+                      text-slate-300
+                    "
+                  >
+                    {product.itemCode || "-"}
+                  </p>
+                </div>
+
+                <p
+                  className="
+                    shrink-0
+                    text-sm
+                    font-bold
+                    text-emerald-200
+                  "
+                >
+                  {
+                    formatNumber(
+                      product.total,
+                    )
+                  }
+                </p>
+              </div>
+
+              <div
+                className="
+                  mt-2
+                  flex
+                  gap-3
+                  text-[9px]
+                  text-slate-300
+                "
+              >
+                <span>
+                  Q19 {formatNumber(product.q19)}
+                </span>
+
+                <span>
+                  Q20 {formatNumber(product.q20)}
+                </span>
+              </div>
+            </div>
+          ),
+        )}
+
+        {combinedProducts.length ===
+          0 && (
+          <div
+            className="
+              rounded-xl
+              border
+              border-dashed
+              border-white/15
+              px-4
+              py-8
+              text-center
+              text-xs
+              text-slate-300
+            "
+          >
+            ไม่มีรายการที่มียอดส่งสินค้า
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function ResultMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone:
+    "violet" | "cyan";
+}) {
+  const toneClass =
+    tone === "violet"
+      ? "border-violet-300/25 bg-violet-300/10 text-violet-100"
+      : "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+
+  return (
+    <div
+      className={`
+        rounded-xl
+        border
+        px-3
+        py-3
+        ${toneClass}
+      `}
+    >
+      <p
+        className="
+          text-[9px]
+          opacity-75
+        "
+      >
+        {label}
+      </p>
+
+      <p
+        className="
+          mt-1
+          text-lg
+          font-bold
+        "
+      >
+        {formatNumber(value)}
+      </p>
+    </div>
   );
 }
 
