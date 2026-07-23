@@ -12,6 +12,11 @@ def main() -> int:
     parser.add_argument("--start-iv", required=True, help="เลข IV เริ่มต้น")
     parser.add_argument("--output", help="ไฟล์ Excel ผลลัพธ์")
     parser.add_argument(
+        "--quantity-overrides-json",
+        default="{}",
+        help="ข้อมูลตัดยอดสินค้าในรูปแบบ JSON",
+    )
+    parser.add_argument(
         "--preview",
         action="store_true",
         help="วิเคราะห์และแสดง Preview โดยยังไม่สร้าง Excel",
@@ -24,11 +29,24 @@ def main() -> int:
         else:
             if not args.output:
                 parser.error("ต้องระบุ --output เมื่อไม่ได้ใช้ --preview")
+            quantity_overrides = json.loads(
+                args.quantity_overrides_json,
+            )
+
+            if not isinstance(
+                quantity_overrides,
+                dict,
+            ):
+                raise ValueError(
+                    "ข้อมูลตัดยอดต้องเป็น Object",
+                )
+
             result = process_files(
                 args.pdf,
                 args.template,
                 args.start_iv,
                 args.output,
+                quantity_overrides=quantity_overrides,
             )
 
         print(json.dumps({"success": True, "data": result}, ensure_ascii=True))
