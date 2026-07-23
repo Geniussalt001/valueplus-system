@@ -949,8 +949,14 @@ def _write_group_workbook(
             "Sheet1"
         ]
 
-        records = group[
-            "records"
+        records = [
+            record
+            for record in group[
+                "records"
+            ]
+            if float(
+                record["quantity"]
+            ) > 0
         ]
 
         last_row = max(
