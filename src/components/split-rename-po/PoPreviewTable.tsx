@@ -6,15 +6,23 @@ import {
 
 import type {
   PoPreviewRecord,
+  PoQuantityOverrides,
 } from "../../types/poProcessor.types";
+
+import {
+  getEffectivePoQuantity,
+} from "../../utils/poQuantity";
 
 interface PoPreviewTableProps {
   records:
     PoPreviewRecord[];
+  quantityOverrides?:
+    PoQuantityOverrides;
 }
 
 export function PoPreviewTable({
   records,
+  quantityOverrides = {},
 }: PoPreviewTableProps) {
   return (
     <div
@@ -172,6 +180,42 @@ export function PoPreviewTable({
                     <p className="mt-1 text-[10px] text-slate-600">
                       MATCHED
                     </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        font-semibold
+                        text-cyan-700
+                      "
+                    >
+                      {formatNumber(
+                        getRecordQuantity(
+                          record,
+                          quantityOverrides,
+                        ),
+                      )} ชิ้น
+                    </p>
+
+                    {getExcludedCount(
+                      record,
+                      quantityOverrides,
+                    ) > 0 && (
+                      <p
+                        className="
+                          mt-1
+                          text-[10px]
+                          font-semibold
+                          text-red-600
+                        "
+                      >
+                        ไม่ส่งสินค้า{" "}
+                        {getExcludedCount(
+                          record,
+                          quantityOverrides,
+                        )} รายการ
+                      </p>
+                    )}
                   </td>
 
                   <td className="px-5 py-4">
@@ -309,4 +353,47 @@ function RecordStatus({
       ผิดพลาด
     </div>
   );
+}
+
+function getRecordQuantity(
+  record: PoPreviewRecord,
+  overrides: PoQuantityOverrides,
+): number {
+  return record.items.reduce(
+    (total, item) =>
+      total +
+      getEffectivePoQuantity(
+        record,
+        item,
+        overrides,
+      ),
+    0,
+  );
+}
+
+function getExcludedCount(
+  record: PoPreviewRecord,
+  overrides: PoQuantityOverrides,
+): number {
+  return record.items.filter(
+    (item) =>
+      item.matched &&
+      item.excel_row !== null &&
+      getEffectivePoQuantity(
+        record,
+        item,
+        overrides,
+      ) === 0,
+  ).length;
+}
+
+function formatNumber(
+  value: number,
+): string {
+  return new Intl.NumberFormat(
+    "th-TH",
+    {
+      maximumFractionDigits: 2,
+    },
+  ).format(value);
 }
