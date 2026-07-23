@@ -12,6 +12,9 @@ export interface PoProductMatch {
   quantity: number;
   matched: boolean;
   message: string;
+  original_quantity?: number;
+  adjusted?: boolean;
+  excluded?: boolean;
 }
 
 export interface PoPreviewRecord {
@@ -40,11 +43,16 @@ export interface PoPreviewResult {
   output_path?: string;
 }
 
+export type PoQuantityOverrides =
+  Record<string, number>;
+
 export interface PoProcessorInput {
   pdfPath: string;
   templatePath: string;
   startIv: string;
   outputPath?: string;
+  quantityOverrides?:
+    PoQuantityOverrides;
 }
 
 export interface DailyPickingPaths {
