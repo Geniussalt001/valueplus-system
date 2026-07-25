@@ -6,208 +6,82 @@ import {
 } from "react";
 
 import {
-  AlertCircle,
+  ArrowLeft,
+  Archive,
+  ExternalLink,
+  FileText,
+  FolderArchive,
   LoaderCircle,
   RefreshCw,
+  Search,
+  Warehouse,
+  X,
 } from "lucide-react";
+
+import {
+  openUrl,
+} from "@tauri-apps/plugin-opener";
 
 import type {
   AppUser,
 } from "../../../auth/auth.types";
 
 import {
-  poDataService,
-} from "../../../services/poDataService";
-
-import {
-  MAX_PDF_SIZE,
-  base64ToPdfUrl,
-  fileToBase64,
-} from "../../../utils/fileEncoding";
-
-import { ConfirmDialog } from "./ConfirmDialog";
-import { CreatePoModal } from "./CreatePoModal";
-import { EditPoModal } from "./EditPoModal";
-import { OperationIndicator } from "./OperationIndicator";
-import { PdfPreviewModal } from "./PdfPreviewModal";
-import { PoDataFilters } from "./PoDataFilters";
-import { PoDataHeader } from "./PoDataHeader";
-import { PoDataStats } from "./PoDataStats";
-import { PoDataTable } from "./PoDataTable";
-import { PoDetailsModal } from "./PoDetailsModal";
+  poArchiveService,
+} from "../../../services/poArchiveService";
 
 import type {
-  NewPoInput,
-  PoHistoryRecord,
-  PoRecord,
-  PoStatus,
-} from "./poData.types";
+  PoArchiveRecord,
+} from "../../../types/poArchive.types";
+
+import {
+  base64ToPdfUrl,
+} from "../../../utils/fileEncoding";
 
 interface PoDataPageProps {
   currentUser: AppUser;
   onBack: () => void;
 }
 
-type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "error";
-
 export function PoDataPage({
   currentUser,
   onBack,
 }: PoDataPageProps) {
-  const isAdmin =
-    currentUser.role === "admin";
-
   const [records, setRecords] =
-    useState<PoRecord[]>([]);
-
+    useState<PoArchiveRecord[]>([]);
   const [search, setSearch] =
     useState("");
-
-  const [status, setStatus] =
-    useState<"all" | PoStatus>(
-      "all",
-    );
-
   const [loading, setLoading] =
     useState(true);
-
-  const [saving, setSaving] =
-    useState(false);
-
   const [error, setError] =
     useState("");
-
-  const [
-    connectionStatus,
-    setConnectionStatus,
-  ] = useState<ConnectionStatus>(
-    "connecting",
-  );
-
-  const [
-    uploadingId,
-    setUploadingId,
-  ] = useState("");
-
-  const [
-    previewingId,
-    setPreviewingId,
-  ] = useState("");
-
-  const [
-    updatingStatusId,
-    setUpdatingStatusId,
-  ] = useState("");
-
-  const [
-    deletingId,
-    setDeletingId,
-  ] = useState("");
-
-  const [clearing, setClearing] =
-    useState(false);
-
-  const [
-    operationMessage,
-    setOperationMessage,
-  ] = useState("");
-
-  const [
-    showCreateModal,
-    setShowCreateModal,
-  ] = useState(false);
-
-  const [
-    showClearConfirm,
-    setShowClearConfirm,
-  ] = useState(false);
-
-  const [
-    editingRecord,
-    setEditingRecord,
-  ] = useState<PoRecord | null>(
-    null,
-  );
-
-  const [
-    deletingRecord,
-    setDeletingRecord,
-  ] = useState<PoRecord | null>(
-    null,
-  );
-
-  const [
-    previewRecord,
-    setPreviewRecord,
-  ] = useState<PoRecord | null>(
-    null,
-  );
-
-  const [
-    detailsRecord,
-    setDetailsRecord,
-  ] = useState<PoRecord | null>(
-    null,
-  );
-
-  const [
-    historyRecords,
-    setHistoryRecords,
-  ] = useState<
-    PoHistoryRecord[]
-  >([]);
-
-  const [
-    historyLoading,
-    setHistoryLoading,
-  ] = useState(false);
-
-  const [
-    historyError,
-    setHistoryError,
-  ] = useState("");
+  const [previewUrl, setPreviewUrl] =
+    useState("");
+  const [previewName, setPreviewName] =
+    useState("");
+  const [openingId, setOpeningId] =
+    useState("");
 
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
       setError("");
-      setConnectionStatus(
-        "connecting",
-      );
-
-      setOperationMessage(
-        "กำลังโหลดข้อมูลจาก Google Sheets...",
-      );
 
       try {
-        const result =
-          await poDataService.list();
+        const nextRecords =
+          await poArchiveService.list();
 
         setRecords(
-          Array.isArray(result)
-            ? result
+          Array.isArray(nextRecords)
+            ? nextRecords
             : [],
         );
-
-        setConnectionStatus(
-          "connected",
-        );
-      } catch (requestError) {
-        setConnectionStatus(
-          "error",
-        );
-
+      } catch (reason) {
         setError(
-          getErrorMessage(
-            requestError,
-          ),
+          getErrorMessage(reason),
         );
       } finally {
         setLoading(false);
-        setOperationMessage("");
       }
     }, []);
 
@@ -215,834 +89,757 @@ export function PoDataPage({
     void loadRecords();
   }, [loadRecords]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl,
+        );
+      }
+    };
+  }, [previewUrl]);
+
   const filteredRecords =
     useMemo(() => {
-      const keyword = search
-        .trim()
-        .toLowerCase();
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
+
+      if (!keyword) {
+        return records;
+      }
 
       return records.filter(
-        (record) => {
-          const matchesSearch =
-            !keyword ||
-            record.poNumber
-              .toLowerCase()
-              .includes(keyword) ||
-            record.ivNumber
-              .toLowerCase()
-              .includes(keyword) ||
-            (
-              record.reference ??
-              ""
+        (record) =>
+          record.poNumber
+            .toLowerCase()
+            .includes(keyword) ||
+          record.warehouse
+            .toLowerCase()
+            .includes(keyword) ||
+          record.fileName
+            .toLowerCase()
+            .includes(keyword) ||
+          record.documentDate
+            .toLowerCase()
+            .includes(keyword),
+      );
+    }, [records, search]);
+
+  const warehouseCount =
+    useMemo(
+      () =>
+        new Set(
+          records
+            .map(
+              (record) =>
+                record.warehouse,
             )
-              .toLowerCase()
-              .includes(keyword) ||
-            (
-              record.customerName ??
-              ""
-            )
-              .toLowerCase()
-              .includes(keyword) ||
-            (
-              record.assignee ??
-              ""
-            )
-              .toLowerCase()
-              .includes(keyword);
+            .filter(Boolean),
+        ).size,
+      [records],
+    );
 
-          const matchesStatus =
-            status === "all" ||
-            record.status === status;
+  const totalSize =
+    useMemo(
+      () =>
+        records.reduce(
+          (total, record) =>
+            total +
+            Number(
+              record.fileSize || 0,
+            ),
+          0,
+        ),
+      [records],
+    );
 
-          return (
-            matchesSearch &&
-            matchesStatus
-          );
-        },
-      );
-    }, [
-      records,
-      search,
-      status,
-    ]);
-
-  const createRecord = async (
-    input: NewPoInput,
+  const openPreview = async (
+    record: PoArchiveRecord,
   ) => {
-    if (!isAdmin) {
-      setError(
-        "สิทธิ์ User ไม่สามารถเพิ่มรายการได้",
-      );
-      return;
-    }
-
-    setSaving(true);
+    setOpeningId(record.id);
     setError("");
-
-    setOperationMessage(
-      "กำลังบันทึกรายการ PO...",
-    );
-
-    try {
-      const newRecord =
-        await poDataService.create(
-          input,
-        );
-
-      setRecords((current) => [
-        newRecord,
-        ...current,
-      ]);
-
-      setShowCreateModal(false);
-    } catch (requestError) {
-      setError(
-        getErrorMessage(
-          requestError,
-        ),
-      );
-    } finally {
-      setSaving(false);
-      setOperationMessage("");
-    }
-  };
-
-  const updateRecord = async (
-    id: string,
-    input: NewPoInput,
-  ) => {
-    if (!isAdmin) {
-      setError(
-        "สิทธิ์ User ไม่สามารถแก้ไขรายการได้",
-      );
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    setOperationMessage(
-      "กำลังบันทึกการแก้ไข...",
-    );
-
-    try {
-      const updatedRecord =
-        await poDataService.update(
-          id,
-          input,
-        );
-
-      setRecords((current) =>
-        current.map((record) =>
-          record.id === id
-            ? updatedRecord
-            : record,
-        ),
-      );
-
-      setEditingRecord(null);
-    } catch (requestError) {
-      setError(
-        getErrorMessage(
-          requestError,
-        ),
-      );
-    } finally {
-      setSaving(false);
-      setOperationMessage("");
-    }
-  };
-
-  const changeStatus = async (
-    id: string,
-    nextStatus: PoStatus,
-  ) => {
-    if (!isAdmin) {
-      setError(
-        "สิทธิ์ User ไม่สามารถเปลี่ยนสถานะได้",
-      );
-      return;
-    }
-
-    const previousRecords =
-      records.map((record) => ({
-        ...record,
-      }));
-
-    setError("");
-    setUpdatingStatusId(id);
-
-    setOperationMessage(
-      "กำลังอัปเดตสถานะรายการ...",
-    );
-
-    setRecords((current) =>
-      current.map((record) =>
-        record.id === id
-          ? {
-              ...record,
-              status: nextStatus,
-            }
-          : record,
-      ),
-    );
-
-    try {
-      const updatedRecord =
-        await poDataService.updateStatus(
-          id,
-          nextStatus,
-        );
-
-      setRecords((current) =>
-        current.map((record) =>
-          record.id === id
-            ? {
-                ...record,
-                ...updatedRecord,
-              }
-            : record,
-        ),
-      );
-    } catch (requestError) {
-      setRecords(previousRecords);
-
-      setError(
-        getErrorMessage(
-          requestError,
-        ),
-      );
-    } finally {
-      setUpdatingStatusId("");
-      setOperationMessage("");
-    }
-  };
-
-  const uploadPdf = async (
-    id: string,
-    file: File,
-  ) => {
-    if (
-      file.type !==
-        "application/pdf" &&
-      !file.name
-        .toLowerCase()
-        .endsWith(".pdf")
-    ) {
-      setError(
-        "รองรับเฉพาะไฟล์ PDF เท่านั้น",
-      );
-      return;
-    }
-
-    if (
-      file.size >
-      MAX_PDF_SIZE
-    ) {
-      setError(
-        "ไฟล์ PDF ต้องมีขนาดไม่เกิน 8 MB",
-      );
-      return;
-    }
-
-    setUploadingId(id);
-    setError("");
-
-    setOperationMessage(
-      "กำลังอัปโหลด PDF ไป Google Drive...",
-    );
-
-    try {
-      const base64Data =
-        await fileToBase64(file);
-
-      const updatedRecord =
-        await poDataService.uploadPdf(
-          id,
-          file.name,
-          base64Data,
-        );
-
-      setRecords((current) =>
-        current.map((record) =>
-          record.id === id
-            ? updatedRecord
-            : record,
-        ),
-      );
-    } catch (requestError) {
-      setError(
-        getErrorMessage(
-          requestError,
-        ),
-      );
-    } finally {
-      setUploadingId("");
-      setOperationMessage("");
-    }
-  };
-
-  const previewPdf = async (
-    record: PoRecord,
-  ) => {
-    if (record.pdfUrl) {
-      setPreviewRecord(record);
-      return;
-    }
-
-    if (!record.pdfFileId) {
-      setError(
-        "รายการนี้ยังไม่มีเอกสาร PDF",
-      );
-      return;
-    }
-
-    setPreviewingId(record.id);
-    setError("");
-
-    setOperationMessage(
-      "กำลังดาวน์โหลด PDF สำหรับ Preview...",
-    );
 
     try {
       const pdf =
-        await poDataService.getPdf(
-          record.id,
-        );
+        await poArchiveService
+          .getPdf(record.id);
 
-      const pdfUrl =
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl,
+        );
+      }
+
+      setPreviewUrl(
         base64ToPdfUrl(
           pdf.base64Data,
-        );
-
-      const recordWithPreview: PoRecord = {
-        ...record,
-        pdfName:
-          pdf.fileName,
-        pdfUrl,
-      };
-
-      setRecords((current) =>
-        current.map((item) =>
-          item.id === record.id
-            ? recordWithPreview
-            : item,
         ),
       );
-
-      setPreviewRecord(
-        recordWithPreview,
+      setPreviewName(
+        pdf.fileName,
       );
-    } catch (requestError) {
+    } catch (reason) {
       setError(
-        getErrorMessage(
-          requestError,
-        ),
+        getErrorMessage(reason),
       );
     } finally {
-      setPreviewingId("");
-      setOperationMessage("");
+      setOpeningId("");
     }
   };
 
-  const openDetails = async (
-    record: PoRecord,
-  ) => {
-    setDetailsRecord(record);
-    setHistoryRecords([]);
-    setHistoryError("");
-    setHistoryLoading(true);
-
-    try {
-      const result =
-        await poDataService.history(
-          record.id,
-        );
-
-      setHistoryRecords(
-        Array.isArray(result)
-          ? result
-          : [],
+  const closePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(
+        previewUrl,
       );
-    } catch (requestError) {
-      setHistoryError(
-        getErrorMessage(
-          requestError,
-        ),
-      );
-    } finally {
-      setHistoryLoading(false);
     }
+
+    setPreviewUrl("");
+    setPreviewName("");
   };
-
-  const deleteRecord =
-    async () => {
-      if (!isAdmin) {
-        setError(
-          "สิทธิ์ User ไม่สามารถลบรายการได้",
-        );
-        return;
-      }
-
-      if (!deletingRecord) {
-        return;
-      }
-
-      const recordId =
-        deletingRecord.id;
-
-      setDeletingId(recordId);
-      setError("");
-
-      setOperationMessage(
-        "กำลังย้ายรายการและ PDF ไปถังขยะ...",
-      );
-
-      try {
-        await poDataService.delete(
-          recordId,
-        );
-
-        setRecords((current) =>
-          current.filter(
-            (record) =>
-              record.id !==
-              recordId,
-          ),
-        );
-
-        setDeletingRecord(null);
-      } catch (requestError) {
-        setError(
-          getErrorMessage(
-            requestError,
-          ),
-        );
-      } finally {
-        setDeletingId("");
-        setOperationMessage("");
-      }
-    };
-
-  const clearAllRecords =
-    async () => {
-      if (!isAdmin) {
-        setError(
-          "สิทธิ์ User ไม่สามารถล้างข้อมูลได้",
-        );
-        return;
-      }
-
-      setClearing(true);
-      setError("");
-
-      setOperationMessage(
-        "กำลังล้างข้อมูลทั้งหมด...",
-      );
-
-      try {
-        await poDataService.clearAll();
-
-        setRecords([]);
-        setShowClearConfirm(false);
-      } catch (requestError) {
-        setError(
-          getErrorMessage(
-            requestError,
-          ),
-        );
-      } finally {
-        setClearing(false);
-        setOperationMessage("");
-      }
-    };
-
-  const connectionState =
-    getConnectionState(
-      connectionStatus,
-    );
 
   return (
-    <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-      <PoDataHeader
-        currentUser={
-          currentUser
-        }
-        canClear={
-          isAdmin &&
-          records.length > 0
-        }
-        clearing={clearing}
-        onBack={onBack}
-        onCreate={() => {
-          if (isAdmin) {
-            setShowCreateModal(
-              true,
-            );
-          }
-        }}
-        onClear={() => {
-          if (isAdmin) {
-            setShowClearConfirm(
-              true,
-            );
-          }
-        }}
-      />
+    <div
+      className="
+        mx-auto
+        max-w-[1500px]
+        px-6
+        py-8
+        lg:px-10
+      "
+    >
+      <header
+        className="
+          flex
+          flex-col
+          justify-between
+          gap-5
+          md:flex-row
+          md:items-end
+        "
+      >
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="
+              mb-5
+              flex
+              items-center
+              gap-2
+              text-sm
+              text-slate-500
+              transition
+              hover:text-cyan-600
+            "
+          >
+            <ArrowLeft size={17} />
+            กลับหน้าแดชบอร์ด
+          </button>
 
-      <section className="mt-6 flex flex-col gap-4 rounded-xl border border-cyan-300/10 bg-cyan-300/[0.035] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <span
-            className={`h-2 w-2 rounded-full ${connectionState.dotClass}`}
-          />
+          <p
+            className="
+              text-[10px]
+              font-semibold
+              tracking-[0.24em]
+              text-cyan-600
+            "
+          >
+            PO DOCUMENT ARCHIVE
+          </p>
 
-          <div>
-            <p className="text-xs text-slate-300">
-              Google Apps Script
-            </p>
+          <h2
+            className="
+              mt-2
+              text-3xl
+              font-semibold
+              text-slate-900
+            "
+          >
+            แฟ้มบันทึกข้อมูล
+          </h2>
 
-            <p
-              className={`mt-0.5 text-[10px] tracking-[0.12em] ${connectionState.textClass}`}
-            >
-              {connectionState.label}
-            </p>
-          </div>
+          <p
+            className="
+              mt-3
+              max-w-3xl
+              text-sm
+              leading-6
+              text-slate-500
+            "
+          >
+            เอกสารที่แยกและเปลี่ยนชื่อแล้วจะถูกจัดเก็บใน
+            Google Drive อัตโนมัติ เพื่อให้สำนักงานใหญ่ค้นหาและเปิดใช้งานได้
+          </p>
         </div>
+
+        <div
+          className="
+            flex
+            h-12
+            w-12
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-cyan-300
+            bg-cyan-50
+            text-cyan-700
+          "
+        >
+          <FolderArchive size={23} />
+        </div>
+      </header>
+
+      <section
+        className="
+          mt-7
+          grid
+          gap-4
+          sm:grid-cols-3
+        "
+      >
+        <StatCard
+          label="เอกสารทั้งหมด"
+          value={records.length}
+          icon={<Archive size={18} />}
+        />
+        <StatCard
+          label="คลังที่พบ"
+          value={warehouseCount}
+          icon={<Warehouse size={18} />}
+        />
+        <StatCard
+          label="พื้นที่เอกสาร"
+          value={formatFileSize(totalSize)}
+          icon={<FileText size={18} />}
+        />
+      </section>
+
+      <section
+        className="
+          mt-5
+          flex
+          flex-col
+          gap-3
+          rounded-2xl
+          border
+          border-cyan-200
+          bg-white/90
+          p-4
+          shadow-sm
+          md:flex-row
+          md:items-center
+        "
+      >
+        <label
+          className="
+            flex
+            min-h-11
+            flex-1
+            items-center
+            gap-3
+            rounded-xl
+            border
+            border-slate-200
+            bg-slate-50
+            px-4
+          "
+        >
+          <Search
+            className="text-cyan-600"
+            size={18}
+          />
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(
+                event.target.value,
+              );
+            }}
+            placeholder="ค้นหาเลข PO, คลัง, วันที่ หรือชื่อไฟล์"
+            className="
+              w-full
+              bg-transparent
+              text-sm
+              text-slate-900
+              outline-none
+              placeholder:text-slate-400
+            "
+          />
+        </label>
 
         <button
           type="button"
-          onClick={() =>
-            void loadRecords()
-          }
+          onClick={() => {
+            void loadRecords();
+          }}
           disabled={loading}
-          className="flex items-center justify-center gap-2 text-xs text-cyan-300 transition hover:text-cyan-200 disabled:cursor-wait disabled:opacity-40"
+          className="
+            flex
+            min-h-11
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            bg-[#063b59]
+            px-5
+            text-sm
+            font-semibold
+            text-white
+            shadow-md
+            transition
+            hover:bg-[#075071]
+            disabled:opacity-50
+          "
         >
           <RefreshCw
-            size={15}
             className={
               loading
                 ? "animate-spin"
                 : ""
             }
+            size={17}
           />
-
-          {loading
-            ? "กำลังโหลดข้อมูล..."
-            : "โหลดข้อมูลใหม่"}
+          โหลดข้อมูลใหม่
         </button>
       </section>
 
       {error && (
-        <section className="mt-4 flex items-start gap-3 rounded-xl border border-red-300/20 bg-red-300/[0.07] px-4 py-3 text-sm text-red-200">
-          <AlertCircle
-            size={18}
-            className="mt-0.5 shrink-0"
-          />
-
-          <div>
-            <p className="font-medium">
-              ไม่สามารถดำเนินการได้
-            </p>
-
-            <p className="mt-1 text-xs leading-6 text-red-200/80">
-              {error}
-            </p>
-          </div>
-        </section>
+        <div
+          className="
+            mt-5
+            rounded-xl
+            border
+            border-red-200
+            bg-red-50
+            px-5
+            py-4
+            text-sm
+            text-red-700
+          "
+        >
+          {error}
+        </div>
       )}
 
-      <PoDataStats
-        records={records}
-      />
+      <section
+        className="
+          mt-5
+          overflow-hidden
+          rounded-2xl
+          border
+          border-cyan-200
+          bg-white
+          shadow-sm
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            border-b
+            border-slate-200
+            px-5
+            py-4
+          "
+        >
+          <div>
+            <h3
+              className="
+                font-semibold
+                text-slate-900
+              "
+            >
+              เอกสาร PO ใน Google Drive
+            </h3>
+            <p
+              className="
+                mt-1
+                text-xs
+                text-slate-500
+              "
+            >
+              แสดง {filteredRecords.length} จาก {records.length} ไฟล์ · ผู้ใช้งาน {currentUser.displayName}
+            </p>
+          </div>
+        </div>
 
-      <PoDataFilters
-        search={search}
-        status={status}
-        onSearchChange={
-          setSearch
-        }
-        onStatusChange={
-          setStatus
-        }
-      />
-
-      {loading ? (
-        <section className="mt-5 flex min-h-72 flex-col items-center justify-center rounded-2xl border border-cyan-300/10 bg-[#051322]/60">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.05]">
+        {loading ? (
+          <div
+            className="
+              flex
+              min-h-72
+              items-center
+              justify-center
+              gap-3
+              text-sm
+              text-slate-500
+            "
+          >
             <LoaderCircle
-              size={31}
-              className="animate-spin text-cyan-300"
+              className="animate-spin"
+              size={22}
+            />
+            กำลังโหลดแฟ้มเอกสาร...
+          </div>
+        ) : filteredRecords.length === 0 ? (
+          <div
+            className="
+              flex
+              min-h-72
+              flex-col
+              items-center
+              justify-center
+              text-center
+              text-slate-500
+            "
+          >
+            <FolderArchive size={36} />
+            <p
+              className="
+                mt-4
+                font-medium
+                text-slate-700
+              "
+            >
+              ยังไม่พบเอกสาร
+            </p>
+            <p className="mt-1 text-xs">
+              ไฟล์จะปรากฏหลังประมวลผลหน้าแยกและเปลี่ยนชื่อ PO
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table
+              className="
+                w-full
+                min-w-[900px]
+                text-left
+              "
+            >
+              <thead
+                className="
+                  bg-cyan-50
+                  text-xs
+                  text-slate-600
+                "
+              >
+                <tr>
+                  <th className="px-5 py-3">เลข PO</th>
+                  <th className="px-5 py-3">วันที่เอกสาร</th>
+                  <th className="px-5 py-3">คลัง</th>
+                  <th className="px-5 py-3">ชื่อไฟล์</th>
+                  <th className="px-5 py-3">ขนาด</th>
+                  <th className="px-5 py-3">บันทึกเมื่อ</th>
+                  <th className="px-5 py-3 text-right">เปิดเอกสาร</th>
+                </tr>
+              </thead>
+
+              <tbody
+                className="
+                  divide-y
+                  divide-slate-100
+                  text-sm
+                "
+              >
+                {filteredRecords.map(
+                  (record) => (
+                    <tr
+                      key={record.id}
+                      className="
+                        transition
+                        hover:bg-cyan-50/60
+                      "
+                    >
+                      <td
+                        className="
+                          px-5
+                          py-4
+                          font-semibold
+                          text-cyan-700
+                        "
+                      >
+                        {record.poNumber}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {formatThaiDate(record.documentDate)}
+                      </td>
+                      <td className="px-5 py-4 font-medium text-slate-800">
+                        {record.warehouse}
+                      </td>
+                      <td className="max-w-xs truncate px-5 py-4 text-slate-600">
+                        {record.fileName}
+                      </td>
+                      <td className="px-5 py-4 text-slate-500">
+                        {formatFileSize(record.fileSize)}
+                      </td>
+                      <td className="px-5 py-4 text-slate-500">
+                        {formatThaiDateTime(record.uploadedAt)}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div
+                          className="
+                            flex
+                            justify-end
+                            gap-2
+                          "
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void openPreview(record);
+                            }}
+                            disabled={openingId === record.id}
+                            className="
+                              rounded-lg
+                              border
+                              border-cyan-200
+                              bg-cyan-50
+                              px-3
+                              py-2
+                              text-xs
+                              font-semibold
+                              text-cyan-700
+                              hover:bg-cyan-100
+                              disabled:opacity-50
+                            "
+                          >
+                            {openingId === record.id
+                              ? "กำลังเปิด..."
+                              : "Preview"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void openUrl(record.fileUrl);
+                            }}
+                            className="
+                              flex
+                              items-center
+                              gap-1.5
+                              rounded-lg
+                              bg-[#063b59]
+                              px-3
+                              py-2
+                              text-xs
+                              font-semibold
+                              text-white
+                              hover:bg-[#075071]
+                            "
+                          >
+                            Drive
+                            <ExternalLink size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {previewUrl && (
+        <div
+          className="
+            fixed
+            inset-0
+            z-[120]
+            flex
+            items-center
+            justify-center
+            bg-slate-950/65
+            p-5
+            backdrop-blur-sm
+          "
+        >
+          <div
+            className="
+              flex
+              h-[90vh]
+              w-full
+              max-w-6xl
+              flex-col
+              overflow-hidden
+              rounded-2xl
+              bg-white
+              shadow-2xl
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                border-b
+                border-slate-200
+                px-5
+                py-4
+              "
+            >
+              <div>
+                <p className="font-semibold text-slate-900">
+                  {previewName}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Preview จาก Google Drive
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closePreview}
+                className="
+                  rounded-lg
+                  border
+                  border-slate-200
+                  p-2
+                  text-slate-500
+                  hover:bg-slate-100
+                "
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            <iframe
+              title={previewName}
+              src={previewUrl}
+              className="min-h-0 flex-1"
             />
           </div>
-
-          <p className="mt-5 text-sm text-slate-400">
-            กำลังโหลดข้อมูลจาก Google Sheets
-          </p>
-        </section>
-      ) : (
-        <PoDataTable
-          isAdmin={isAdmin}
-          records={
-            filteredRecords
-          }
-          uploadingId={
-            uploadingId
-          }
-          previewingId={
-            previewingId
-          }
-          updatingStatusId={
-            updatingStatusId
-          }
-          deletingId={
-            deletingId
-          }
-          onStatusChange={(
-            id,
-            nextStatus,
-          ) => {
-            if (isAdmin) {
-              void changeStatus(
-                id,
-                nextStatus,
-              );
-            }
-          }}
-          onPdfUpload={(
-            id,
-            file,
-          ) => {
-            void uploadPdf(
-              id,
-              file,
-            );
-          }}
-          onPdfPreview={(
-            record,
-          ) => {
-            void previewPdf(
-              record,
-            );
-          }}
-          onViewDetails={(
-            record,
-          ) => {
-            void openDetails(
-              record,
-            );
-          }}
-          onEdit={(record) => {
-            if (isAdmin) {
-              setEditingRecord(
-                record,
-              );
-            }
-          }}
-          onDelete={(record) => {
-            if (isAdmin) {
-              setDeletingRecord(
-                record,
-              );
-            }
-          }}
-        />
+        </div>
       )}
-
-      {isAdmin &&
-        showCreateModal && (
-          <CreatePoModal
-            saving={saving}
-            onClose={() => {
-              if (!saving) {
-                setShowCreateModal(
-                  false,
-                );
-              }
-            }}
-            onSave={(input) => {
-              if (!saving) {
-                void createRecord(
-                  input,
-                );
-              }
-            }}
-          />
-        )}
-
-      {isAdmin &&
-        editingRecord && (
-          <EditPoModal
-            record={
-              editingRecord
-            }
-            saving={saving}
-            onClose={() => {
-              if (!saving) {
-                setEditingRecord(
-                  null,
-                );
-              }
-            }}
-            onSave={(
-              id,
-              input,
-            ) => {
-              if (!saving) {
-                void updateRecord(
-                  id,
-                  input,
-                );
-              }
-            }}
-          />
-        )}
-
-      {isAdmin &&
-        deletingRecord && (
-          <ConfirmDialog
-            title="ลบรายการ PO"
-            description={`ต้องการลบ PO ${deletingRecord.poNumber} ใช่หรือไม่?`}
-            confirmText="ลบรายการ"
-            processing={
-              deletingId ===
-              deletingRecord.id
-            }
-            onCancel={() => {
-              if (!deletingId) {
-                setDeletingRecord(
-                  null,
-                );
-              }
-            }}
-            onConfirm={() => {
-              void deleteRecord();
-            }}
-          />
-        )}
-
-      {isAdmin &&
-        showClearConfirm && (
-          <ConfirmDialog
-            title="ล้างข้อมูลทั้งหมด"
-            description={`ต้องการล้างข้อมูลทั้งหมด ${records.length} รายการใช่หรือไม่?`}
-            confirmText="ล้างข้อมูลทั้งหมด"
-            processing={clearing}
-            onCancel={() => {
-              if (!clearing) {
-                setShowClearConfirm(
-                  false,
-                );
-              }
-            }}
-            onConfirm={() => {
-              void clearAllRecords();
-            }}
-          />
-        )}
-
-      {detailsRecord && (
-        <PoDetailsModal
-          record={
-            detailsRecord
-          }
-          history={
-            historyRecords
-          }
-          loading={
-            historyLoading
-          }
-          error={historyError}
-          onClose={() => {
-            setDetailsRecord(
-              null,
-            );
-            setHistoryRecords(
-              [],
-            );
-            setHistoryError("");
-          }}
-          onPreviewPdf={(
-            record,
-          ) => {
-            setDetailsRecord(
-              null,
-            );
-            void previewPdf(
-              record,
-            );
-          }}
-        />
-      )}
-
-      {previewRecord?.pdfUrl && (
-        <PdfPreviewModal
-          fileName={
-            previewRecord.pdfName ??
-            "PDF Document"
-          }
-          fileUrl={
-            previewRecord.pdfUrl
-          }
-          onClose={() =>
-            setPreviewRecord(
-              null,
-            )
-          }
-        />
-      )}
-
-      <OperationIndicator
-        message={
-          operationMessage
-        }
-      />
     </div>
   );
 }
 
-function getErrorMessage(
-  error: unknown,
-) {
-  if (
-    error instanceof Error
-  ) {
-    return error.message;
-  }
-
-  return "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+function StatCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div
+      className="
+        rounded-2xl
+        border
+        border-cyan-200
+        bg-white/90
+        p-5
+        shadow-sm
+      "
+    >
+      <div className="text-cyan-600">
+        {icon}
+      </div>
+      <p className="mt-4 text-2xl font-semibold text-slate-900">
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-slate-500">
+        {label}
+      </p>
+    </div>
+  );
 }
 
-function getConnectionState(
-  status: ConnectionStatus,
-) {
+function formatFileSize(
+  bytes: number,
+): string {
+  if (!bytes) {
+    return "0 KB";
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(
+      bytes / 1024
+    ).toFixed(1)} KB`;
+  }
+
+  return `${(
+    bytes /
+    1024 /
+    1024
+  ).toFixed(2)} MB`;
+}
+
+function formatThaiDate(
+  value: string,
+): string {
+  if (!value) {
+    return "-";
+  }
+
+  const date =
+    new Date(
+      `${value}T00:00:00`,
+    );
+
   if (
-    status === "connecting"
+    Number.isNaN(
+      date.getTime(),
+    )
   ) {
-    return {
-      label: "CONNECTING",
-      dotClass:
-        "animate-pulse bg-amber-300 shadow-[0_0_9px_#fcd34d]",
-      textClass:
-        "text-amber-300",
-    };
+    return value;
   }
 
-  if (status === "error") {
-    return {
-      label:
-        "CONNECTION ERROR",
-      dotClass:
-        "animate-pulse bg-red-300 shadow-[0_0_9px_#fca5a5]",
-      textClass:
-        "text-red-300",
-    };
+  return new Intl.DateTimeFormat(
+    "th-TH",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  ).format(date);
+}
+
+function formatThaiDateTime(
+  value: string,
+): string {
+  if (!value) {
+    return "-";
   }
 
-  return {
-    label: "CONNECTED",
-    dotClass:
-      "animate-pulse bg-emerald-300 shadow-[0_0_9px_#6ee7b7]",
-    textClass:
-      "text-emerald-300",
-  };
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "th-TH",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  ).format(date);
+}
+
+function getErrorMessage(
+  reason: unknown,
+): string {
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+
+  return String(reason);
 }
