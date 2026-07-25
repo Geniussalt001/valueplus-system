@@ -1,0 +1,19 @@
+วางโค้ดส่วนนี้ใน Router.gs หลังบล็อก auth.login
+และก่อนบรรทัด const session = validateUserSession(...)
+
+    if (
+      request.action ===
+      "receivables.saveMonthly"
+    ) {
+      const result =
+        saveReceivablesMonthly(
+          request.data,
+        );
+
+      return createJsonResponse({
+        success: true,
+        data: result,
+      });
+    }
+
+จากนั้น Deploy > Manage deployments > Edit > New version > Deploy
