@@ -201,6 +201,68 @@ function uploadPoArchive(
   }
 }
 
+function uploadPoArchiveBatch(
+  input,
+  userCode,
+) {
+  if (
+    !input ||
+    !Array.isArray(
+      input.files,
+    ) ||
+    input.files.length === 0
+  ) {
+    throw new Error(
+      "ไม่พบชุดไฟล์ PDF ที่ต้องการบันทึก",
+    );
+  }
+
+  if (input.files.length > 8) {
+    throw new Error(
+      "อัปโหลดได้ไม่เกิน 8 ไฟล์ต่อชุด",
+    );
+  }
+
+  return input.files.map(
+    function (fileInput) {
+      try {
+        const result =
+          uploadPoArchive(
+            fileInput,
+            userCode,
+          );
+
+        return {
+          poNumber:
+            normalizeText(
+              fileInput.poNumber,
+            ),
+          status:
+            result.status,
+          message:
+            result.message,
+          record:
+            result.record,
+        };
+      } catch (error) {
+        return {
+          poNumber:
+            normalizeText(
+              fileInput.poNumber,
+            ),
+          status: "error",
+          message:
+            error &&
+            error.message
+              ? error.message
+              : String(error),
+          record: null,
+        };
+      }
+    },
+  );
+}
+
 function getPoArchivePdf(
   input,
 ) {
@@ -362,8 +424,7 @@ function getPoArchiveRecordByRow(
         rowNumber,
         1,
         1,
-        CONFIG.ARCHIVE_HEADERS
-          .length,
+        PO_ARCHIVE_HEADERS.length,
       )
       .getValues()[0];
 
