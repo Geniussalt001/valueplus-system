@@ -95,6 +95,12 @@ jobs:
             throw "Bundled ValuePlus Engine self-test failed"
           }
 
+          & $target receivables-freight --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Receivables and freight engine self-test failed"
+          }
+
       - name: Build, sign and publish update
         uses: tauri-apps/tauri-action@v1
         env:
