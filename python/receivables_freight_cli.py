@@ -176,6 +176,13 @@ def parse_records(csv_path, template_url):
     if not records:
         raise ValueError("ไม่พบเลข IV ในคอลัมน์ G ของไฟล์ CSV")
 
+    records.sort(
+        key=lambda record: (
+            int("".join(re.findall(r"\\d+", record["invoice"])) or 0),
+            record["invoice"],
+        ),
+    )
+
     return {
         "csv_path": str(Path(csv_path)),
         "template_url": template_url,
