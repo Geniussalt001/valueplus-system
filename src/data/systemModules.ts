@@ -92,9 +92,9 @@ export const systemModules:
       title:
         "แฟ้มบันทึกข้อมูล",
       subtitle:
-        "PO DOCUMENT ARCHIVE",
+        "DOCUMENT ARCHIVE CENTER",
       description:
-        "จัดเก็บ ค้นหา และเปิดเอกสาร PO จาก Google Drive สำหรับสำนักงานใหญ่",
+        "ศูนย์รวมแฟ้มเอกสาร PO Seven ลูกหนี้ ค่าขนส่ง และแฟ้มงานสำหรับสำนักงานใหญ่",
       icon:
         FolderArchive,
       color:
