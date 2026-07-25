@@ -460,13 +460,13 @@ function readExistingReceivables(
             row[5],
           ),
         creditNoteNumber:
-          String(
-            row[9] || "",
-          ).trim(),
+          normalizeReceivablesManualValue(
+            row[9],
+          ),
         creditNoteAmount:
-          String(
-            row[10] || "",
-          ).trim()
+          normalizeReceivablesManualValue(
+            row[10],
+          )
             ? parseSheetNumber(
                 row[10],
               )
@@ -734,6 +734,19 @@ function writeReceivablesRows(
         },
       ),
     );
+}
+
+function normalizeReceivablesManualValue(
+  value,
+) {
+  const normalized =
+    String(value || "")
+      .trim();
+
+  return normalized.charAt(0) ===
+    "#"
+    ? ""
+    : normalized;
 }
 
 function parseSheetNumber(value) {
