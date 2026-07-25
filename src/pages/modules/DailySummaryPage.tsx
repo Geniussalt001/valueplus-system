@@ -5,8 +5,8 @@ import {
 import {
   ArrowLeft,
   BarChart3,
-  CheckCircle2,
   Gift,
+  PackageSearch,
   Truck,
 } from "lucide-react";
 
@@ -18,13 +18,18 @@ import {
   DollSummaryPage,
 } from "./doll/DollSummaryPage";
 
+import {
+  ProductCatalogPage,
+} from "./product-catalog/ProductCatalogPage";
+
 interface DailySummaryPageProps {
   onBack: () => void;
 }
 
 type SummaryMode =
   | "express"
-  | "doll";
+  | "doll"
+  | "catalog";
 
 export function DailySummaryPage({
   onBack,
@@ -32,12 +37,14 @@ export function DailySummaryPage({
   const [selectedMode, setSelectedMode] =
     useState<SummaryMode | null>(null);
 
+  const backToSummaryMenu = () => {
+    setSelectedMode(null);
+  };
+
   if (selectedMode === "express") {
     return (
       <ExpressSummaryPage
-        onBack={() => {
-          setSelectedMode(null);
-        }}
+        onBack={backToSummaryMenu}
       />
     );
   }
@@ -45,9 +52,16 @@ export function DailySummaryPage({
   if (selectedMode === "doll") {
     return (
       <DollSummaryPage
-        onBack={() => {
-          setSelectedMode(null);
-        }}
+        onBack={backToSummaryMenu}
+      />
+    );
+  }
+
+  if (selectedMode === "catalog") {
+    return (
+      <ProductCatalogPage
+        onBack={backToSummaryMenu}
+        backLabel="กลับหน้าเลือกประเภทสรุปยอด"
       />
     );
   }
@@ -69,12 +83,12 @@ export function DailySummaryPage({
             DAILY SUMMARY
           </p>
 
-          <h2 className="mt-2 text-3xl font-semibold text-white">
+          <h2 className="mt-2 text-3xl font-semibold text-slate-900">
             สรุปยอดรายวัน
           </h2>
 
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            เลือกประเภทงานที่ต้องการสรุปยอด
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+            เลือกประเภทงานสรุปยอด หรือจัดการรายการสินค้าที่ใช้ร่วมกัน
           </p>
         </div>
 
@@ -83,7 +97,7 @@ export function DailySummaryPage({
         </div>
       </header>
 
-      <section className="mt-10 grid gap-6 lg:grid-cols-2">
+      <section className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <button
           type="button"
           onClick={() => {
@@ -107,7 +121,7 @@ export function DailySummaryPage({
             </h3>
 
             <p className="summary-choice-description mt-4 text-sm leading-6">
-              เลือกเพื่อเข้าสู่กระบวนการสรุปยอด Express
+              เข้าสู่กระบวนการอ่านไฟล์และสรุปยอด Express
             </p>
           </div>
         </button>
@@ -117,21 +131,7 @@ export function DailySummaryPage({
           onClick={() => {
             setSelectedMode("doll");
           }}
-          className={`
-            summary-choice
-            summary-choice-doll
-            group
-            relative
-            min-h-[280px]
-            overflow-hidden
-            rounded-3xl
-            p-8
-            text-left
-            transition
-            duration-300
-            hover:-translate-y-1
-            ${selectedMode === "doll" ? "summary-choice-selected" : ""}
-          `}
+          className="summary-choice summary-choice-doll group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
         >
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-3xl transition group-hover:bg-white/20" />
 
@@ -144,18 +144,40 @@ export function DailySummaryPage({
               DOLL SUMMARY
             </p>
 
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <h3 className="text-2xl font-semibold">
-                สรุปยอดตุ๊กตา
-              </h3>
-
-              {selectedMode === "doll" && (
-                <CheckCircle2 size={24} />
-              )}
-            </div>
+            <h3 className="mt-3 text-2xl font-semibold">
+              สรุปยอดตุ๊กตา
+            </h3>
 
             <p className="summary-choice-description mt-4 text-sm leading-6">
-              เลือกเพื่อเข้าสู่กระบวนการสรุปยอดตุ๊กตา
+              เข้าสู่กระบวนการคีย์และสรุปยอดตุ๊กตา
+            </p>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedMode("catalog");
+          }}
+          className="group relative min-h-[280px] overflow-hidden rounded-3xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50/70 to-cyan-50 p-8 text-left shadow-[0_20px_55px_rgba(5,150,105,0.10)] transition duration-300 hover:-translate-y-1 hover:border-emerald-400"
+        >
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-100/70 blur-3xl transition group-hover:bg-emerald-200/80" />
+
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-300 bg-white/80 text-emerald-700">
+            <PackageSearch size={30} />
+          </div>
+
+          <div className="relative mt-12">
+            <p className="text-[10px] font-semibold tracking-[0.22em] text-emerald-700">
+              PRODUCT CATALOG
+            </p>
+
+            <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+              จัดการข้อมูลสินค้า
+            </h3>
+
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              เพิ่ม แก้ไข เปิด ปิด และกำหนดชื่อสินค้าที่ใช้ในงานสรุปยอด
             </p>
           </div>
         </button>
