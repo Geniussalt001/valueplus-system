@@ -1,8 +1,4 @@
 import {
-  invoke,
-} from "@tauri-apps/api/core";
-
-import {
   openUrl,
 } from "@tauri-apps/plugin-opener";
 
@@ -68,14 +64,25 @@ export const receivablesArchiveService = {
 
   async openGoogleSheetEditor(
     spreadsheetId: string,
-    title: string,
+    _title: string,
   ): Promise<void> {
-    await invoke(
-      "open_receivables_sheet_editor",
-      {
-        spreadsheetId,
-        title,
-      },
+    const normalizedId =
+      spreadsheetId.trim();
+
+    if (
+      normalizedId.length < 20 ||
+      normalizedId.length > 100 ||
+      !/^[A-Za-z0-9_-]+$/.test(
+        normalizedId,
+      )
+    ) {
+      throw new Error(
+        "รหัส Google Sheet ไม่ถูกต้อง",
+      );
+    }
+
+    await openUrl(
+      `https://docs.google.com/spreadsheets/d/${normalizedId}/edit`,
     );
   },
 
