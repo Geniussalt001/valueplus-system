@@ -33,6 +33,7 @@ import type {
 
 interface ProductCatalogPageProps {
   onBack: () => void;
+  backLabel?: string;
 }
 
 interface ProductFormState {
@@ -53,6 +54,7 @@ const emptyForm: ProductFormState = {
 
 export function ProductCatalogPage({
   onBack,
+  backLabel = "กลับหน้าแดชบอร์ด",
 }: ProductCatalogPageProps) {
   const [products, setProducts] =
     useState<ProductCatalogItem[]>([]);
@@ -243,7 +245,7 @@ export function ProductCatalogPage({
             className="mb-5 flex items-center gap-2 text-sm text-slate-500 transition hover:text-emerald-300"
           >
             <ArrowLeft size={17} />
-            กลับหน้าแดชบอร์ด
+            {backLabel}
           </button>
 
           <p className="text-[10px] font-semibold tracking-[0.24em] text-emerald-300">
