@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   useEffect,
   useMemo,
   useState,
@@ -8,7 +9,6 @@ import {
   ArrowLeft,
   CalendarDays,
   Download,
-  ExternalLink,
   FileSpreadsheet,
   Folder,
   LoaderCircle,
@@ -64,6 +64,14 @@ export function ReceivablesArchivePage({
     rowQuery,
     setRowQuery,
   ] = useState("");
+
+  const [
+    selectedCell,
+    setSelectedCell,
+  ] = useState<{
+    rowNumber: number;
+    column: number;
+  } | null>(null);
 
   const [
     changes,
@@ -302,6 +310,7 @@ export function ReceivablesArchivePage({
     setSuccess("");
     setChanges({});
     setRowQuery("");
+    setSelectedCell(null);
 
     try {
       setLoadingProgress(35);
@@ -356,6 +365,7 @@ export function ReceivablesArchivePage({
     setError("");
     setSuccess("");
     setRowQuery("");
+    setSelectedCell(null);
 
     try {
       setLoadingProgress(42);
@@ -470,8 +480,42 @@ export function ReceivablesArchivePage({
     };
 
   if (detail) {
+    const selectedRow =
+      selectedCell
+        ? detail.rows.find(
+            (row) =>
+              row.rowNumber ===
+              selectedCell.rowNumber,
+          )
+        : null;
+
+    const selectedKey =
+      selectedCell
+        ? `${selectedCell.rowNumber}-${selectedCell.column}`
+        : "";
+
+    const selectedFormula =
+      selectedCell &&
+      selectedRow
+        ? selectedRow.formulas[
+            selectedCell.column -
+              1
+          ] || ""
+        : "";
+
+    const selectedValue =
+      selectedCell &&
+      selectedRow
+        ? changes[selectedKey] ??
+          selectedRow.values[
+            selectedCell.column -
+              1
+          ] ??
+          ""
+        : "";
+
     return (
-      <div className="mx-auto max-w-[1800px] px-5 py-6 lg:px-8">
+      <div className="mx-auto max-w-none px-3 py-4 lg:px-5">
         <LoadingOverlay
           open={loading}
           progress={
@@ -480,7 +524,7 @@ export function ReceivablesArchivePage({
           label={loadingLabel}
         />
 
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
             <button
               type="button"
@@ -497,6 +541,9 @@ export function ReceivablesArchivePage({
                 }
 
                 setDetail(null);
+                setSelectedCell(
+                  null,
+                );
                 setRowQuery("");
                 setError("");
                 setSuccess("");
@@ -509,46 +556,48 @@ export function ReceivablesArchivePage({
               กลับหน้าแฟ้มปีและเดือน
             </button>
 
-            <p className="mt-4 text-[10px] font-semibold tracking-[0.24em] text-cyan-700">
-              SPREADSHEET VIEW
-            </p>
-
-            <h2 className="mt-2 truncate text-2xl font-semibold text-slate-900">
-              {
-                detail
-                  .spreadsheetName
-              }
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              กำลังดูชีต{" "}
-              <span className="font-semibold text-cyan-800">
-                {
-                  detail
-                    .selectedSheet
-                }
+            <div className="mt-3 flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                <FileSpreadsheet
+                  size={22}
+                />
               </span>
-              {" "}— ช่องที่มีสูตรจะถูกล็อกอัตโนมัติ
-            </p>
+
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold tracking-[0.22em] text-emerald-700">
+                  VALUEPLUS SPREADSHEET
+                </p>
+                <h2 className="mt-1 truncate text-xl font-semibold text-slate-900">
+                  {
+                    detail
+                      .spreadsheetName
+                  }
+                </h2>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                void receivablesArchiveService
-                  .openGoogleSheet(
-                    detail
-                      .spreadsheetUrl,
-                  );
-              }}
-              className="flex items-center gap-2 rounded-xl bg-[#063b59] px-4 py-3 text-sm font-medium text-white shadow-md transition hover:bg-[#075071]"
-            >
-              <ExternalLink
-                size={17}
-              />
-              เปิด Google Sheet
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs text-slate-600">
+              {detail.recordCount.toLocaleString(
+                "th-TH",
+              )}{" "}
+              Invoice ·{" "}
+              {detail.totalQuantity.toLocaleString(
+                "th-TH",
+              )}{" "}
+              ลัง ·{" "}
+              {detail.totalExcVat.toLocaleString(
+                "th-TH",
+                {
+                  minimumFractionDigits:
+                    2,
+                  maximumFractionDigits:
+                    2,
+                },
+              )}{" "}
+              บาท
+            </span>
 
             <button
               type="button"
@@ -559,7 +608,7 @@ export function ReceivablesArchivePage({
                       .exportUrl,
                   );
               }}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-medium text-white shadow-md transition hover:bg-emerald-700"
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-emerald-700"
             >
               <Download
                 size={17}
@@ -578,7 +627,7 @@ export function ReceivablesArchivePage({
               onClick={() => {
                 void saveChanges();
               }}
-              className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
             >
               {saving ? (
                 <LoaderCircle
@@ -590,7 +639,7 @@ export function ReceivablesArchivePage({
                   size={17}
                 />
               )}
-              บันทึกการแก้ไข
+              บันทึก
               {Object.keys(
                 changes,
               ).length > 0 &&
@@ -604,59 +653,38 @@ export function ReceivablesArchivePage({
           success={success}
         />
 
-        <section className="mt-5 grid gap-3 sm:grid-cols-3">
-          <SummaryCard
-            label="รายการ Invoice"
-            value={
-              detail
-                .recordCount
-                .toLocaleString(
-                  "th-TH",
-                )
-            }
-          />
-          <SummaryCard
-            label="จำนวนลังรวม"
-            value={
-              detail
-                .totalQuantity
-                .toLocaleString(
-                  "th-TH",
-                )
-            }
-          />
-          <SummaryCard
-            label="Exc-vat รวม"
-            value={
-              detail
-                .totalExcVat
-                .toLocaleString(
-                  "th-TH",
-                  {
-                    minimumFractionDigits:
-                      2,
-                    maximumFractionDigits:
-                      2,
-                  },
-                )
-            }
-          />
-        </section>
-
         {detail.truncated && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-            ชีตมีข้อมูลขนาดใหญ่มาก
-            ระบบแสดงสูงสุด 1,500 แถวและ 30 คอลัมน์
-            หากต้องการดูทั้งหมดให้กด “เปิด Google Sheet”
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+            แฟ้มมีข้อมูลขนาดใหญ่มาก
+            ระบบกำลังแสดง 1,500 แถวแรกและ 40 คอลัมน์แรก
           </div>
         )}
 
-        <section className="mt-5 overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-col gap-3 border-b border-cyan-100 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full max-w-xl">
+        <section className="mt-3 overflow-hidden rounded-xl border border-slate-300 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
+          <div className="flex items-center gap-5 overflow-x-auto border-b border-slate-200 bg-white px-4 py-2 text-xs text-slate-700">
+            {[
+              "ไฟล์",
+              "แก้ไข",
+              "ดู",
+              "แทรก",
+              "รูปแบบ",
+              "ข้อมูล",
+              "เครื่องมือ",
+            ].map(
+              (menu) => (
+                <span
+                  key={menu}
+                  className="whitespace-nowrap"
+                >
+                  {menu}
+                </span>
+              ),
+            )}
+
+            <div className="ml-auto flex shrink-0 items-center gap-2">
               <Search
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700"
+                size={15}
+                className="text-slate-500"
               />
               <input
                 value={rowQuery}
@@ -667,35 +695,90 @@ export function ReceivablesArchivePage({
                       .value,
                   )
                 }
-                placeholder="ค้นหาข้อมูลในชีตที่กำลังเปิด"
-                className="w-full rounded-xl border border-cyan-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition focus:border-cyan-500 focus:bg-white"
+                placeholder="ค้นหาในชีต"
+                className="w-52 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs outline-none focus:border-cyan-500 focus:bg-white"
               />
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Sheet
-                size={15}
-              />
-              แสดง{" "}
-              {visibleRows.length.toLocaleString(
-                "th-TH",
-              )}{" "}
-              แถว ·{" "}
-              {
-                detail
-                  .columnCount
-              }{" "}
-              คอลัมน์
             </div>
           </div>
 
-          <div className="max-h-[610px] overflow-auto bg-slate-100">
+          <div className="flex items-center border-b border-slate-300 bg-slate-50">
+            <div className="w-24 shrink-0 border-r border-slate-300 px-3 py-2 text-center text-xs font-medium text-slate-700">
+              {selectedCell
+                ? `${getColumnLabel(
+                    selectedCell.column,
+                  )}${selectedCell.rowNumber}`
+                : "—"}
+            </div>
+
+            <div className="shrink-0 border-r border-slate-300 px-3 py-2 font-serif text-sm italic text-slate-500">
+              fx
+            </div>
+
+            <input
+              value={
+                selectedFormula ||
+                selectedValue
+              }
+              readOnly={
+                !selectedCell ||
+                Boolean(
+                  selectedFormula,
+                )
+              }
+              onChange={(event) => {
+                if (
+                  !selectedCell ||
+                  selectedFormula
+                ) {
+                  return;
+                }
+
+                updateCell(
+                  selectedCell
+                    .rowNumber,
+                  selectedCell
+                    .column,
+                  event.target.value,
+                );
+              }}
+              placeholder="เลือกเซลล์เพื่อดูหรือแก้ไขข้อมูล"
+              className="h-9 min-w-0 flex-1 border-0 bg-white px-3 text-sm text-slate-800 outline-none read-only:bg-slate-50 read-only:text-slate-500"
+            />
+          </div>
+
+          <div className="max-h-[calc(100vh-285px)] min-h-[520px] overflow-auto bg-white">
             <table className="border-separate border-spacing-0 text-sm">
-              <thead className="sticky top-0 z-20">
+              <colgroup>
+                <col
+                  style={{
+                    width: 52,
+                  }}
+                />
+                {detail.columnWidths.map(
+                  (
+                    width,
+                    index,
+                  ) => (
+                    <col
+                      key={index}
+                      style={{
+                        width:
+                          Math.max(
+                            55,
+                            Math.min(
+                              width,
+                              420,
+                            ),
+                          ),
+                      }}
+                    />
+                  ),
+                )}
+              </colgroup>
+
+              <thead className="sticky top-0 z-30">
                 <tr>
-                  <th className="sticky left-0 z-30 h-9 min-w-14 border-b border-r border-slate-300 bg-slate-200 text-center text-[10px] font-medium text-slate-500">
-                    #
-                  </th>
+                  <th className="sticky left-0 z-40 h-8 min-w-[52px] border-b border-r border-slate-300 bg-slate-200" />
 
                   {Array.from({
                     length:
@@ -705,7 +788,21 @@ export function ReceivablesArchivePage({
                     (_, index) => (
                       <th
                         key={index}
-                        className="h-9 min-w-[150px] border-b border-r border-slate-300 bg-slate-200 px-2 text-center text-xs font-semibold text-slate-600"
+                        style={{
+                          minWidth:
+                            Math.max(
+                              55,
+                              Math.min(
+                                detail
+                                  .columnWidths[
+                                  index
+                                ] ||
+                                  100,
+                                420,
+                              ),
+                            ),
+                        }}
+                        className="h-8 border-b border-r border-slate-300 bg-slate-200 px-2 text-center text-xs font-medium text-slate-600"
                       >
                         {getColumnLabel(
                           index + 1,
@@ -721,93 +818,118 @@ export function ReceivablesArchivePage({
                   (row) => (
                     <tr
                       key={
-                        row
-                          .rowNumber
+                        row.rowNumber
                       }
                     >
-                      <th className="sticky left-0 z-10 h-10 min-w-14 border-b border-r border-slate-300 bg-slate-200 px-2 text-right font-mono text-[11px] font-medium text-slate-500">
+                      <th className="sticky left-0 z-20 h-8 min-w-[52px] border-b border-r border-slate-300 bg-slate-100 px-2 text-right text-[11px] font-normal text-slate-500">
                         {
                           row
                             .rowNumber
                         }
                       </th>
 
-                      {Array.from({
-                        length:
-                          detail
-                            .columnCount,
-                      }).map(
+                      {row.values.map(
                         (
-                          _,
+                          value,
                           index,
                         ) => {
                           const column =
                             index +
                             1;
 
+                          const merge =
+                            getMergeInfo(
+                              detail,
+                              row
+                                .rowNumber,
+                              column,
+                            );
+
+                          if (
+                            merge.covered
+                          ) {
+                            return null;
+                          }
+
+                          const formula =
+                            row.formulas[
+                              index
+                            ] || "";
+
                           const key =
                             `${row.rowNumber}-${column}`;
 
-                          const value =
+                          const cellValue =
                             changes[
                               key
                             ] ??
-                            row
-                              .values[
-                              index
-                            ] ??
-                            "";
+                            value;
 
-                          const formula =
-                            row
-                              .formulas[
-                              index
-                            ] ||
-                            "";
+                          const style =
+                            detail.styles[
+                              row.styleIds[
+                                index
+                              ] || 0
+                            ];
 
-                          const heading =
-                            detail
-                              .selectedSheet ===
-                              "ลูกหนี้" &&
-                            row
-                              .rowNumber <=
-                              3;
+                          const active =
+                            selectedCell
+                              ?.rowNumber ===
+                              row.rowNumber &&
+                            selectedCell
+                              .column ===
+                              column;
 
                           return (
                             <td
                               key={
-                                key
+                                column
                               }
+                              rowSpan={
+                                merge
+                                  .rowSpan
+                              }
+                              colSpan={
+                                merge
+                                  .colSpan
+                              }
+                              style={getCellStyle(
+                                style,
+                              )}
                               className={[
-                                "h-10 min-w-[150px] border-b border-r border-slate-300 p-0",
-                                formula
-                                  ? "bg-slate-100"
-                                  : heading
-                                    ? "bg-amber-100"
-                                    : "bg-white",
+                                "relative border-b border-r border-slate-300 p-0",
+                                active
+                                  ? "z-10 ring-2 ring-inset ring-emerald-500"
+                                  : "",
                               ].join(
                                 " ",
                               )}
                             >
                               <input
-                                data-cell={
-                                  key
-                                }
+                                data-cell={key}
                                 value={
-                                  value
+                                  cellValue
+                                }
+                                title={
+                                  formula ||
+                                  cellValue
                                 }
                                 readOnly={
                                   Boolean(
                                     formula,
                                   )
                                 }
-                                title={
-                                  formula ||
-                                  undefined
+                                onFocus={() =>
+                                  setSelectedCell({
+                                    rowNumber:
+                                      row
+                                        .rowNumber,
+                                    column,
+                                  })
                                 }
                                 onChange={(
                                   event,
-                                ) => {
+                                ) =>
                                   updateCell(
                                     row
                                       .rowNumber,
@@ -815,14 +937,13 @@ export function ReceivablesArchivePage({
                                     event
                                       .target
                                       .value,
-                                  );
-                                }}
+                                  )
+                                }
                                 onKeyDown={(
                                   event,
                                 ) => {
                                   if (
-                                    event
-                                      .key !==
+                                    event.key !==
                                     "Enter"
                                   ) {
                                     return;
@@ -838,16 +959,7 @@ export function ReceivablesArchivePage({
                                   next?.focus();
                                   next?.select();
                                 }}
-                                className={[
-                                  "h-10 w-full min-w-[150px] border-0 bg-transparent px-3 text-sm outline-none focus:bg-cyan-50 focus:ring-2 focus:ring-inset focus:ring-cyan-500",
-                                  formula
-                                    ? "cursor-not-allowed text-slate-500"
-                                    : heading
-                                      ? "font-semibold text-slate-800"
-                                      : "text-slate-800",
-                                ].join(
-                                  " ",
-                                )}
+                                className="h-full min-h-8 w-full border-0 bg-transparent px-2 py-1 text-inherit outline-none read-only:cursor-default focus:bg-white/20"
                               />
                             </td>
                           );
@@ -860,12 +972,12 @@ export function ReceivablesArchivePage({
             </table>
           </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto border-t border-slate-300 bg-slate-100 px-3 py-2">
-            <span className="mr-2 flex items-center gap-1 text-[10px] font-semibold tracking-[0.14em] text-slate-500">
+          <div className="flex items-end gap-1 overflow-x-auto border-t border-slate-300 bg-slate-100 px-3 pt-2">
+            <span className="mr-2 flex h-9 items-center gap-1 px-2 text-[10px] font-semibold tracking-[0.12em] text-slate-500">
               <Sheet
                 size={14}
               />
-              SHEETS
+              ชีต
             </span>
 
             {detail.sheetNames.map(
@@ -884,12 +996,12 @@ export function ReceivablesArchivePage({
                     );
                   }}
                   className={[
-                    "whitespace-nowrap rounded-t-lg border-b-2 px-4 py-2 text-xs font-medium transition",
+                    "h-9 whitespace-nowrap rounded-t-lg border border-b-0 px-5 text-xs font-medium transition",
                     detail
                       .selectedSheet ===
                       sheetName
-                      ? "border-cyan-600 bg-white text-cyan-800 shadow-sm"
-                      : "border-transparent text-slate-600 hover:bg-white hover:text-cyan-700",
+                      ? "border-slate-300 bg-white text-emerald-700 shadow-sm"
+                      : "border-transparent bg-slate-100 text-slate-600 hover:bg-white",
                   ].join(
                     " ",
                   )}
@@ -1250,6 +1362,135 @@ function MessageBox({
       {error || success}
     </div>
   );
+}
+
+function getMergeInfo(
+  detail: ReceivablesArchiveDetail,
+  row: number,
+  column: number,
+) {
+  for (
+    const range of
+      detail.mergedRanges
+  ) {
+    const lastRow =
+      range.row +
+      range.rowCount -
+      1;
+
+    const lastColumn =
+      range.column +
+      range.columnCount -
+      1;
+
+    if (
+      row < range.row ||
+      row > lastRow ||
+      column <
+        range.column ||
+      column >
+        lastColumn
+    ) {
+      continue;
+    }
+
+    const startsHere =
+      row === range.row &&
+      column ===
+        range.column;
+
+    return {
+      covered:
+        !startsHere,
+      rowSpan:
+        startsHere
+          ? range.rowCount
+          : undefined,
+      colSpan:
+        startsHere
+          ? range.columnCount
+          : undefined,
+    };
+  }
+
+  return {
+    covered: false,
+    rowSpan: undefined,
+    colSpan: undefined,
+  };
+}
+
+function getCellStyle(
+  style:
+    ReceivablesArchiveDetail[
+      "styles"
+    ][number] |
+    undefined,
+): CSSProperties {
+  if (!style) {
+    return {
+      backgroundColor:
+        "#ffffff",
+      color: "#0f172a",
+      textAlign: "left",
+      verticalAlign:
+        "middle",
+    };
+  }
+
+  const alignment =
+    [
+      "left",
+      "center",
+      "right",
+    ].includes(
+      style
+        .horizontalAlignment,
+    )
+      ? style
+          .horizontalAlignment as
+          CSSProperties[
+            "textAlign"
+          ]
+      : "left";
+
+  return {
+    backgroundColor:
+      style.background,
+    color:
+      style.fontColor,
+    fontWeight:
+      style.fontWeight,
+    fontStyle:
+      style.fontStyle,
+    fontSize:
+      Math.max(
+        9,
+        Math.min(
+          style.fontSize,
+          24,
+        ),
+      ),
+    fontFamily:
+      style.fontFamily,
+    textAlign:
+      alignment,
+    verticalAlign:
+      style.verticalAlignment ===
+      "top"
+        ? "top"
+        : style
+              .verticalAlignment ===
+            "bottom"
+          ? "bottom"
+          : "middle",
+    whiteSpace:
+      style.wrapStrategy
+        .toUpperCase()
+        .includes("WRAP")
+        ? "normal"
+        : "nowrap",
+  };
 }
 
 function getColumnLabel(
