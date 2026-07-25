@@ -237,6 +237,8 @@ function normalizeReceivablesRecord(
     excVat: Number(
       record.exc_vat || 0,
     ),
+    creditNoteNumber: "",
+    creditNoteAmount: "",
     month: parsedDate.month,
     buddhistYear:
       parsedDate.buddhistYear,
@@ -413,7 +415,7 @@ function readExistingReceivables(
         RECEIVABLES_CONFIG
           .START_ROW +
         1,
-      6,
+      11,
     )
     .getDisplayValues()
     .filter(function (row) {
@@ -457,6 +459,18 @@ function readExistingReceivables(
           parseSheetNumber(
             row[5],
           ),
+        creditNoteNumber:
+          String(
+            row[9] || "",
+          ).trim(),
+        creditNoteAmount:
+          String(
+            row[10] || "",
+          ).trim()
+            ? parseSheetNumber(
+                row[10],
+              )
+            : "",
       };
     })
     .filter(Boolean);
@@ -544,6 +558,8 @@ function buildReceivablesSequence(
         "",
         "",
         "",
+        "",
+        "",
       ]);
 
       missingCount += 1;
@@ -557,6 +573,14 @@ function buildReceivablesSequence(
       record.destination,
       record.quantity,
       record.excVat,
+      record.creditNoteNumber ||
+        "",
+      record.creditNoteAmount ===
+        "" ||
+      record.creditNoteAmount ===
+        undefined
+        ? ""
+        : record.creditNoteAmount,
     ]);
   }
 
@@ -629,7 +653,16 @@ function writeReceivablesRows(
       rows.length,
       6,
     )
-    .setValues(rows);
+    .setValues(
+      rows.map(
+        function (row) {
+          return row.slice(
+            0,
+            6,
+          );
+        },
+      ),
+    );
 
   sheet
     .getRange(
@@ -674,6 +707,33 @@ function writeReceivablesRows(
         formulas,
       );
   }
+
+  /*
+   * J and K are manual credit-note fields. New invoices stay blank,
+   * while values already entered in an existing monthly file survive
+   * subsequent imports and invoice reordering.
+   */
+  sheet
+    .getRange(
+      startRow,
+      10,
+      rows.length,
+      2,
+    )
+    .setValues(
+      rows.map(
+        function (row) {
+          return [
+            row[6] || "",
+            row[7] ===
+                undefined ||
+              row[7] === null
+              ? ""
+              : row[7],
+          ];
+        },
+      ),
+    );
 }
 
 function parseSheetNumber(value) {
