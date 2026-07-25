@@ -19,6 +19,22 @@ export interface ReceivablesFreightRecord {
   message: string;
 }
 
+export interface ReceivablesMonthlySheetResult {
+  spreadsheetId: string;
+  spreadsheetUrl: string;
+  spreadsheetName: string;
+  created: boolean;
+  sourceCount: number;
+  insertedCount: number;
+  duplicateCount: number;
+  duplicates: string[];
+  missingCount: number;
+  firstInvoice: string;
+  lastInvoice: string;
+  month: number;
+  buddhistYear: number;
+}
+
 export interface ReceivablesFreightResult {
   csv_path: string;
   template_url: string;
