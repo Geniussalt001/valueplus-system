@@ -15,6 +15,10 @@ use commands::express_summary::{
     process_express_summary,
 };
 
+use commands::google_sheet_editor::{
+    open_receivables_sheet_editor,
+};
+
 use commands::pdf_splitter::{
     split_po_pdf,
 };
@@ -109,6 +113,7 @@ pub fn run() {
                 process_daily_so,
                 preview_receivables_freight,
                 process_receivables_freight,
+                open_receivables_sheet_editor,
             ],
         )
         .run(
