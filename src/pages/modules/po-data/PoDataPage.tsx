@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type ReactNode,
 } from "react";
 
 import {
@@ -728,7 +729,7 @@ function StatCard({
 }: {
   label: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <div
