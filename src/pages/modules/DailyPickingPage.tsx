@@ -297,69 +297,109 @@ export function DailyPickingPage({
 
     addLocalLog(
       "info",
-      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์`,
+      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์ (พร้อมกันสูงสุด 3 ไฟล์)`,
     );
 
     let uploadedCount = 0;
     let duplicateCount = 0;
     let failedCount = 0;
+    let completedCount = 0;
+    let nextIndex = 0;
 
-    for (
-      let index = 0;
-      index <
-      createdRecords.length;
-      index += 1
-    ) {
-      const record =
-        createdRecords[index];
+    const uploadOne = async (
+      record:
+        PdfSplitResult["records"][number],
+    ) => {
+      const localPdf =
+        await poArchiveService
+          .readLocalPdf(
+            record.output_path,
+          );
 
-      try {
-        addLocalLog(
-          "progress",
-          `กำลังบันทึก Google Drive ${index + 1} / ${createdRecords.length}: ${record.po_number}`,
-        );
+      return poArchiveService
+        .upload({
+          poNumber:
+            record.po_number,
+          documentDate:
+            record.document_date,
+          warehouse:
+            record.warehouse,
+          fileName:
+            localPdf.fileName,
+          base64Data:
+            localPdf.base64Data,
+        });
+    };
 
-        const localPdf =
-          await poArchiveService
-            .readLocalPdf(
-              record.output_path,
-            );
+    const worker = async () => {
+      while (true) {
+        const index =
+          nextIndex;
 
-        const uploadResult =
-          await poArchiveService
-            .upload({
-              poNumber:
-                record.po_number,
-              documentDate:
-                record.document_date,
-              warehouse:
-                record.warehouse,
-              fileName:
-                localPdf.fileName,
-              base64Data:
-                localPdf.base64Data,
-            });
+        nextIndex += 1;
 
         if (
-          uploadResult.status ===
-          "duplicate"
+          index >=
+          createdRecords.length
         ) {
-          duplicateCount += 1;
-          addLocalLog(
-            "warning",
-            `${record.po_number}: พบในแฟ้ม Google Drive แล้ว ระบบไม่บันทึกซ้ำ`,
-          );
-        } else {
-          uploadedCount += 1;
+          return;
         }
-      } catch (reason) {
-        failedCount += 1;
-        addLocalLog(
-          "error",
-          `${record.po_number}: บันทึก Google Drive ไม่สำเร็จ — ${getErrorMessage(reason)}`,
-        );
+
+        const record =
+          createdRecords[index];
+
+        try {
+          const uploadResult =
+            await uploadOne(
+              record,
+            );
+
+          if (
+            uploadResult.status ===
+            "duplicate"
+          ) {
+            duplicateCount += 1;
+
+            addLocalLog(
+              "warning",
+              `${record.po_number}: พบในแฟ้ม Google Drive แล้ว ระบบไม่บันทึกซ้ำ`,
+            );
+          } else {
+            uploadedCount += 1;
+          }
+        } catch (reason) {
+          failedCount += 1;
+
+          addLocalLog(
+            "error",
+            `${record.po_number}: บันทึก Google Drive ไม่สำเร็จ — ${getErrorMessage(reason)}`,
+          );
+        } finally {
+          completedCount += 1;
+
+          addLocalLog(
+            "progress",
+            `บันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์`,
+          );
+        }
       }
-    }
+    };
+
+    const workerCount =
+      Math.min(
+        3,
+        createdRecords.length,
+      );
+
+    await Promise.all(
+      Array.from(
+        {
+          length:
+            workerCount,
+        },
+        () => worker(),
+      ),
+    );
 
     if (uploadedCount > 0) {
       addLocalLog(
