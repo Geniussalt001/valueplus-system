@@ -28,6 +28,10 @@ import {
   pdfSplitterService,
 } from "../../services/pdfSplitterService";
 
+import {
+  poArchiveService,
+} from "../../services/poArchiveService";
+
 import type {
   PdfSplitLogEvent,
   PdfSplitLogLevel,
@@ -269,6 +273,114 @@ export function DailyPickingPage({
     ]);
   };
 
+  const uploadCreatedFiles = async (
+    splitResult: PdfSplitResult,
+  ) => {
+    const createdRecords =
+      splitResult.records.filter(
+        (record) =>
+          record.status ===
+          "created",
+      );
+
+    if (
+      createdRecords.length === 0
+    ) {
+      addLocalLog(
+        "info",
+        "ไม่มีไฟล์ใหม่ที่ต้องอัปโหลดเข้าแฟ้มบันทึกข้อมูล",
+      );
+      return;
+    }
+
+    addLocalLog(
+      "info",
+      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์`,
+    );
+
+    let uploadedCount = 0;
+    let duplicateCount = 0;
+    let failedCount = 0;
+
+    for (
+      let index = 0;
+      index <
+      createdRecords.length;
+      index += 1
+    ) {
+      const record =
+        createdRecords[index];
+
+      try {
+        addLocalLog(
+          "progress",
+          `กำลังบันทึก Google Drive ${index + 1} / ${createdRecords.length}: ${record.po_number}`,
+        );
+
+        const localPdf =
+          await poArchiveService
+            .readLocalPdf(
+              record.output_path,
+            );
+
+        const uploadResult =
+          await poArchiveService
+            .upload({
+              poNumber:
+                record.po_number,
+              documentDate:
+                record.document_date,
+              warehouse:
+                record.warehouse,
+              fileName:
+                localPdf.fileName,
+              base64Data:
+                localPdf.base64Data,
+            });
+
+        if (
+          uploadResult.status ===
+          "duplicate"
+        ) {
+          duplicateCount += 1;
+          addLocalLog(
+            "warning",
+            `${record.po_number}: พบในแฟ้ม Google Drive แล้ว ระบบไม่บันทึกซ้ำ`,
+          );
+        } else {
+          uploadedCount += 1;
+        }
+      } catch (reason) {
+        failedCount += 1;
+        addLocalLog(
+          "error",
+          `${record.po_number}: บันทึก Google Drive ไม่สำเร็จ — ${getErrorMessage(reason)}`,
+        );
+      }
+    }
+
+    if (uploadedCount > 0) {
+      addLocalLog(
+        "success",
+        `บันทึกเข้าแฟ้ม Google Drive สำเร็จ ${uploadedCount} ไฟล์`,
+      );
+    }
+
+    if (duplicateCount > 0) {
+      addLocalLog(
+        "warning",
+        `ข้ามเอกสารซ้ำบน Drive ${duplicateCount} ไฟล์`,
+      );
+    }
+
+    if (failedCount > 0) {
+      addLocalLog(
+        "error",
+        `อัปโหลดไม่สำเร็จ ${failedCount} ไฟล์ ไฟล์ในเครื่องยังอยู่ครบ สามารถกดประมวลผลอีกครั้งเพื่อส่งซ้ำได้`,
+      );
+    }
+  };
+
   const choosePdf = async () => {
     if (processing) {
       return;
@@ -357,6 +469,10 @@ export function DailyPickingPage({
       addLocalLog(
         "success",
         `ประมวลผลสำเร็จ สร้างไฟล์ ${nextResult.created_count} รายการ`,
+      );
+
+      await uploadCreatedFiles(
+        nextResult,
       );
 
       if (
