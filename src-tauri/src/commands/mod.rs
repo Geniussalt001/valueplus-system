@@ -6,3 +6,4 @@ pub mod pdf_splitter;
 pub mod po_processor;
 pub mod print_processor;
 pub mod product_catalog;
+pub mod receivables_freight;
