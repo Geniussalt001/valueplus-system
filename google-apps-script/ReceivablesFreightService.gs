@@ -972,6 +972,12 @@ function getReceivablesArchive(
       period
         ? period.buddhistYear
         : 0,
+    modifiedAt:
+      Utilities.formatDate(
+        file.getLastUpdated(),
+        CONFIG.TIMEZONE,
+        "yyyy-MM-dd'T'HH:mm:ss",
+      ),
     recordCount: recordCount,
     totalQuantity:
       totalQuantity,
@@ -1111,12 +1117,18 @@ function updateReceivablesArchive(
           column === 6 ||
           column === 11
         ) {
+          const normalizedNumber =
+            rawValue
+              .replace(/,/g, "")
+              .trim();
+
           const number =
-            parseSheetNumber(
-              rawValue,
+            Number(
+              normalizedNumber,
             );
 
           if (
+            !normalizedNumber ||
             !Number.isFinite(
               number,
             )
