@@ -51,7 +51,7 @@ export function ReceivablesFreightPage({
 
   const suggestedName = useMemo(() => {
     const date = result?.records[0]?.date
-      ?.replaceAll("/", ".") ?? "ผลลัพธ์";
+      ?.replace(/\\/g, ".") ?? "ผลลัพธ์";
 
     return `ลูกหนี้-ค่าขนส่ง ${date}.xlsx`;
   }, [result]);
