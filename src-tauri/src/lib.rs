@@ -36,6 +36,11 @@ use commands::product_catalog::{
     manage_product_catalog,
 };
 
+use commands::receivables_freight::{
+    preview_receivables_freight,
+    process_receivables_freight,
+};
+
 #[tauri::command]
 fn greet(
     name: &str,
@@ -102,6 +107,8 @@ pub fn run() {
                 process_express_summary,
                 preview_daily_so,
                 process_daily_so,
+                preview_receivables_freight,
+                process_receivables_freight,
             ],
         )
         .run(
