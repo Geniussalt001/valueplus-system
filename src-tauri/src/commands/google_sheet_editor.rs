@@ -88,7 +88,8 @@ pub fn open_receivables_sheet_editor(
     })?;
 
     let safe_title = title
-        .replace(['\r', '\n'], " ")
+        .replace('\r', " ")
+        .replace('\n', " ")
         .trim()
         .chars()
         .take(120)
