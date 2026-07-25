@@ -304,29 +304,26 @@ export function ReceivablesArchivePage({
       ReceivablesArchiveSummary,
   ) => {
     beginLoading(
-      "กำลังเปิดแฟ้ม Google Sheet",
+      "กำลังเปิด Google Sheets Editor",
     );
     setError("");
     setSuccess("");
-    setChanges({});
-    setRowQuery("");
-    setSelectedCell(null);
 
     try {
-      setLoadingProgress(35);
+      setLoadingProgress(48);
 
-      const result =
-        await receivablesArchiveService
-          .get(
-            archive
-              .spreadsheetId,
-          );
+      await receivablesArchiveService
+        .openGoogleSheetEditor(
+          archive
+            .spreadsheetId,
+          archive
+            .spreadsheetName,
+        );
 
       setLoadingLabel(
-        "กำลังจัดเตรียมตารางและรายชื่อชีต",
+        "เปิด Google Sheets Editor เรียบร้อยแล้ว",
       );
-      setLoadingProgress(88);
-      setDetail(result);
+      setLoadingProgress(100);
     } catch (requestError) {
       setError(
         getErrorMessage(
