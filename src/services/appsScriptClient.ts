@@ -2,6 +2,10 @@ import {
   fetch,
 } from "@tauri-apps/plugin-http";
 
+import {
+  getSessionToken,
+} from "../auth/authSession";
+
 interface AppsScriptResponse<T> {
   success: boolean;
   data?: T;
@@ -41,9 +45,27 @@ function validateConfiguration() {
 export async function callAppsScript<T>(
   action: string,
   data: unknown = {},
-  _options: RequestOptions = {},
+  options: RequestOptions = {},
 ): Promise<T> {
   validateConfiguration();
+
+  const requireSession =
+    options.requireSession !==
+    false;
+
+  const sessionToken =
+    requireSession
+      ? getSessionToken()
+      : "";
+
+  if (
+    requireSession &&
+    !sessionToken
+  ) {
+    throw new Error(
+      "SESSION_REQUIRED",
+    );
+  }
 
   const response = await fetch(
     apiUrl!,
@@ -58,7 +80,7 @@ export async function callAppsScript<T>(
       body: JSON.stringify({
         action,
         token: apiToken,
-        sessionToken: "",
+        sessionToken,
         data,
       }),
     },
