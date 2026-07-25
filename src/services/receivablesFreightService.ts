@@ -3,6 +3,10 @@ import {
 } from "@tauri-apps/api/core";
 
 import {
+  callAppsScript,
+} from "./appsScriptClient";
+
+import {
   desktopDir,
   join,
 } from "@tauri-apps/api/path";
@@ -18,7 +22,9 @@ import {
 
 import type {
   ReceivablesFreightInput,
+  ReceivablesFreightRecord,
   ReceivablesFreightResult,
+  ReceivablesMonthlySheetResult,
 } from "../types/receivablesFreight.types";
 
 export const receivablesTemplateUrl =
@@ -91,6 +97,19 @@ export const receivablesFreightService = {
     return invoke<ReceivablesFreightResult>(
       "process_receivables_freight",
       { input },
+    );
+  },
+
+  async saveMonthlySheet(
+    records: ReceivablesFreightRecord[],
+  ): Promise<ReceivablesMonthlySheetResult> {
+    return callAppsScript<
+      ReceivablesMonthlySheetResult
+    >(
+      "receivables.saveMonthly",
+      {
+        records,
+      },
     );
   },
 
