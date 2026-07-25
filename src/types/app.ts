@@ -9,7 +9,8 @@ export type WorkRoute =
   | "split-rename-po"
   | "daily-summary"
   | "po-data"
-  | "product-catalog";
+  | "product-catalog"
+  | "receivables-freight";
 
 export type AppRoute =
   | "login"
