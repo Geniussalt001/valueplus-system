@@ -33,10 +33,9 @@ function doPost(event) {
     }
 
     /*
-     * Desktop archive commands use the same protected API token
-     * as the current ValuePlus desktop app. They run before the
-     * legacy user-session check because installed builds currently
-     * do not carry an Apps Script session token.
+     * PO archive uploads are kept compatible with the current
+     * document-processing workflow. Financial archive commands
+     * always run after user-session validation below.
      */
     if (
       request.action ===
@@ -95,6 +94,32 @@ function doPost(event) {
         data =
           logoutUserSession(
             request.sessionToken,
+          );
+        break;
+
+      case "receivables.saveMonthly":
+        data =
+          saveReceivablesMonthly(
+            request.data,
+          );
+        break;
+
+      case "receivables.archiveList":
+        data =
+          listReceivablesArchives();
+        break;
+
+      case "receivables.archiveGet":
+        data =
+          getReceivablesArchive(
+            request.data,
+          );
+        break;
+
+      case "receivables.archiveUpdate":
+        data =
+          updateReceivablesArchive(
+            request.data,
           );
         break;
 
