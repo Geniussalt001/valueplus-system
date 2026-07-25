@@ -858,88 +858,152 @@ function getReceivablesArchive(
       file.getId(),
     );
 
+  const sheets =
+    spreadsheet.getSheets();
+
+  const sheetNames =
+    sheets.map(function (sheet) {
+      return sheet.getName();
+    });
+
+  const requestedSheet =
+    String(
+      input &&
+        input.sheetName
+        ? input.sheetName
+        : "",
+    ).trim();
+
+  const defaultSheet =
+    spreadsheet.getSheetByName(
+      RECEIVABLES_CONFIG
+        .SHEET_NAME,
+    ) ||
+    sheets[0];
+
   const sheet =
+    requestedSheet
+      ? spreadsheet.getSheetByName(
+          requestedSheet,
+        )
+      : defaultSheet;
+
+  if (!sheet) {
+    throw new Error(
+      "ไม่พบชีตที่เลือกในแฟ้มข้อมูล",
+    );
+  }
+
+  const maximumRows = 1500;
+  const maximumColumns = 30;
+
+  const actualLastRow =
+    Math.max(
+      sheet.getLastRow(),
+      1,
+    );
+
+  const actualLastColumn =
+    Math.max(
+      sheet.getLastColumn(),
+      1,
+    );
+
+  const rowCount =
+    Math.min(
+      actualLastRow,
+      maximumRows,
+    );
+
+  const columnCount =
+    Math.min(
+      actualLastColumn,
+      maximumColumns,
+    );
+
+  const range =
+    sheet.getRange(
+      1,
+      1,
+      rowCount,
+      columnCount,
+    );
+
+  const displayValues =
+    range.getDisplayValues();
+
+  const formulas =
+    range.getFormulas();
+
+  const rows =
+    displayValues.map(
+      function (values, index) {
+        return {
+          rowNumber:
+            index + 1,
+          values: values,
+          formulas:
+            formulas[index],
+        };
+      },
+    );
+
+  const debtorSheet =
     spreadsheet.getSheetByName(
       RECEIVABLES_CONFIG
         .SHEET_NAME,
     );
 
-  if (!sheet) {
-    throw new Error(
-      "ไม่พบชีต 'ลูกหนี้' ในแฟ้มที่เลือก",
-    );
-  }
-
-  const startRow =
-    RECEIVABLES_CONFIG.START_ROW;
-
-  const lastRow =
-    Math.max(
-      sheet.getLastRow(),
-      startRow - 1,
-    );
-
-  const rowCount =
-    Math.max(
-      lastRow - startRow + 1,
-      0,
-    );
-
-  const values =
-    rowCount > 0
-      ? sheet
-          .getRange(
-            startRow,
-            1,
-            rowCount,
-            14,
-          )
-          .getDisplayValues()
-      : [];
-
-  const rows = [];
   let recordCount = 0;
   let totalQuantity = 0;
   let totalExcVat = 0;
 
-  values.forEach(
-    function (row, index) {
-      const hasContent =
-        row.some(function (value) {
-          return Boolean(
-            String(
-              value || "",
-            ).trim(),
-          );
-        });
+  if (debtorSheet) {
+    const debtorLastRow =
+      debtorSheet.getLastRow();
 
-      if (!hasContent) {
-        return;
-      }
+    if (
+      debtorLastRow >=
+      RECEIVABLES_CONFIG
+        .START_ROW
+    ) {
+      const debtorRows =
+        debtorSheet
+          .getRange(
+            RECEIVABLES_CONFIG
+              .START_ROW,
+            1,
+            debtorLastRow -
+              RECEIVABLES_CONFIG
+                .START_ROW +
+              1,
+            6,
+          )
+          .getDisplayValues();
 
-      if (
-        String(
-          row[1] || "",
-        ).trim()
-      ) {
-        recordCount += 1;
-        totalQuantity +=
-          parseSheetNumber(
-            row[4],
-          );
-        totalExcVat +=
-          parseSheetNumber(
-            row[5],
-          );
-      }
+      debtorRows.forEach(
+        function (row) {
+          if (
+            !String(
+              row[1] || "",
+            ).trim()
+          ) {
+            return;
+          }
 
-      rows.push({
-        rowNumber:
-          startRow + index,
-        values: row,
-      });
-    },
-  );
+          recordCount += 1;
+          totalQuantity +=
+            parseSheetNumber(
+              row[4],
+            );
+          totalExcVat +=
+            parseSheetNumber(
+              row[5],
+            );
+        },
+      );
+    }
+  }
 
   const period =
     parseReceivablesArchiveTitle(
@@ -978,12 +1042,25 @@ function getReceivablesArchive(
         CONFIG.TIMEZONE,
         "yyyy-MM-dd'T'HH:mm:ss",
       ),
-    recordCount: recordCount,
+    sheetNames:
+      sheetNames,
+    selectedSheet:
+      sheet.getName(),
+    columnCount:
+      columnCount,
+    truncated:
+      actualLastRow >
+        maximumRows ||
+      actualLastColumn >
+        maximumColumns,
+    recordCount:
+      recordCount,
     totalQuantity:
       totalQuantity,
     totalExcVat:
       totalExcVat,
-    rows: rows,
+    rows:
+      rows,
   };
 }
 
@@ -995,6 +1072,20 @@ function updateReceivablesArchive(
       input &&
         input.spreadsheetId,
     );
+
+  const sheetName =
+    String(
+      input &&
+        input.sheetName
+        ? input.sheetName
+        : "",
+    ).trim();
+
+  if (!sheetName) {
+    throw new Error(
+      "กรุณาเลือกชีตที่ต้องการแก้ไข",
+    );
+  }
 
   const changes =
     input &&
@@ -1008,6 +1099,8 @@ function updateReceivablesArchive(
     return getReceivablesArchive({
       spreadsheetId:
         file.getId(),
+      sheetName:
+        sheetName,
     });
   }
 
@@ -1017,20 +1110,6 @@ function updateReceivablesArchive(
     );
   }
 
-  const editableColumns = {
-    1: true,
-    2: true,
-    3: true,
-    4: true,
-    5: true,
-    6: true,
-    9: true,
-    10: true,
-    11: true,
-    13: true,
-    14: true,
-  };
-
   const spreadsheet =
     SpreadsheetApp.openById(
       file.getId(),
@@ -1038,13 +1117,12 @@ function updateReceivablesArchive(
 
   const sheet =
     spreadsheet.getSheetByName(
-      RECEIVABLES_CONFIG
-        .SHEET_NAME,
+      sheetName,
     );
 
   if (!sheet) {
     throw new Error(
-      "ไม่พบชีต 'ลูกหนี้' ในแฟ้มที่เลือก",
+      "ไม่พบชีตที่ต้องการแก้ไข",
     );
   }
 
@@ -1072,22 +1150,15 @@ function updateReceivablesArchive(
           !Number.isInteger(
             rowNumber,
           ) ||
-          rowNumber <
-            RECEIVABLES_CONFIG
-              .START_ROW
+          rowNumber < 1 ||
+          !Number.isInteger(
+            column,
+          ) ||
+          column < 1 ||
+          column > 30
         ) {
           throw new Error(
-            "แถวข้อมูลไม่ถูกต้อง",
-          );
-        }
-
-        if (
-          !editableColumns[
-            column
-          ]
-        ) {
-          throw new Error(
-            "คอลัมน์นี้เป็นสูตรและไม่อนุญาตให้แก้ไข",
+            "ตำแหน่งเซลล์ไม่ถูกต้อง",
           );
         }
 
@@ -1096,6 +1167,12 @@ function updateReceivablesArchive(
             rowNumber,
             column,
           );
+
+        if (cell.getFormula()) {
+          throw new Error(
+            "ไม่สามารถแก้ไขช่องสูตรได้",
+          );
+        }
 
         const rawValue =
           change &&
@@ -1112,38 +1189,11 @@ function updateReceivablesArchive(
           return;
         }
 
-        if (
-          column === 5 ||
-          column === 6 ||
-          column === 11
-        ) {
-          const normalizedNumber =
-            rawValue
-              .replace(/,/g, "")
-              .trim();
-
-          const number =
-            Number(
-              normalizedNumber,
-            );
-
-          if (
-            !normalizedNumber ||
-            !Number.isFinite(
-              number,
-            )
-          ) {
-            throw new Error(
-              "รูปแบบตัวเลขไม่ถูกต้อง",
-            );
-          }
-
-          cell.setValue(number);
-          return;
-        }
-
         cell.setValue(
-          column === 2
+          column === 2 &&
+          sheetName ===
+            RECEIVABLES_CONFIG
+              .SHEET_NAME
             ? rawValue
                 .toUpperCase()
             : rawValue,
@@ -1159,6 +1209,8 @@ function updateReceivablesArchive(
   return getReceivablesArchive({
     spreadsheetId:
       file.getId(),
+    sheetName:
+      sheetName,
   });
 }
 
