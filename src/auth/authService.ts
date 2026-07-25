@@ -21,6 +21,47 @@ interface LoginResponse {
 }
 
 export const authService = {
+  async select(
+    userCode: string,
+  ): Promise<AuthSession> {
+    const response =
+      await callAppsScript<LoginResponse>(
+        "auth.select",
+        {
+          userCode,
+        },
+        {
+          requireSession: false,
+        },
+      );
+
+    const token =
+      String(
+        response.sessionToken ||
+          response.token ||
+          "",
+      ).trim();
+
+    if (!token) {
+      throw new Error(
+        "Apps Script ไม่ได้ส่ง Session Token กลับมา",
+      );
+    }
+
+    const session: AuthSession = {
+      token,
+      sessionToken: token,
+      expiresAt: String(
+        response.expiresAt || "",
+      ),
+      user: response.user,
+    };
+
+    saveAuthSession(session);
+
+    return session;
+  },
+
   async login(
     input: LoginInput,
   ): Promise<AuthSession> {
