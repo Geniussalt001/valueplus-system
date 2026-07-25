@@ -1,7 +1,7 @@
 import {
   BarChart3,
   ClipboardList,
-  Database,
+  FolderArchive,
   FileSpreadsheet,
   Files,
   PackageSearch,
@@ -90,15 +90,15 @@ export const systemModules:
       route:
         "po-data",
       title:
-        "ระบบลงข้อมูล PO",
+        "แฟ้มบันทึกข้อมูล",
       subtitle:
-        "PO DATA SYSTEM",
+        "PO DOCUMENT ARCHIVE",
       description:
-        "ลงทะเบียน ติดตาม และตรวจสอบสถานะเอกสาร PO",
+        "จัดเก็บ ค้นหา และเปิดเอกสาร PO จาก Google Drive สำหรับสำนักงานใหญ่",
       icon:
-        Database,
+        FolderArchive,
       color:
-        "#526b82",
+        "#0e7490",
       status:
         "online",
     },
