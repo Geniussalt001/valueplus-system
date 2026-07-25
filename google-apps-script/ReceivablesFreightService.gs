@@ -894,8 +894,12 @@ function getReceivablesArchive(
     );
   }
 
+  /*
+   * The desktop app is the spreadsheet surface. Google Sheets
+   * stays behind the scenes as storage, formulas and formatting.
+   */
   const maximumRows = 1500;
-  const maximumColumns = 30;
+  const maximumColumns = 40;
 
   const actualLastRow =
     Math.max(
@@ -935,18 +939,193 @@ function getReceivablesArchive(
   const formulas =
     range.getFormulas();
 
+  const backgrounds =
+    range.getBackgrounds();
+
+  const fontColors =
+    range.getFontColors();
+
+  const fontWeights =
+    range.getFontWeights();
+
+  const fontStyles =
+    range.getFontStyles();
+
+  const fontSizes =
+    range.getFontSizes();
+
+  const fontFamilies =
+    range.getFontFamilies();
+
+  const horizontalAlignments =
+    range.getHorizontalAlignments();
+
+  const verticalAlignments =
+    range.getVerticalAlignments();
+
+  const wrapStrategies =
+    range.getWrapStrategies();
+
+  const numberFormats =
+    range.getNumberFormats();
+
+  const styles = [];
+  const styleIndex = {};
+
+  function getStyleId(
+    rowIndex,
+    columnIndex,
+  ) {
+    const values = [
+      backgrounds[
+        rowIndex
+      ][columnIndex] ||
+        "#ffffff",
+      fontColors[
+        rowIndex
+      ][columnIndex] ||
+        "#000000",
+      fontWeights[
+        rowIndex
+      ][columnIndex] ||
+        "normal",
+      fontStyles[
+        rowIndex
+      ][columnIndex] ||
+        "normal",
+      Number(
+        fontSizes[
+          rowIndex
+        ][columnIndex] ||
+          10,
+      ),
+      fontFamilies[
+        rowIndex
+      ][columnIndex] ||
+        "Arial",
+      horizontalAlignments[
+        rowIndex
+      ][columnIndex] ||
+        "left",
+      verticalAlignments[
+        rowIndex
+      ][columnIndex] ||
+        "middle",
+      String(
+        wrapStrategies[
+          rowIndex
+        ][columnIndex] ||
+          "",
+      ),
+      numberFormats[
+        rowIndex
+      ][columnIndex] ||
+        "",
+    ];
+
+    const key =
+      values.join(
+        "\u001f",
+      );
+
+    if (
+      styleIndex[key] !==
+      undefined
+    ) {
+      return styleIndex[key];
+    }
+
+    const id =
+      styles.length;
+
+    styleIndex[key] = id;
+
+    styles.push({
+      background:
+        values[0],
+      fontColor:
+        values[1],
+      fontWeight:
+        values[2],
+      fontStyle:
+        values[3],
+      fontSize:
+        values[4],
+      fontFamily:
+        values[5],
+      horizontalAlignment:
+        values[6],
+      verticalAlignment:
+        values[7],
+      wrapStrategy:
+        values[8],
+      numberFormat:
+        values[9],
+    });
+
+    return id;
+  }
+
   const rows =
     displayValues.map(
       function (values, index) {
         return {
           rowNumber:
             index + 1,
-          values: values,
+          values:
+            values,
           formulas:
             formulas[index],
+          styleIds:
+            values.map(
+              function (
+                _,
+                columnIndex,
+              ) {
+                return getStyleId(
+                  index,
+                  columnIndex,
+                );
+              },
+            ),
         };
       },
     );
+
+  const columnWidths = [];
+
+  for (
+    let column = 1;
+    column <= columnCount;
+    column += 1
+  ) {
+    columnWidths.push(
+      Math.max(
+        sheet.getColumnWidth(
+          column,
+        ),
+        45,
+      ),
+    );
+  }
+
+  const mergedRanges =
+    range
+      .getMergedRanges()
+      .map(function (
+        mergedRange,
+      ) {
+        return {
+          row:
+            mergedRange.getRow(),
+          column:
+            mergedRange.getColumn(),
+          rowCount:
+            mergedRange.getNumRows(),
+          columnCount:
+            mergedRange.getNumColumns(),
+        };
+      });
 
   const debtorSheet =
     spreadsheet.getSheetByName(
@@ -1048,6 +1227,16 @@ function getReceivablesArchive(
       sheet.getName(),
     columnCount:
       columnCount,
+    frozenRows:
+      sheet.getFrozenRows(),
+    frozenColumns:
+      sheet.getFrozenColumns(),
+    columnWidths:
+      columnWidths,
+    styles:
+      styles,
+    mergedRanges:
+      mergedRanges,
     truncated:
       actualLastRow >
         maximumRows ||
