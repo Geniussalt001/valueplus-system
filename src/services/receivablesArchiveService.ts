@@ -13,9 +13,11 @@ import type {
 } from "../types/receivablesArchive.types";
 
 export const receivablesArchiveService = {
-  list(): Promise<
-    ReceivablesArchiveSummary[]
-  > {
+  async list():
+    Promise<
+      ReceivablesArchiveSummary[]
+    >
+  {
     return callAppsScript<
       ReceivablesArchiveSummary[]
     >(
@@ -23,30 +25,38 @@ export const receivablesArchiveService = {
     );
   },
 
-  get(
+  async get(
     spreadsheetId: string,
-  ): Promise<ReceivablesArchiveDetail> {
+    sheetName = "",
+  ): Promise<
+    ReceivablesArchiveDetail
+  > {
     return callAppsScript<
       ReceivablesArchiveDetail
     >(
       "receivables.archiveGet",
       {
         spreadsheetId,
+        sheetName,
       },
     );
   },
 
-  update(
+  async update(
     spreadsheetId: string,
+    sheetName: string,
     changes:
       ReceivablesArchiveChange[],
-  ): Promise<ReceivablesArchiveDetail> {
+  ): Promise<
+    ReceivablesArchiveDetail
+  > {
     return callAppsScript<
       ReceivablesArchiveDetail
     >(
       "receivables.archiveUpdate",
       {
         spreadsheetId,
+        sheetName,
         changes,
       },
     );
