@@ -4,7 +4,9 @@ import {
 
 import {
   ArrowRight,
+  Building2,
   ShieldCheck,
+  Warehouse,
 } from "lucide-react";
 
 import type {
@@ -25,53 +27,63 @@ interface LoginPageProps {
   ) => void;
 }
 
+const accounts = [
+  {
+    code: "OFFICE",
+    label: "สำนักงาน",
+    englishLabel: "OFFICE",
+    description:
+      "สำหรับจัดการและประมวลผลงานประจำวัน",
+    icon: Warehouse,
+  },
+  {
+    code: "HEADOFFICE",
+    label: "สำนักงานใหญ่",
+    englishLabel: "HEAD OFFICE",
+    description:
+      "สำหรับค้นหา ตรวจสอบ และใช้งานแฟ้มส่วนกลาง",
+    icon: Building2,
+  },
+] as const;
+
 export function LoginPage({
   onLogin,
 }: LoginPageProps) {
   const [
-    userCode,
-    setUserCode,
-  ] = useState("OFFICE");
-
-  const [
-    password,
-    setPassword,
+    loadingCode,
+    setLoadingCode,
   ] = useState("");
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
 
   const [
     error,
     setError,
   ] = useState("");
 
-  const submitLogin = async () => {
-    if (!password || loading) {
+  const selectAccount = async (
+    userCode: string,
+  ) => {
+    if (loadingCode) {
       return;
     }
 
-    setLoading(true);
+    setLoadingCode(userCode);
     setError("");
 
     try {
       const session =
-        await authService.login({
+        await authService.select(
           userCode,
-          password,
-        });
+        );
 
       onLogin(session.user);
     } catch (requestError) {
       setError(
-        getLoginErrorMessage(
-          requestError,
-        ),
+        requestError instanceof Error
+          ? requestError.message
+          : String(requestError),
       );
     } finally {
-      setLoading(false);
+      setLoadingCode("");
     }
   };
 
@@ -83,7 +95,7 @@ export function LoginPage({
           "url('/images/login-background-white-tron.webp')",
       }}
     >
-      <section className="login-red-card relative z-10 w-full max-w-[480px] overflow-hidden p-8 backdrop-blur-xl sm:p-10">
+      <section className="login-red-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-xl sm:p-10">
         <div className="relative z-10">
           <BrandLogo size="medium" />
 
@@ -102,111 +114,70 @@ export function LoginPage({
             </h1>
 
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกหน่วยงานและกรอกรหัสผ่าน
-              เพื่อเข้าสู่ระบบบริหารงานภายใน
+              เลือกส่วนงาน Office หรือ Head Office
+              เพื่อเข้าสู่ระบบได้ทันที
             </p>
           </div>
 
-          <div className="mt-7 grid grid-cols-2 gap-3">
-            {[
-              {
-                code: "OFFICE",
-                label: "สำนักงาน",
-              },
-              {
-                code: "HEADOFFICE",
-                label: "สำนักงานใหญ่",
-              },
-            ].map((account) => (
-              <button
-                key={account.code}
-                type="button"
-                disabled={loading}
-                onClick={() => {
-                  setUserCode(
-                    account.code,
-                  );
-                  setError("");
-                }}
-                className={[
-                  "rounded-xl border px-4 py-3 text-left transition",
-                  userCode === account.code
-                    ? "border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm"
-                    : "border-slate-200 bg-white/80 text-slate-600 hover:border-cyan-300",
-                ].join(" ")}
-              >
-                <span className="block text-sm font-semibold">
-                  {account.label}
-                </span>
-                <span className="mt-1 block text-[10px] tracking-[0.14em] opacity-65">
-                  {account.code}
-                </span>
-              </button>
-            ))}
+          <div className="mt-7 space-y-3">
+            {accounts.map((account) => {
+              const Icon =
+                account.icon;
+
+              const loading =
+                loadingCode ===
+                account.code;
+
+              return (
+                <button
+                  key={account.code}
+                  type="button"
+                  disabled={Boolean(
+                    loadingCode,
+                  )}
+                  onClick={() => {
+                    void selectAccount(
+                      account.code,
+                    );
+                  }}
+                  className="group flex w-full items-center gap-4 rounded-2xl border border-cyan-200 bg-white/90 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-500 hover:bg-cyan-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-50 text-cyan-700">
+                    <Icon size={22} />
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-semibold text-slate-900">
+                      {account.label}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.16em] text-cyan-700">
+                      {account.englishLabel}
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500">
+                      {account.description}
+                    </span>
+                  </span>
+
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#063b59] text-white transition group-hover:translate-x-1 group-hover:bg-[#075071]">
+                    <ArrowRight
+                      size={18}
+                      className={
+                        loading
+                          ? "animate-pulse"
+                          : ""
+                      }
+                    />
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <form
-            className="mt-4"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submitLogin();
-            }}
-          >
-            <label
-              htmlFor="valueplus-password"
-              className="text-xs font-medium text-slate-600"
-            >
-              รหัสผ่าน
-            </label>
-
-            <input
-              id="valueplus-password"
-              type="password"
-              autoFocus
-              autoComplete="current-password"
-              value={password}
-              disabled={loading}
-              onChange={(event) => {
-                setPassword(
-                  event.target.value,
-                );
-                setError("");
-              }}
-              placeholder="กรอกรหัสผ่าน"
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 disabled:opacity-60"
-            />
-
-            {error && (
-              <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={
-                loading ||
-                !password
-              }
-              className="login-red-button group mt-5 flex w-full items-center justify-between px-6 py-4 text-left disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <span>
-                <span className="block text-base font-semibold">
-                  {loading
-                    ? "กำลังตรวจสอบ..."
-                    : "เข้าสู่ระบบ"}
-                </span>
-                <span className="mt-1 block text-[11px] tracking-[0.18em] text-white/70">
-                  {userCode}
-                </span>
-              </span>
-
-              <ArrowRight
-                size={22}
-                className="transition-transform group-hover:translate-x-1"
-              />
-            </button>
-          </form>
+          {error && (
+            <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
 
           <div className="mt-7 flex items-center justify-between text-[11px]">
             <span className="text-slate-500">
@@ -217,53 +188,11 @@ export function LoginPage({
                 className="status-light status-online"
                 aria-hidden="true"
               />
-              SECURE
+              READY
             </span>
           </div>
         </div>
       </section>
     </main>
   );
-}
-
-function getLoginErrorMessage(
-  error: unknown,
-): string {
-  const message =
-    error instanceof Error
-      ? error.message
-      : String(error);
-
-  if (
-    message.startsWith(
-      "ACCOUNT_LOCKED:",
-    )
-  ) {
-    const seconds =
-      message.split(":")[1] ||
-      "20";
-
-    return `กรอกรหัสผิดเกินกำหนด กรุณารอ ${seconds} วินาที`;
-  }
-
-  if (
-    message.startsWith(
-      "INVALID_PASSWORD:",
-    )
-  ) {
-    const remaining =
-      message.split(":")[1] ||
-      "0";
-
-    return `รหัสผ่านไม่ถูกต้อง เหลือโอกาสอีก ${remaining} ครั้ง`;
-  }
-
-  if (
-    message ===
-    "SESSION_REQUIRED"
-  ) {
-    return "กรุณาเข้าสู่ระบบใหม่";
-  }
-
-  return message;
 }
