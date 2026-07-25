@@ -1,205 +1,78 @@
 import {
-  useCallback,
-  useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
 
 import {
   ArrowLeft,
-  Archive,
-  ExternalLink,
-  FileText,
+  ArrowRight,
+  Building2,
+  FileArchive,
   FolderArchive,
-  LoaderCircle,
-  RefreshCw,
-  Search,
-  Warehouse,
-  X,
+  ReceiptText,
+  ShieldCheck,
+  Truck,
 } from "lucide-react";
-
-import {
-  openUrl,
-} from "@tauri-apps/plugin-opener";
 
 import type {
   AppUser,
 } from "../../../auth/auth.types";
 
 import {
-  poArchiveService,
-} from "../../../services/poArchiveService";
-
-import type {
-  PoArchiveRecord,
-} from "../../../types/poArchive.types";
-
-import {
-  base64ToPdfUrl,
-} from "../../../utils/fileEncoding";
+  PoSevenArchivePage,
+} from "./PoSevenArchivePage";
 
 interface PoDataPageProps {
   currentUser: AppUser;
   onBack: () => void;
 }
 
+type ArchiveSection =
+  | "po-seven"
+  | "receivables"
+  | null;
+
 export function PoDataPage({
   currentUser,
   onBack,
 }: PoDataPageProps) {
-  const [records, setRecords] =
-    useState<PoArchiveRecord[]>([]);
-  const [search, setSearch] =
-    useState("");
-  const [loading, setLoading] =
-    useState(true);
-  const [error, setError] =
-    useState("");
-  const [previewUrl, setPreviewUrl] =
-    useState("");
-  const [previewName, setPreviewName] =
-    useState("");
-  const [openingId, setOpeningId] =
-    useState("");
+  const [
+    selectedSection,
+    setSelectedSection,
+  ] = useState<ArchiveSection>(
+    null,
+  );
 
-  const loadRecords =
-    useCallback(async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const nextRecords =
-          await poArchiveService.list();
-
-        setRecords(
-          Array.isArray(nextRecords)
-            ? nextRecords
-            : [],
-        );
-      } catch (reason) {
-        setError(
-          getErrorMessage(reason),
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, []);
-
-  useEffect(() => {
-    void loadRecords();
-  }, [loadRecords]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(
-          previewUrl,
-        );
-      }
-    };
-  }, [previewUrl]);
-
-  const filteredRecords =
-    useMemo(() => {
-      const keyword =
-        search
-          .trim()
-          .toLowerCase();
-
-      if (!keyword) {
-        return records;
-      }
-
-      return records.filter(
-        (record) =>
-          record.poNumber
-            .toLowerCase()
-            .includes(keyword) ||
-          record.warehouse
-            .toLowerCase()
-            .includes(keyword) ||
-          record.fileName
-            .toLowerCase()
-            .includes(keyword) ||
-          record.documentDate
-            .toLowerCase()
-            .includes(keyword),
-      );
-    }, [records, search]);
-
-  const warehouseCount =
-    useMemo(
-      () =>
-        new Set(
-          records
-            .map(
-              (record) =>
-                record.warehouse,
-            )
-            .filter(Boolean),
-        ).size,
-      [records],
+  if (
+    selectedSection ===
+    "po-seven"
+  ) {
+    return (
+      <PoSevenArchivePage
+        currentUser={currentUser}
+        onBack={() => {
+          setSelectedSection(
+            null,
+          );
+        }}
+      />
     );
+  }
 
-  const totalSize =
-    useMemo(
-      () =>
-        records.reduce(
-          (total, record) =>
-            total +
-            Number(
-              record.fileSize || 0,
-            ),
-          0,
-        ),
-      [records],
+  if (
+    selectedSection ===
+    "receivables"
+  ) {
+    return (
+      <ReceivablesPlaceholder
+        onBack={() => {
+          setSelectedSection(
+            null,
+          );
+        }}
+      />
     );
-
-  const openPreview = async (
-    record: PoArchiveRecord,
-  ) => {
-    setOpeningId(record.id);
-    setError("");
-
-    try {
-      const pdf =
-        await poArchiveService
-          .getPdf(record.id);
-
-      if (previewUrl) {
-        URL.revokeObjectURL(
-          previewUrl,
-        );
-      }
-
-      setPreviewUrl(
-        base64ToPdfUrl(
-          pdf.base64Data,
-        ),
-      );
-      setPreviewName(
-        pdf.fileName,
-      );
-    } catch (reason) {
-      setError(
-        getErrorMessage(reason),
-      );
-    } finally {
-      setOpeningId("");
-    }
-  };
-
-  const closePreview = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(
-        previewUrl,
-      );
-    }
-
-    setPreviewUrl("");
-    setPreviewName("");
-  };
+  }
 
   return (
     <div
@@ -233,10 +106,12 @@ export function PoDataPage({
               text-sm
               text-slate-500
               transition
-              hover:text-cyan-600
+              hover:text-cyan-700
             "
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft
+              size={17}
+            />
             กลับหน้าแดชบอร์ด
           </button>
 
@@ -245,10 +120,10 @@ export function PoDataPage({
               text-[10px]
               font-semibold
               tracking-[0.24em]
-              text-cyan-600
+              text-cyan-700
             "
           >
-            PO DOCUMENT ARCHIVE
+            DOCUMENT ARCHIVE CENTER
           </p>
 
           <h2
@@ -259,7 +134,7 @@ export function PoDataPage({
               text-slate-900
             "
           >
-            แฟ้มบันทึกข้อมูล
+            ศูนย์แฟ้มบันทึกข้อมูล
           </h2>
 
           <p
@@ -271,8 +146,9 @@ export function PoDataPage({
               text-slate-500
             "
           >
-            เอกสารที่แยกและเปลี่ยนชื่อแล้วจะถูกจัดเก็บใน
-            Google Drive อัตโนมัติ เพื่อให้สำนักงานใหญ่ค้นหาและเปิดใช้งานได้
+            เลือกแฟ้มงานที่ต้องการค้นหา
+            เอกสารแต่ละประเภทจะแยกพื้นที่จัดเก็บและขั้นตอนทำงานอย่างชัดเจน
+            เพื่อให้สำนักงานใหญ่ใช้งานได้สะดวก
           </p>
         </div>
 
@@ -288,559 +164,545 @@ export function PoDataPage({
             border-cyan-300
             bg-cyan-50
             text-cyan-700
+            shadow-sm
           "
         >
-          <FolderArchive size={23} />
+          <FolderArchive
+            size={23}
+          />
         </div>
       </header>
 
       <section
         className="
-          mt-7
+          mt-8
           grid
-          gap-4
-          sm:grid-cols-3
+          gap-5
+          lg:grid-cols-2
         "
       >
-        <StatCard
-          label="เอกสารทั้งหมด"
-          value={records.length}
-          icon={<Archive size={18} />}
+        <ArchiveFolderCard
+          title="แฟ้มข้อมูล PO Seven"
+          subtitle="SEVEN PO ARCHIVE"
+          description="รวมเอกสาร PO ที่ระบบแยกและเปลี่ยนชื่อแล้ว พร้อมค้นหา Preview และเปิดไฟล์จาก Google Drive"
+          icon={
+            <FileArchive
+              size={25}
+            />
+          }
+          accent="cyan"
+          status="พร้อมใช้งาน"
+          features={[
+            "บันทึกอัตโนมัติหลังแยก PDF",
+            "ค้นหาด้วยเลข PO คลัง หรือวันที่",
+            "เปิด Preview และ Google Drive",
+          ]}
+          onClick={() => {
+            setSelectedSection(
+              "po-seven",
+            );
+          }}
         />
-        <StatCard
-          label="คลังที่พบ"
-          value={warehouseCount}
-          icon={<Warehouse size={18} />}
-        />
-        <StatCard
-          label="พื้นที่เอกสาร"
-          value={formatFileSize(totalSize)}
-          icon={<FileText size={18} />}
+
+        <ArchiveFolderCard
+          title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
+          subtitle="RECEIVABLES & FREIGHT"
+          description="พื้นที่เตรียมจัดเก็บเอกสารลูกหนี้ หลักฐานค่าขนส่ง และข้อมูลประกอบการตรวจสอบ"
+          icon={
+            <Truck
+              size={25}
+            />
+          }
+          accent="amber"
+          status="เตรียมออกแบบ"
+          features={[
+            "แยกหมวดลูกหนี้และค่าขนส่ง",
+            "รองรับเอกสารประกอบหลายประเภท",
+            "กำหนดขั้นตอนร่วมกันในลำดับถัดไป",
+          ]}
+          onClick={() => {
+            setSelectedSection(
+              "receivables",
+            );
+          }}
         />
       </section>
 
       <section
         className="
-          mt-5
+          mt-6
           flex
           flex-col
-          gap-3
+          gap-4
           rounded-2xl
           border
-          border-cyan-200
-          bg-white/90
-          p-4
+          border-slate-200
+          bg-white/80
+          p-5
           shadow-sm
-          md:flex-row
-          md:items-center
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
         "
       >
-        <label
+        <div
           className="
             flex
-            min-h-11
-            flex-1
-            items-center
+            items-start
             gap-3
-            rounded-xl
-            border
-            border-slate-200
-            bg-slate-50
-            px-4
           "
         >
-          <Search
-            className="text-cyan-600"
-            size={18}
-          />
-          <input
-            value={search}
-            onChange={(event) => {
-              setSearch(
-                event.target.value,
-              );
-            }}
-            placeholder="ค้นหาเลข PO, คลัง, วันที่ หรือชื่อไฟล์"
+          <div
             className="
-              w-full
-              bg-transparent
-              text-sm
-              text-slate-900
-              outline-none
-              placeholder:text-slate-400
+              mt-0.5
+              rounded-lg
+              bg-emerald-50
+              p-2
+              text-emerald-600
             "
-          />
-        </label>
+          >
+            <ShieldCheck
+              size={18}
+            />
+          </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            void loadRecords();
-          }}
-          disabled={loading}
-          className="
-            flex
-            min-h-11
-            items-center
-            justify-center
-            gap-2
-            rounded-xl
-            bg-[#063b59]
-            px-5
-            text-sm
-            font-semibold
-            text-white
-            shadow-md
-            transition
-            hover:bg-[#075071]
-            disabled:opacity-50
-          "
-        >
-          <RefreshCw
-            className={
-              loading
-                ? "animate-spin"
-                : ""
-            }
-            size={17}
-          />
-          โหลดข้อมูลใหม่
-        </button>
-      </section>
-
-      {error && (
-        <div
-          className="
-            mt-5
-            rounded-xl
-            border
-            border-red-200
-            bg-red-50
-            px-5
-            py-4
-            text-sm
-            text-red-700
-          "
-        >
-          {error}
-        </div>
-      )}
-
-      <section
-        className="
-          mt-5
-          overflow-hidden
-          rounded-2xl
-          border
-          border-cyan-200
-          bg-white
-          shadow-sm
-        "
-      >
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            border-b
-            border-slate-200
-            px-5
-            py-4
-          "
-        >
           <div>
-            <h3
+            <p
               className="
+                text-sm
                 font-semibold
-                text-slate-900
+                text-slate-800
               "
             >
-              เอกสาร PO ใน Google Drive
-            </h3>
+              พื้นที่เอกสารส่วนกลาง
+            </p>
             <p
               className="
                 mt-1
                 text-xs
+                leading-5
                 text-slate-500
               "
             >
-              แสดง {filteredRecords.length} จาก {records.length} ไฟล์ · ผู้ใช้งาน {currentUser.displayName}
+              แฟ้มแต่ละประเภทแยกข้อมูลออกจากกัน
+              ลดความสับสนและป้องกันการเลือกเอกสารผิดหมวด
             </p>
           </div>
         </div>
 
-        {loading ? (
-          <div
+        <p
+          className="
+            text-xs
+            text-slate-500
+          "
+        >
+          ผู้ใช้งาน:{" "}
+          <span
             className="
-              flex
-              min-h-72
-              items-center
-              justify-center
-              gap-3
-              text-sm
-              text-slate-500
+              font-semibold
+              text-cyan-700
             "
           >
-            <LoaderCircle
-              className="animate-spin"
-              size={22}
+            {currentUser.displayName}
+          </span>
+        </p>
+      </section>
+    </div>
+  );
+}
+
+interface ArchiveFolderCardProps {
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: ReactNode;
+  accent:
+    | "cyan"
+    | "amber";
+  status: string;
+  features: string[];
+  onClick: () => void;
+}
+
+const accentStyles = {
+  cyan: {
+    border:
+      "border-cyan-200 hover:border-cyan-400",
+    icon:
+      "border-cyan-200 bg-cyan-50 text-cyan-700",
+    badge:
+      "border-emerald-200 bg-emerald-50 text-emerald-700",
+    glow:
+      "from-cyan-400/10 via-blue-300/5 to-transparent",
+    button:
+      "bg-[#063b59] text-white group-hover:bg-[#075071]",
+    dot:
+      "bg-emerald-500 shadow-emerald-400/60",
+  },
+  amber: {
+    border:
+      "border-amber-200 hover:border-amber-400",
+    icon:
+      "border-amber-200 bg-amber-50 text-amber-700",
+    badge:
+      "border-amber-200 bg-amber-50 text-amber-700",
+    glow:
+      "from-amber-300/10 via-orange-200/5 to-transparent",
+    button:
+      "bg-amber-500 text-white group-hover:bg-amber-600",
+    dot:
+      "bg-amber-500 shadow-amber-400/60",
+  },
+};
+
+function ArchiveFolderCard({
+  title,
+  subtitle,
+  description,
+  icon,
+  accent,
+  status,
+  features,
+  onClick,
+}: ArchiveFolderCardProps) {
+  const styles =
+    accentStyles[accent];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        group
+        relative
+        min-h-[340px]
+        overflow-hidden
+        rounded-3xl
+        border
+        bg-white
+        p-7
+        text-left
+        shadow-[0_18px_45px_rgba(15,23,42,0.08)]
+        transition
+        duration-300
+        hover:-translate-y-1
+        hover:shadow-[0_24px_55px_rgba(8,145,178,0.14)]
+        ${styles.border}
+      `}
+    >
+      <div
+        className={`
+          pointer-events-none
+          absolute
+          inset-0
+          bg-gradient-to-br
+          opacity-80
+          ${styles.glow}
+        `}
+      />
+
+      <div
+        className="
+          relative
+          flex
+          h-full
+          flex-col
+        "
+      >
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-4
+          "
+        >
+          <div
+            className={`
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              ${styles.icon}
+            `}
+          >
+            {icon}
+          </div>
+
+          <span
+            className={`
+              flex
+              items-center
+              gap-2
+              rounded-full
+              border
+              px-3
+              py-1.5
+              text-[10px]
+              font-semibold
+              ${styles.badge}
+            `}
+          >
+            <span
+              className={`
+                h-2
+                w-2
+                animate-pulse
+                rounded-full
+                shadow-[0_0_10px_currentColor]
+                ${styles.dot}
+              `}
             />
-            กำลังโหลดแฟ้มเอกสาร...
-          </div>
-        ) : filteredRecords.length === 0 ? (
-          <div
-            className="
-              flex
-              min-h-72
-              flex-col
-              items-center
-              justify-center
-              text-center
-              text-slate-500
-            "
-          >
-            <FolderArchive size={36} />
-            <p
-              className="
-                mt-4
-                font-medium
-                text-slate-700
-              "
-            >
-              ยังไม่พบเอกสาร
-            </p>
-            <p className="mt-1 text-xs">
-              ไฟล์จะปรากฏหลังประมวลผลหน้าแยกและเปลี่ยนชื่อ PO
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table
-              className="
-                w-full
-                min-w-[900px]
-                text-left
-              "
-            >
-              <thead
+            {status}
+          </span>
+        </div>
+
+        <p
+          className="
+            mt-8
+            text-[10px]
+            font-semibold
+            tracking-[0.22em]
+            text-cyan-700
+          "
+        >
+          {subtitle}
+        </p>
+
+        <h3
+          className="
+            mt-2
+            text-2xl
+            font-semibold
+            text-slate-900
+          "
+        >
+          {title}
+        </h3>
+
+        <p
+          className="
+            mt-3
+            text-sm
+            leading-6
+            text-slate-500
+          "
+        >
+          {description}
+        </p>
+
+        <div
+          className="
+            mt-5
+            space-y-2
+          "
+        >
+          {features.map(
+            (feature) => (
+              <div
+                key={feature}
                 className="
-                  bg-cyan-50
+                  flex
+                  items-center
+                  gap-2
                   text-xs
                   text-slate-600
                 "
               >
-                <tr>
-                  <th className="px-5 py-3">เลข PO</th>
-                  <th className="px-5 py-3">วันที่เอกสาร</th>
-                  <th className="px-5 py-3">คลัง</th>
-                  <th className="px-5 py-3">ชื่อไฟล์</th>
-                  <th className="px-5 py-3">ขนาด</th>
-                  <th className="px-5 py-3">บันทึกเมื่อ</th>
-                  <th className="px-5 py-3 text-right">เปิดเอกสาร</th>
-                </tr>
-              </thead>
+                <span
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-cyan-500
+                  "
+                />
+                {feature}
+              </div>
+            ),
+          )}
+        </div>
 
-              <tbody
-                className="
-                  divide-y
-                  divide-slate-100
-                  text-sm
-                "
-              >
-                {filteredRecords.map(
-                  (record) => (
-                    <tr
-                      key={record.id}
-                      className="
-                        transition
-                        hover:bg-cyan-50/60
-                      "
-                    >
-                      <td
-                        className="
-                          px-5
-                          py-4
-                          font-semibold
-                          text-cyan-700
-                        "
-                      >
-                        {record.poNumber}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {formatThaiDate(record.documentDate)}
-                      </td>
-                      <td className="px-5 py-4 font-medium text-slate-800">
-                        {record.warehouse}
-                      </td>
-                      <td className="max-w-xs truncate px-5 py-4 text-slate-600">
-                        {record.fileName}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {formatFileSize(record.fileSize)}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {formatThaiDateTime(record.uploadedAt)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div
-                          className="
-                            flex
-                            justify-end
-                            gap-2
-                          "
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void openPreview(record);
-                            }}
-                            disabled={openingId === record.id}
-                            className="
-                              rounded-lg
-                              border
-                              border-cyan-200
-                              bg-cyan-50
-                              px-3
-                              py-2
-                              text-xs
-                              font-semibold
-                              text-cyan-700
-                              hover:bg-cyan-100
-                              disabled:opacity-50
-                            "
-                          >
-                            {openingId === record.id
-                              ? "กำลังเปิด..."
-                              : "Preview"}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void openUrl(record.fileUrl);
-                            }}
-                            className="
-                              flex
-                              items-center
-                              gap-1.5
-                              rounded-lg
-                              bg-[#063b59]
-                              px-3
-                              py-2
-                              text-xs
-                              font-semibold
-                              text-white
-                              hover:bg-[#075071]
-                            "
-                          >
-                            Drive
-                            <ExternalLink size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {previewUrl && (
         <div
           className="
-            fixed
-            inset-0
-            z-[120]
+            mt-auto
             flex
             items-center
-            justify-center
-            bg-slate-950/65
-            p-5
-            backdrop-blur-sm
+            justify-between
+            pt-7
           "
         >
-          <div
+          <span
             className="
-              flex
-              h-[90vh]
-              w-full
-              max-w-6xl
-              flex-col
-              overflow-hidden
-              rounded-2xl
-              bg-white
-              shadow-2xl
+              text-xs
+              font-medium
+              text-slate-500
             "
           >
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                border-b
-                border-slate-200
-                px-5
-                py-4
-              "
-            >
-              <div>
-                <p className="font-semibold text-slate-900">
-                  {previewName}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Preview จาก Google Drive
-                </p>
-              </div>
+            คลิกเพื่อเปิดแฟ้ม
+          </span>
 
-              <button
-                type="button"
-                onClick={closePreview}
-                className="
-                  rounded-lg
-                  border
-                  border-slate-200
-                  p-2
-                  text-slate-500
-                  hover:bg-slate-100
-                "
-              >
-                <X size={19} />
-              </button>
-            </div>
-
-            <iframe
-              title={previewName}
-              src={previewUrl}
-              className="min-h-0 flex-1"
+          <span
+            className={`
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-xl
+              shadow-md
+              transition
+              group-hover:translate-x-1
+              ${styles.button}
+            `}
+          >
+            <ArrowRight
+              size={18}
             />
-          </div>
+          </span>
         </div>
-      )}
-    </div>
+      </div>
+    </button>
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
+function ReceivablesPlaceholder({
+  onBack,
 }: {
-  label: string;
-  value: string | number;
-  icon: ReactNode;
+  onBack: () => void;
 }) {
   return (
     <div
       className="
-        rounded-2xl
-        border
-        border-cyan-200
-        bg-white/90
-        p-5
-        shadow-sm
+        mx-auto
+        max-w-[1500px]
+        px-6
+        py-8
+        lg:px-10
       "
     >
-      <div className="text-cyan-600">
-        {icon}
-      </div>
-      <p className="mt-4 text-2xl font-semibold text-slate-900">
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-slate-500">
-        {label}
-      </p>
+      <button
+        type="button"
+        onClick={onBack}
+        className="
+          flex
+          items-center
+          gap-2
+          text-sm
+          text-slate-500
+          transition
+          hover:text-cyan-700
+        "
+      >
+        <ArrowLeft
+          size={17}
+        />
+        กลับหน้าศูนย์แฟ้มข้อมูล
+      </button>
+
+      <section
+        className="
+          mt-7
+          flex
+          min-h-[560px]
+          flex-col
+          items-center
+          justify-center
+          rounded-3xl
+          border
+          border-amber-200
+          bg-gradient-to-br
+          from-white
+          via-amber-50/50
+          to-cyan-50/40
+          px-6
+          text-center
+          shadow-sm
+        "
+      >
+        <div
+          className="
+            flex
+            h-20
+            w-20
+            items-center
+            justify-center
+            rounded-3xl
+            border
+            border-amber-200
+            bg-white
+            text-amber-600
+            shadow-md
+          "
+        >
+          <ReceiptText
+            size={34}
+          />
+        </div>
+
+        <p
+          className="
+            mt-7
+            text-[10px]
+            font-semibold
+            tracking-[0.24em]
+            text-amber-700
+          "
+        >
+          RECEIVABLES &amp; FREIGHT
+        </p>
+
+        <h2
+          className="
+            mt-3
+            text-3xl
+            font-semibold
+            text-slate-900
+          "
+        >
+          แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง
+        </h2>
+
+        <p
+          className="
+            mt-4
+            max-w-xl
+            text-sm
+            leading-7
+            text-slate-500
+          "
+        >
+          แฟ้มนี้ถูกแยกพื้นที่เตรียมไว้แล้ว
+          ขั้นตอนลงข้อมูล ประเภทเอกสาร และสิทธิ์การใช้งาน
+          จะออกแบบร่วมกันในลำดับถัดไป
+        </p>
+
+        <div
+          className="
+            mt-7
+            flex
+            items-center
+            gap-2
+            rounded-full
+            border
+            border-amber-200
+            bg-amber-50
+            px-4
+            py-2
+            text-xs
+            font-semibold
+            text-amber-700
+          "
+        >
+          <Building2
+            size={15}
+          />
+          เตรียมระบบสำหรับสำนักงานใหญ่
+        </div>
+      </section>
     </div>
   );
-}
-
-function formatFileSize(
-  bytes: number,
-): string {
-  if (!bytes) {
-    return "0 KB";
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(
-      bytes / 1024
-    ).toFixed(1)} KB`;
-  }
-
-  return `${(
-    bytes /
-    1024 /
-    1024
-  ).toFixed(2)} MB`;
-}
-
-function formatThaiDate(
-  value: string,
-): string {
-  if (!value) {
-    return "-";
-  }
-
-  const date =
-    new Date(
-      `${value}T00:00:00`,
-    );
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "th-TH",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    },
-  ).format(date);
-}
-
-function formatThaiDateTime(
-  value: string,
-): string {
-  if (!value) {
-    return "-";
-  }
-
-  const date =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "th-TH",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    },
-  ).format(date);
-}
-
-function getErrorMessage(
-  reason: unknown,
-): string {
-  if (reason instanceof Error) {
-    return reason.message;
-  }
-
-  return String(reason);
 }
