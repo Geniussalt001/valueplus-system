@@ -8,6 +8,14 @@ import type {
 } from "./auth/auth.types";
 
 import {
+  authService,
+} from "./auth/authService";
+
+import {
+  getAuthSession,
+} from "./auth/authSession";
+
+import {
   AppLayout,
 } from "./layouts/AppLayout";
 
@@ -56,15 +64,23 @@ import type {
   WorkRoute,
 } from "./types/app";
 
-const systemUser: AppUser = {
-  userCode: "VALUEPLUS",
-  displayName: "ValuePlus System",
-  role: "admin",
-};
-
 function App() {
+  const initialSession =
+    getAuthSession();
+
+  const [
+    currentUser,
+    setCurrentUser,
+  ] = useState<AppUser | null>(
+    initialSession?.user ?? null,
+  );
+
   const [route, setRoute] =
-    useState<AppRoute>("login");
+    useState<AppRoute>(
+      initialSession
+        ? "dashboard"
+        : "login",
+    );
 
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
@@ -83,18 +99,29 @@ function App() {
     };
   }, [route]);
 
-  const handleLogin = () => {
+  const handleLogin = (
+    user: AppUser,
+  ) => {
+    setCurrentUser(user);
     setRoute("splash");
   };
 
   const handleLogout = () => {
     setNextProcessPdfPath("");
+    setCurrentUser(null);
     setRoute("login");
+
+    void authService.logout();
   };
 
-  if (route === "login") {
+  if (
+    route === "login" ||
+    !currentUser
+  ) {
     return (
-      <LoginPage onLogin={handleLogin} />
+      <LoginPage
+        onLogin={handleLogin}
+      />
     );
   }
 
@@ -183,7 +210,7 @@ function App() {
       case "po-data":
         return (
           <PoDataPage
-            currentUser={systemUser}
+            currentUser={currentUser}
             onBack={backToDashboard}
           />
         );
@@ -199,7 +226,7 @@ function App() {
   return (
     <AppLayout
       currentRoute={route}
-      currentUser={systemUser}
+      currentUser={currentUser}
       onNavigate={navigate}
       onLogout={handleLogout}
     >
