@@ -47,6 +47,10 @@ import {
   ProductCatalogPage,
 } from "./pages/modules/product-catalog/ProductCatalogPage";
 
+import {
+  ReceivablesFreightPage,
+} from "./pages/modules/ReceivablesFreightPage";
+
 import type {
   AppRoute,
   WorkRoute,
@@ -166,6 +170,13 @@ function App() {
             onBack={
               backToDashboard
             }
+          />
+        );
+
+      case "receivables-freight":
+        return (
+          <ReceivablesFreightPage
+            onBack={backToDashboard}
           />
         );
 
