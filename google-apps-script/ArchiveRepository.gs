@@ -1,3 +1,21 @@
+const PO_ARCHIVE_SHEET_NAME =
+  "PO_ARCHIVE";
+
+const PO_ARCHIVE_HEADERS = [
+  "ID",
+  "PO_NUMBER",
+  "DOCUMENT_DATE",
+  "WAREHOUSE",
+  "FILE_ID",
+  "FILE_NAME",
+  "FILE_URL",
+  "FILE_SIZE",
+  "UPLOADED_AT",
+  "UPLOADED_BY",
+  "STATUS",
+  "NOTE",
+];
+
 const MAX_ARCHIVE_PDF_SIZE_BYTES =
   8 * 1024 * 1024;
 
@@ -32,7 +50,7 @@ function listPoArchive() {
       2,
       1,
       lastRow - 1,
-      CONFIG.ARCHIVE_HEADERS.length,
+      PO_ARCHIVE_HEADERS.length,
     )
     .getValues()
     .filter(function (row) {
@@ -245,8 +263,7 @@ function getPoArchiveSheet() {
   const sheet =
     getSystemSpreadsheet()
       .getSheetByName(
-        CONFIG.SHEETS
-          .PO_ARCHIVE,
+        PO_ARCHIVE_SHEET_NAME,
       );
 
   if (!sheet) {
