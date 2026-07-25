@@ -260,15 +260,26 @@ function getPoArchivePdf(
 }
 
 function getPoArchiveSheet() {
-  const sheet =
-    getSystemSpreadsheet()
-      .getSheetByName(
+  const spreadsheet =
+    getSystemSpreadsheet();
+
+  let sheet =
+    spreadsheet.getSheetByName(
+      PO_ARCHIVE_SHEET_NAME,
+    );
+
+  if (!sheet) {
+    setupPoArchiveSystem();
+
+    sheet =
+      spreadsheet.getSheetByName(
         PO_ARCHIVE_SHEET_NAME,
       );
+  }
 
   if (!sheet) {
     throw new Error(
-      "ไม่พบชีต PO_ARCHIVE กรุณารัน setupDatabase() อีกครั้ง",
+      "ไม่สามารถสร้างชีต PO_ARCHIVE ได้",
     );
   }
 
