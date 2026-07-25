@@ -209,7 +209,7 @@ function getPoArchivePdf(
     !input.id
   ) {
     throw new Error(
-      "กรุณารบุเอกสารที่ต้องการเปิด",
+      "กรุณาระบุเอกสารที่ต้องการเปิด",
     );
   }
 
