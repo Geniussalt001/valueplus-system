@@ -6,10 +6,8 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  Building2,
   FileArchive,
   FolderArchive,
-  ReceiptText,
   ShieldCheck,
   Truck,
 } from "lucide-react";
@@ -21,6 +19,10 @@ import type {
 import {
   PoSevenArchivePage,
 } from "./PoSevenArchivePage";
+
+import {
+  ReceivablesArchivePage,
+} from "./ReceivablesArchivePage";
 
 interface PoDataPageProps {
   currentUser: AppUser;
@@ -64,7 +66,7 @@ export function PoDataPage({
     "receivables"
   ) {
     return (
-      <ReceivablesPlaceholder
+      <ReceivablesArchivePage
         onBack={() => {
           setSelectedSection(
             null,
@@ -207,18 +209,18 @@ export function PoDataPage({
         <ArchiveFolderCard
           title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
           subtitle="RECEIVABLES & FREIGHT"
-          description="พื้นที่เตรียมจัดเก็บเอกสารลูกหนี้ หลักฐานค่าขนส่ง และข้อมูลประกอบการตรวจสอบ"
+          description="ค้นหาแฟ้มรายปีและรายเดือน แก้ไขข้อมูลในตาราง และ Export เป็น Excel สำหรับสำนักงานใหญ่"
           icon={
             <Truck
               size={25}
             />
           }
           accent="amber"
-          status="เตรียมออกแบบ"
+          status="พร้อมใช้งาน"
           features={[
-            "แยกหมวดลูกหนี้และค่าขนส่ง",
-            "รองรับเอกสารประกอบหลายประเภท",
-            "กำหนดขั้นตอนร่วมกันในลำดับถัดไป",
+            "แยกแฟ้มตามปีและเดือน",
+            "ค้นหาและแก้ไขข้อมูลในตาราง",
+            "เปิด Google Sheet และ Export Excel",
           ]}
           onClick={() => {
             setSelectedSection(
@@ -566,143 +568,5 @@ function ArchiveFolderCard({
         </div>
       </div>
     </button>
-  );
-}
-
-function ReceivablesPlaceholder({
-  onBack,
-}: {
-  onBack: () => void;
-}) {
-  return (
-    <div
-      className="
-        mx-auto
-        max-w-[1500px]
-        px-6
-        py-8
-        lg:px-10
-      "
-    >
-      <button
-        type="button"
-        onClick={onBack}
-        className="
-          flex
-          items-center
-          gap-2
-          text-sm
-          text-slate-500
-          transition
-          hover:text-cyan-700
-        "
-      >
-        <ArrowLeft
-          size={17}
-        />
-        กลับหน้าศูนย์แฟ้มข้อมูล
-      </button>
-
-      <section
-        className="
-          mt-7
-          flex
-          min-h-[560px]
-          flex-col
-          items-center
-          justify-center
-          rounded-3xl
-          border
-          border-amber-200
-          bg-gradient-to-br
-          from-white
-          via-amber-50/50
-          to-cyan-50/40
-          px-6
-          text-center
-          shadow-sm
-        "
-      >
-        <div
-          className="
-            flex
-            h-20
-            w-20
-            items-center
-            justify-center
-            rounded-3xl
-            border
-            border-amber-200
-            bg-white
-            text-amber-600
-            shadow-md
-          "
-        >
-          <ReceiptText
-            size={34}
-          />
-        </div>
-
-        <p
-          className="
-            mt-7
-            text-[10px]
-            font-semibold
-            tracking-[0.24em]
-            text-amber-700
-          "
-        >
-          RECEIVABLES &amp; FREIGHT
-        </p>
-
-        <h2
-          className="
-            mt-3
-            text-3xl
-            font-semibold
-            text-slate-900
-          "
-        >
-          แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง
-        </h2>
-
-        <p
-          className="
-            mt-4
-            max-w-xl
-            text-sm
-            leading-7
-            text-slate-500
-          "
-        >
-          แฟ้มนี้ถูกแยกพื้นที่เตรียมไว้แล้ว
-          ขั้นตอนลงข้อมูล ประเภทเอกสาร และสิทธิ์การใช้งาน
-          จะออกแบบร่วมกันในลำดับถัดไป
-        </p>
-
-        <div
-          className="
-            mt-7
-            flex
-            items-center
-            gap-2
-            rounded-full
-            border
-            border-amber-200
-            bg-amber-50
-            px-4
-            py-2
-            text-xs
-            font-semibold
-            text-amber-700
-          "
-        >
-          <Building2
-            size={15}
-          />
-          เตรียมระบบสำหรับสำนักงานใหญ่
-        </div>
-      </section>
-    </div>
   );
 }
