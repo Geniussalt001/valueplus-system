@@ -280,7 +280,9 @@ export function DailyPickingPage({
       splitResult.records.filter(
         (record) =>
           record.status ===
-          "created",
+            "created" ||
+          record.status ===
+            "duplicate",
       );
 
     if (
@@ -288,7 +290,7 @@ export function DailyPickingPage({
     ) {
       addLocalLog(
         "info",
-        "ไม่มีไฟล์ใหม่ที่ต้องอัปโหลดเข้าแฟ้มบันทึกข้อมูล",
+        "ไม่มีไฟล์ผลลัพธ์ที่ต้องตรวจสอบกับแฟ้มบันทึกข้อมูล",
       );
       return;
     }
@@ -376,7 +378,7 @@ export function DailyPickingPage({
     if (failedCount > 0) {
       addLocalLog(
         "error",
-        `อัปโหลดไม่สำเร็จ ${failedCount} ไฟล์ ไฟล์ในเครื่องยังอยู่ครบ สามารถกดประมวลผลอีกครั้งเพื่อส่งซ้ำได้`,
+        `อัปโหลดไม่สำเร็จ ${failedCount} ไฟล์ ไฟล์ในเครื่องยังอยู่ครบ สามารถกดประมวลผลอีกครั้งเพื่ออัปโหลดใหม่ได้`,
       );
     }
   };
