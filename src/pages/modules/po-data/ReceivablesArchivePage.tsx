@@ -1460,9 +1460,15 @@ function getCellStyle(
     color:
       style.fontColor,
     fontWeight:
-      style.fontWeight,
+      style.fontWeight ===
+      "bold"
+        ? 700
+        : 400,
     fontStyle:
-      style.fontStyle,
+      style.fontStyle ===
+      "italic"
+        ? "italic"
+        : "normal",
     fontSize:
       Math.max(
         9,
