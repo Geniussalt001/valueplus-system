@@ -19,6 +19,21 @@ function doPost(event) {
 
     if (
       request.action ===
+      "auth.select"
+    ) {
+      const selectedSession =
+        selectUserSession(
+          request.data,
+        );
+
+      return createJsonResponse({
+        success: true,
+        data: selectedSession,
+      });
+    }
+
+    if (
+      request.action ===
       "auth.login"
     ) {
       const loginResult =
