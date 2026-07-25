@@ -19,6 +19,10 @@ use commands::pdf_splitter::{
     split_po_pdf,
 };
 
+use commands::local_pdf::{
+    read_local_pdf_base64,
+};
+
 use commands::po_processor::{
     preview_po_documents,
     process_po_documents,
@@ -94,6 +98,7 @@ pub fn run() {
                 process_po_documents,
                 print_po_workbook,
                 split_po_pdf,
+                read_local_pdf_base64,
                 process_express_summary,
                 preview_daily_so,
                 process_daily_so,
