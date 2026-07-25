@@ -4,7 +4,7 @@ import {
   FolderArchive,
   FileSpreadsheet,
   Files,
-  PackageSearch,
+  HandCoins,
 } from "lucide-react";
 
 import type {
@@ -107,22 +107,22 @@ export const systemModules:
       id: 6,
 
       route:
-        "product-catalog",
+        "receivables-freight",
 
       title:
-        "จัดการข้อมูลสินค้า",
+        "ลงยอดลูกหนี้–ค่าขนส่ง",
 
       subtitle:
-        "PRODUCT CATALOG",
+        "RECEIVABLES & FREIGHT",
 
       description:
-        "เพิ่ม แก้ไข เปิด ปิด และกำหนดชื่อสินค้าสำหรับสรุปยอด",
+        "บันทึก ตรวจสอบ และติดตามยอดลูกหนี้กับค่าขนส่ง",
 
       icon:
-        PackageSearch,
+        HandCoins,
 
       color:
-        "#00b887",
+        "#0891b2",
 
       status:
         "online",
