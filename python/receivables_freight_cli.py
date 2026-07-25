@@ -178,7 +178,7 @@ def parse_records(csv_path, template_url):
 
     records.sort(
         key=lambda record: (
-            int("".join(re.findall(r"\\d+", record["invoice"])) or 0),
+            int("".join(re.findall(r"\d+", record["invoice"])) or 0),
             record["invoice"],
         ),
     )
