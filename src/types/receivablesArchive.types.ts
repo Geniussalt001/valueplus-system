@@ -12,10 +12,15 @@ export interface ReceivablesArchiveSummary {
 export interface ReceivablesArchiveRow {
   rowNumber: number;
   values: string[];
+  formulas: string[];
 }
 
 export interface ReceivablesArchiveDetail
   extends ReceivablesArchiveSummary {
+  sheetNames: string[];
+  selectedSheet: string;
+  columnCount: number;
+  truncated: boolean;
   recordCount: number;
   totalQuantity: number;
   totalExcVat: number;
