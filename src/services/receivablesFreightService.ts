@@ -4,6 +4,7 @@ import {
 
 import {
   desktopDir,
+  join,
 } from "@tauri-apps/api/path";
 
 import {
@@ -63,8 +64,10 @@ export const receivablesFreightService = {
 
     const selected =
       await save({
-        defaultPath:
-          `${desktopPath}\${suggestedName}`,
+        defaultPath: await join(
+          desktopPath,
+          suggestedName,
+        ),
         filters: excelFilter,
       });
 
