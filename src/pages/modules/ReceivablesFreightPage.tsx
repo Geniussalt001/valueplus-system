@@ -1,5 +1,4 @@
 import {
-  useMemo,
   useState,
 } from "react";
 
@@ -22,6 +21,7 @@ import {
 
 import type {
   ReceivablesFreightResult,
+  ReceivablesMonthlySheetResult,
 } from "../../types/receivablesFreight.types";
 
 interface ReceivablesFreightPageProps {
@@ -35,8 +35,10 @@ export function ReceivablesFreightPage({
     useState("");
   const [result, setResult] =
     useState<ReceivablesFreightResult | null>(null);
+  const [monthlySheet, setMonthlySheet] =
+    useState<ReceivablesMonthlySheetResult | null>(null);
   const [busy, setBusy] =
-    useState<"" | "selecting" | "previewing" | "exporting">("");
+    useState<"" | "selecting" | "previewing" | "saving">("");
   const [error, setError] =
     useState("");
   const [success, setSuccess] =
@@ -49,13 +51,6 @@ export function ReceivablesFreightPage({
       result.error_count === 0,
   );
 
-  const suggestedName = useMemo(() => {
-    const date = result?.records[0]?.date
-      ?.split("/").join(".") ?? "ผลลัพธ์";
-
-    return `ลูกหนี้-ค่าขนส่ง ${date}.xlsx`;
-  }, [result]);
-
   async function chooseCsv() {
     setBusy("selecting");
     setError("");
@@ -67,6 +62,7 @@ export function ReceivablesFreightPage({
       if (selected) {
         setCsvPath(selected);
         setResult(null);
+        setMonthlySheet(null);
         setSuccess("");
       }
     } catch (requestError) {
@@ -100,34 +96,30 @@ export function ReceivablesFreightPage({
     }
   }
 
-  async function exportWorkbook() {
-    if (!canExport) {
+  async function saveMonthlySheet() {
+    if (!canExport || !result) {
       return;
     }
 
-    setBusy("exporting");
+    setBusy("saving");
     setError("");
     setSuccess("");
 
     try {
-      const outputPath =
-        await receivablesFreightService.selectOutputPath(
-          suggestedName,
+      const saved =
+        await receivablesFreightService.saveMonthlySheet(
+          result.records,
         );
 
-      if (!outputPath) {
-        return;
-      }
+      setMonthlySheet(saved);
 
-      const processed =
-        await receivablesFreightService.process({
-          csvPath,
-          outputPath,
-        });
+      const duplicateNote =
+        saved.duplicateCount > 0
+          ? ` · พบ IV เดิม ${saved.duplicateCount.toLocaleString()} รายการ (ไม่บันทึกซ้ำ)`
+          : "";
 
-      setResult(processed);
       setSuccess(
-        "สร้างไฟล์ลูกหนี้–ค่าขนส่งเรียบร้อยแล้ว",
+        `${saved.created ? "สร้าง" : "อัปเดต"} ${saved.spreadsheetName} เรียบร้อย · เพิ่ม ${saved.insertedCount.toLocaleString()} IV · เว้น IV ที่ยังไม่มี ${saved.missingCount.toLocaleString()} ตำแหน่ง${duplicateNote}`,
       );
     } catch (requestError) {
       setError(getErrorMessage(requestError));
@@ -158,7 +150,7 @@ export function ReceivablesFreightPage({
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-            อ่านข้อมูล IV จาก CSV ตรวจสอบผลลัพธ์ และสร้าง Excel จาก Google Sheet Template
+            อ่านข้อมูล IV จาก CSV ตรวจสอบผลลัพธ์ และสะสมข้อมูลลง Google Sheet รายเดือน
           </p>
         </div>
 
@@ -232,15 +224,16 @@ export function ReceivablesFreightPage({
           <p className="font-semibold">
             {error || success}
           </p>
-          {result?.output_path && !error && (
-            <button
-              type="button"
-              onClick={() => void receivablesFreightService.openOutput(result.output_path)}
+          {monthlySheet && !error && (
+            <a
+              href={monthlySheet.spreadsheetUrl}
+              target="_blank"
+              rel="noreferrer"
               className="mt-2 inline-flex items-center gap-1 break-all text-left text-xs underline"
             >
               <ExternalLink size={13} />
-              {result.output_path}
-            </button>
+              เปิด {monthlySheet.spreadsheetName}
+            </a>
           )}
         </div>
       )}
@@ -263,15 +256,15 @@ export function ReceivablesFreightPage({
         <button
           type="button"
           disabled={!canExport || Boolean(busy)}
-          onClick={() => void exportWorkbook()}
+          onClick={() => void saveMonthlySheet()}
           className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {busy === "exporting" ? (
+          {busy === "saving" ? (
             <LoaderCircle className="animate-spin" size={18} />
           ) : (
             <FileDown size={18} />
           )}
-          สร้างไฟล์ Excel
+          บันทึก Google Sheet รายเดือน
         </button>
       </div>
 
