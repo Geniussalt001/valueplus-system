@@ -1317,25 +1317,6 @@ function LoadingOverlay({
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-cyan-200 bg-white px-5 py-4 shadow-sm">
-      <p className="text-xs text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 text-xl font-semibold text-slate-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
 function MessageBox({
   error,
   success,
