@@ -761,3 +761,480 @@ function parseSheetNumber(value) {
     ? number
     : 0;
 }
+
+
+function listReceivablesArchives() {
+  const folder =
+    getReceivablesFolder();
+
+  const files =
+    folder.getFiles();
+
+  const archives = [];
+
+  while (files.hasNext()) {
+    const file =
+      files.next();
+
+    if (
+      file.getMimeType() !==
+      MimeType.GOOGLE_SHEETS
+    ) {
+      continue;
+    }
+
+    const period =
+      parseReceivablesArchiveTitle(
+        file.getName(),
+      );
+
+    if (!period) {
+      continue;
+    }
+
+    archives.push({
+      spreadsheetId:
+        file.getId(),
+      spreadsheetName:
+        file.getName(),
+      spreadsheetUrl:
+        "https://docs.google.com/spreadsheets/d/" +
+        file.getId() +
+        "/edit",
+      exportUrl:
+        "https://docs.google.com/spreadsheets/d/" +
+        file.getId() +
+        "/export?format=xlsx",
+      month: period.month,
+      monthName:
+        RECEIVABLES_CONFIG
+          .THAI_MONTHS[
+            period.month - 1
+          ],
+      buddhistYear:
+        period.buddhistYear,
+      modifiedAt:
+        Utilities.formatDate(
+          file.getLastUpdated(),
+          CONFIG.TIMEZONE,
+          "yyyy-MM-dd'T'HH:mm:ss",
+        ),
+    });
+  }
+
+  archives.sort(
+    function (first, second) {
+      if (
+        first.buddhistYear !==
+        second.buddhistYear
+      ) {
+        return (
+          second.buddhistYear -
+          first.buddhistYear
+        );
+      }
+
+      return (
+        second.month -
+        first.month
+      );
+    },
+  );
+
+  return archives;
+}
+
+function getReceivablesArchive(
+  input,
+) {
+  const file =
+    getReceivablesArchiveFile(
+      input &&
+        input.spreadsheetId,
+    );
+
+  const spreadsheet =
+    SpreadsheetApp.openById(
+      file.getId(),
+    );
+
+  const sheet =
+    spreadsheet.getSheetByName(
+      RECEIVABLES_CONFIG
+        .SHEET_NAME,
+    );
+
+  if (!sheet) {
+    throw new Error(
+      "ไม่พบชีต 'ลูกหนี้' ในแฟ้มที่เลือก",
+    );
+  }
+
+  const startRow =
+    RECEIVABLES_CONFIG.START_ROW;
+
+  const lastRow =
+    Math.max(
+      sheet.getLastRow(),
+      startRow - 1,
+    );
+
+  const rowCount =
+    Math.max(
+      lastRow - startRow + 1,
+      0,
+    );
+
+  const values =
+    rowCount > 0
+      ? sheet
+          .getRange(
+            startRow,
+            1,
+            rowCount,
+            14,
+          )
+          .getDisplayValues()
+      : [];
+
+  const rows = [];
+  let recordCount = 0;
+  let totalQuantity = 0;
+  let totalExcVat = 0;
+
+  values.forEach(
+    function (row, index) {
+      const hasContent =
+        row.some(function (value) {
+          return Boolean(
+            String(
+              value || "",
+            ).trim(),
+          );
+        });
+
+      if (!hasContent) {
+        return;
+      }
+
+      if (
+        String(
+          row[1] || "",
+        ).trim()
+      ) {
+        recordCount += 1;
+        totalQuantity +=
+          parseSheetNumber(
+            row[4],
+          );
+        totalExcVat +=
+          parseSheetNumber(
+            row[5],
+          );
+      }
+
+      rows.push({
+        rowNumber:
+          startRow + index,
+        values: row,
+      });
+    },
+  );
+
+  const period =
+    parseReceivablesArchiveTitle(
+      file.getName(),
+    );
+
+  return {
+    spreadsheetId:
+      file.getId(),
+    spreadsheetName:
+      file.getName(),
+    spreadsheetUrl:
+      spreadsheet.getUrl(),
+    exportUrl:
+      "https://docs.google.com/spreadsheets/d/" +
+      file.getId() +
+      "/export?format=xlsx",
+    month:
+      period
+        ? period.month
+        : 0,
+    monthName:
+      period
+        ? RECEIVABLES_CONFIG
+            .THAI_MONTHS[
+              period.month - 1
+            ]
+        : "",
+    buddhistYear:
+      period
+        ? period.buddhistYear
+        : 0,
+    recordCount: recordCount,
+    totalQuantity:
+      totalQuantity,
+    totalExcVat:
+      totalExcVat,
+    rows: rows,
+  };
+}
+
+function updateReceivablesArchive(
+  input,
+) {
+  const file =
+    getReceivablesArchiveFile(
+      input &&
+        input.spreadsheetId,
+    );
+
+  const changes =
+    input &&
+    Array.isArray(
+      input.changes,
+    )
+      ? input.changes
+      : [];
+
+  if (changes.length === 0) {
+    return getReceivablesArchive({
+      spreadsheetId:
+        file.getId(),
+    });
+  }
+
+  if (changes.length > 500) {
+    throw new Error(
+      "แก้ไขได้สูงสุดครั้งละ 500 ช่อง",
+    );
+  }
+
+  const editableColumns = {
+    1: true,
+    2: true,
+    3: true,
+    4: true,
+    5: true,
+    6: true,
+    9: true,
+    10: true,
+    11: true,
+    13: true,
+    14: true,
+  };
+
+  const spreadsheet =
+    SpreadsheetApp.openById(
+      file.getId(),
+    );
+
+  const sheet =
+    spreadsheet.getSheetByName(
+      RECEIVABLES_CONFIG
+        .SHEET_NAME,
+    );
+
+  if (!sheet) {
+    throw new Error(
+      "ไม่พบชีต 'ลูกหนี้' ในแฟ้มที่เลือก",
+    );
+  }
+
+  const lock =
+    LockService.getScriptLock();
+
+  lock.waitLock(30000);
+
+  try {
+    changes.forEach(
+      function (change) {
+        const rowNumber =
+          Number(
+            change &&
+              change.rowNumber,
+          );
+
+        const column =
+          Number(
+            change &&
+              change.column,
+          );
+
+        if (
+          !Number.isInteger(
+            rowNumber,
+          ) ||
+          rowNumber <
+            RECEIVABLES_CONFIG
+              .START_ROW
+        ) {
+          throw new Error(
+            "แถวข้อมูลไม่ถูกต้อง",
+          );
+        }
+
+        if (
+          !editableColumns[
+            column
+          ]
+        ) {
+          throw new Error(
+            "คอลัมน์นี้เป็นสูตรและไม่อนุญาตให้แก้ไข",
+          );
+        }
+
+        const cell =
+          sheet.getRange(
+            rowNumber,
+            column,
+          );
+
+        const rawValue =
+          change &&
+          change.value !==
+            undefined &&
+          change.value !== null
+            ? String(
+                change.value,
+              ).trim()
+            : "";
+
+        if (!rawValue) {
+          cell.clearContent();
+          return;
+        }
+
+        if (
+          column === 5 ||
+          column === 6 ||
+          column === 11
+        ) {
+          const number =
+            parseSheetNumber(
+              rawValue,
+            );
+
+          if (
+            !Number.isFinite(
+              number,
+            )
+          ) {
+            throw new Error(
+              "รูปแบบตัวเลขไม่ถูกต้อง",
+            );
+          }
+
+          cell.setValue(number);
+          return;
+        }
+
+        cell.setValue(
+          column === 2
+            ? rawValue
+                .toUpperCase()
+            : rawValue,
+        );
+      },
+    );
+
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+
+  return getReceivablesArchive({
+    spreadsheetId:
+      file.getId(),
+  });
+}
+
+function getReceivablesArchiveFile(
+  spreadsheetId,
+) {
+  const id =
+    String(
+      spreadsheetId || "",
+    ).trim();
+
+  if (!id) {
+    throw new Error(
+      "กรุณาเลือกแฟ้มข้อมูล",
+    );
+  }
+
+  const file =
+    DriveApp.getFileById(id);
+
+  if (
+    file.getMimeType() !==
+    MimeType.GOOGLE_SHEETS
+  ) {
+    throw new Error(
+      "แฟ้มที่เลือกไม่ใช่ Google Sheet",
+    );
+  }
+
+  const folder =
+    getReceivablesFolder();
+
+  const parents =
+    file.getParents();
+
+  let belongsToFolder =
+    false;
+
+  while (parents.hasNext()) {
+    if (
+      parents.next().getId() ===
+      folder.getId()
+    ) {
+      belongsToFolder =
+        true;
+      break;
+    }
+  }
+
+  if (!belongsToFolder) {
+    throw new Error(
+      "แฟ้มที่เลือกไม่ได้อยู่ในศูนย์ข้อมูลลูกหนี้–ค่าขนส่ง",
+    );
+  }
+
+  return file;
+}
+
+function parseReceivablesArchiveTitle(
+  title,
+) {
+  const match =
+    String(
+      title || "",
+    )
+      .trim()
+      .match(
+        /ประจำเดือน\s+(.+?)\s+(\d{4})$/,
+      );
+
+  if (!match) {
+    return null;
+  }
+
+  const month =
+    RECEIVABLES_CONFIG
+      .THAI_MONTHS
+      .indexOf(
+        match[1].trim(),
+      ) + 1;
+
+  if (month < 1) {
+    return null;
+  }
+
+  return {
+    month: month,
+    buddhistYear:
+      Number(match[2]),
+  };
+}
