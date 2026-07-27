@@ -7,6 +7,12 @@ use commands::daily_so::{
     process_daily_so,
 };
 
+use commands::connection_credentials::{
+    clear_connection_token,
+    get_connection_token,
+    save_connection_token,
+};
+
 use commands::doll_summary::{
     manage_doll_summary,
 };
@@ -108,6 +114,9 @@ pub fn run() {
         .invoke_handler(
             tauri::generate_handler![
                 greet,
+                get_connection_token,
+                save_connection_token,
+                clear_connection_token,
                 manage_product_catalog,
                 manage_doll_summary,
                 preview_po_documents,
