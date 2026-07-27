@@ -59,10 +59,29 @@ import {
   ReceivablesFreightPage,
 } from "./pages/modules/ReceivablesFreightPage";
 
+import {
+  SalesBillingPage,
+} from "./pages/modules/SalesBillingPage";
+
 import type {
   AppRoute,
+  WorkspaceScope,
   WorkRoute,
 } from "./types/app";
+
+function getInitialWorkspace(
+  user: AppUser | null | undefined,
+): WorkspaceScope {
+  const userCode = String(
+    user?.userCode || "",
+  )
+    .trim()
+    .toUpperCase();
+
+  return userCode === "HEADOFFICE"
+    ? "head-office"
+    : "retail";
+}
 
 function App() {
   const initialSession =
@@ -81,6 +100,15 @@ function App() {
         ? "dashboard"
         : "login",
     );
+
+  const [
+    workspaceScope,
+    setWorkspaceScope,
+  ] = useState<WorkspaceScope>(
+    getInitialWorkspace(
+      initialSession?.user,
+    ),
+  );
 
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
@@ -103,11 +131,15 @@ function App() {
     user: AppUser,
   ) => {
     setCurrentUser(user);
+    setWorkspaceScope(
+      getInitialWorkspace(user),
+    );
     setRoute("splash");
   };
 
   const handleLogout = () => {
     setNextProcessPdfPath("");
+    setWorkspaceScope("retail");
     setCurrentUser(null);
     setRoute("login");
 
@@ -131,6 +163,14 @@ function App() {
 
   const navigate = (nextRoute: WorkRoute) => {
     setRoute(nextRoute);
+  };
+
+  const changeWorkspace = (
+    nextWorkspace: WorkspaceScope,
+  ) => {
+    setWorkspaceScope(nextWorkspace);
+    setNextProcessPdfPath("");
+    setRoute("dashboard");
   };
 
   const backToDashboard = () => {
@@ -178,6 +218,13 @@ function App() {
           />
         );
 
+      case "sales-billing":
+        return (
+          <SalesBillingPage
+            onBack={backToDashboard}
+          />
+        );
+
       case "split-rename-po":
         return (
           <SplitRenamePoPage
@@ -218,7 +265,10 @@ function App() {
       case "dashboard":
       default:
         return (
-          <DashboardPage onNavigate={navigate} />
+          <DashboardPage
+            workspaceScope={workspaceScope}
+            onNavigate={navigate}
+          />
         );
     }
   };
@@ -227,6 +277,8 @@ function App() {
     <AppLayout
       currentRoute={route}
       currentUser={currentUser}
+      workspaceScope={workspaceScope}
+      onWorkspaceChange={changeWorkspace}
       onNavigate={navigate}
       onLogout={handleLogout}
     >
