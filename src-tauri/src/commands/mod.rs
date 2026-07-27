@@ -8,3 +8,4 @@ pub mod po_processor;
 pub mod print_processor;
 pub mod product_catalog;
 pub mod receivables_freight;
+pub mod sales_billing;

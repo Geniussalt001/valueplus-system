@@ -66,6 +66,9 @@ jobs:
             --hidden-import pywintypes `
             --hidden-import win32timezone `
             --hidden-import win32com.client `
+            --hidden-import pyautogui `
+            --hidden-import pygetwindow `
+            --add-data "python/valueplus_billing/data;valueplus_billing/data" `
             python/valueplus_engine.py
 
           $source = "src-tauri/binaries/valueplus-engine.exe"
@@ -99,6 +102,12 @@ jobs:
 
           if ($LASTEXITCODE -ne 0) {
             throw "Receivables and freight engine self-test failed"
+          }
+
+          & $target sales-billing --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Sales billing engine self-test failed"
           }
 
       - name: Build, sign and publish update
