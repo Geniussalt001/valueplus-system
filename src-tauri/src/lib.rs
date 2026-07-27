@@ -45,6 +45,12 @@ use commands::receivables_freight::{
     process_receivables_freight,
 };
 
+use commands::sales_billing::{
+    control_sales_billing,
+    preview_sales_billing,
+    run_sales_billing,
+};
+
 #[tauri::command]
 fn greet(
     name: &str,
@@ -114,6 +120,9 @@ pub fn run() {
                 preview_receivables_freight,
                 process_receivables_freight,
                 open_receivables_sheet_editor,
+                preview_sales_billing,
+                run_sales_billing,
+                control_sales_billing,
             ],
         )
         .run(
