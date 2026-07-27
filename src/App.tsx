@@ -184,7 +184,7 @@ function App() {
 
   const continueToPdfSplitter = (pdfPath: string) => {
     setNextProcessPdfPath(pdfPath);
-    setRoute("daily-picking");
+    setRoute("split-rename-po");
   };
 
   const continueToDailySummary = () => {
@@ -200,11 +200,9 @@ function App() {
     switch (route) {
       case "daily-picking":
         return (
-          <DailyPickingPage
+          <SplitRenamePoPage
             onBack={backToDashboard}
-            initialPdfPath={nextProcessPdfPath}
-            onInitialPdfConsumed={consumeNextProcessPdf}
-            onNextProcess={continueToDailySummary}
+            onNextProcess={continueToDailySo}
           />
         );
 
@@ -227,9 +225,11 @@ function App() {
 
       case "split-rename-po":
         return (
-          <SplitRenamePoPage
+          <DailyPickingPage
             onBack={backToDashboard}
-            onNextProcess={continueToDailySo}
+            initialPdfPath={nextProcessPdfPath}
+            onInitialPdfConsumed={consumeNextProcessPdf}
+            onNextProcess={continueToDailySummary}
           />
         );
 
