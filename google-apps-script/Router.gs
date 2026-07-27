@@ -13,6 +13,19 @@ function doPost(event) {
     const request =
       parseRequest(event);
 
+    if (
+      request.action ===
+      "system.activate"
+    ) {
+      return createJsonResponse({
+        success: true,
+        data:
+          activateValuePlusDevice(
+            request.data,
+          ),
+      });
+    }
+
     verifyApiToken(
       request.token,
     );
@@ -246,9 +259,13 @@ function verifyApiToken(token) {
   const savedToken =
     getApiToken();
 
+  const legacyTokenIsValid =
+    Boolean(savedToken) &&
+    token === savedToken;
+
   if (
-    !savedToken ||
-    token !== savedToken
+    !legacyTokenIsValid &&
+    !verifyDeviceToken(token)
   ) {
     throw new Error(
       "ไม่มีสิทธิ์เข้าใช้งาน API",
