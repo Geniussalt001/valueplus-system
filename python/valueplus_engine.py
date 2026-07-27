@@ -53,6 +53,7 @@ import express_summary_cli
 import print_cli
 import product_catalog_cli
 import receivables_freight_cli
+import sales_billing_cli
 import split_po_cli
 
 
@@ -78,6 +79,7 @@ COMMANDS = {
     "print": print_cli.main,
     "product-catalog": product_catalog_cli.main,
     "receivables-freight": receivables_freight_cli.main,
+    "sales-billing": sales_billing_cli.main,
     "split-po": split_po_cli.main,
     "encoding-test": encoding_test,
 }

@@ -8,7 +8,6 @@ import {
   ArrowRight,
   FileArchive,
   FolderArchive,
-  ShieldCheck,
   Truck,
 } from "lucide-react";
 
@@ -139,19 +138,6 @@ export function PoDataPage({
             ศูนย์แฟ้มบันทึกข้อมูล
           </h2>
 
-          <p
-            className="
-              mt-3
-              max-w-3xl
-              text-sm
-              leading-6
-              text-slate-500
-            "
-          >
-            เลือกแฟ้มงานที่ต้องการค้นหา
-            เอกสารแต่ละประเภทจะแยกพื้นที่จัดเก็บและขั้นตอนทำงานอย่างชัดเจน
-            เพื่อให้สำนักงานใหญ่ใช้งานได้สะดวก
-          </p>
         </div>
 
         <div
@@ -186,7 +172,7 @@ export function PoDataPage({
         <ArchiveFolderCard
           title="แฟ้มข้อมูล PO Seven"
           subtitle="SEVEN PO ARCHIVE"
-          description="รวมเอกสาร PO ที่ระบบแยกและเปลี่ยนชื่อแล้ว พร้อมค้นหา Preview และเปิดไฟล์จาก Google Drive"
+          description=""
           icon={
             <FileArchive
               size={25}
@@ -194,11 +180,7 @@ export function PoDataPage({
           }
           accent="cyan"
           status="พร้อมใช้งาน"
-          features={[
-            "บันทึกอัตโนมัติหลังแยก PDF",
-            "ค้นหาด้วยเลข PO คลัง หรือวันที่",
-            "เปิด Preview และ Google Drive",
-          ]}
+          features={[]}
           onClick={() => {
             setSelectedSection(
               "po-seven",
@@ -209,7 +191,7 @@ export function PoDataPage({
         <ArchiveFolderCard
           title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
           subtitle="RECEIVABLES & FREIGHT"
-          description="ค้นหาแฟ้มรายปีและรายเดือน แก้ไขข้อมูลในตาราง และ Export เป็น Excel สำหรับสำนักงานใหญ่"
+          description=""
           icon={
             <Truck
               size={25}
@@ -217,11 +199,7 @@ export function PoDataPage({
           }
           accent="amber"
           status="พร้อมใช้งาน"
-          features={[
-            "แยกแฟ้มตามปีและเดือน",
-            "ค้นหาและแก้ไขข้อมูลในตาราง",
-            "เปิด Google Sheet และ Export Excel",
-          ]}
+          features={[]}
           onClick={() => {
             setSelectedSection(
               "receivables",
@@ -230,85 +208,6 @@ export function PoDataPage({
         />
       </section>
 
-      <section
-        className="
-          mt-6
-          flex
-          flex-col
-          gap-4
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white/80
-          p-5
-          shadow-sm
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-        "
-      >
-        <div
-          className="
-            flex
-            items-start
-            gap-3
-          "
-        >
-          <div
-            className="
-              mt-0.5
-              rounded-lg
-              bg-emerald-50
-              p-2
-              text-emerald-600
-            "
-          >
-            <ShieldCheck
-              size={18}
-            />
-          </div>
-
-          <div>
-            <p
-              className="
-                text-sm
-                font-semibold
-                text-slate-800
-              "
-            >
-              พื้นที่เอกสารส่วนกลาง
-            </p>
-            <p
-              className="
-                mt-1
-                text-xs
-                leading-5
-                text-slate-500
-              "
-            >
-              แฟ้มแต่ละประเภทแยกข้อมูลออกจากกัน
-              ลดความสับสนและป้องกันการเลือกเอกสารผิดหมวด
-            </p>
-          </div>
-        </div>
-
-        <p
-          className="
-            text-xs
-            text-slate-500
-          "
-        >
-          ผู้ใช้งาน:{" "}
-          <span
-            className="
-              font-semibold
-              text-cyan-700
-            "
-          >
-            {currentUser.displayName}
-          </span>
-        </p>
-      </section>
     </div>
   );
 }
@@ -377,7 +276,7 @@ function ArchiveFolderCard({
       className={`
         group
         relative
-        min-h-[340px]
+        min-h-[240px]
         overflow-hidden
         rounded-3xl
         border
@@ -485,48 +384,52 @@ function ArchiveFolderCard({
           {title}
         </h3>
 
-        <p
-          className="
-            mt-3
-            text-sm
-            leading-6
-            text-slate-500
-          "
-        >
-          {description}
-        </p>
+        {description && (
+          <p
+            className="
+              mt-3
+              text-sm
+              leading-6
+              text-slate-500
+            "
+          >
+            {description}
+          </p>
+        )}
 
-        <div
-          className="
-            mt-5
-            space-y-2
-          "
-        >
-          {features.map(
-            (feature) => (
-              <div
-                key={feature}
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-slate-600
-                "
-              >
-                <span
+        {features.length > 0 && (
+          <div
+            className="
+              mt-5
+              space-y-2
+            "
+          >
+            {features.map(
+              (feature) => (
+                <div
+                  key={feature}
                   className="
-                    h-1.5
-                    w-1.5
-                    rounded-full
-                    bg-cyan-500
+                    flex
+                    items-center
+                    gap-2
+                    text-xs
+                    text-slate-600
                   "
-                />
-                {feature}
-              </div>
-            ),
-          )}
-        </div>
+                >
+                  <span
+                    className="
+                      h-1.5
+                      w-1.5
+                      rounded-full
+                      bg-cyan-500
+                    "
+                  />
+                  {feature}
+                </div>
+              ),
+            )}
+          </div>
+        )}
 
         <div
           className="

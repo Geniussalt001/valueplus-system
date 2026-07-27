@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "products": [
+    {"cpall_code": "6002424", "pdf_name": "มิลค์เค้ก 55 G.", "express_code": "01-0000-29", "keyword": "มิลค์เค้ก"},
+    {"cpall_code": "6002487", "pdf_name": "เค้กไข่ชีส 78 G.", "express_code": "01-0000-10", "keyword": "เค้กไข่"},
+    {"cpall_code": "6002510", "pdf_name": "เค้กอัลมอนด์ 75 G.", "express_code": "01-0000-14", "keyword": "อัลมอนด์"},
+    {"cpall_code": "6002567", "pdf_name": "โรลช็อกโกแลตเค้ก 55 G.", "express_code": "01-0000-16", "keyword": "โรลช็อก"},
+    {"cpall_code": "6002580", "pdf_name": "มินิครีมเค้ก 40 G.", "express_code": "01-0000-18", "keyword": "มินิครีม"},
+    {"cpall_code": "6002601", "pdf_name": "เค้กครีมสลัดไก่หยอง 75 G.", "express_code": "01-0000-22", "keyword": "ครีมสลัด"},
+    {"cpall_code": "6002613", "pdf_name": "ชิสึเค้ก 70 G.", "express_code": "01-0000-23", "keyword": "ชิสึเค้ก"},
+    {"cpall_code": "6002634", "pdf_name": "บลูเบอร์รี่เค้ก 52 G.", "express_code": "01-0000-24", "keyword": "บลูเบอร์รี่"},
+    {"cpall_code": "6002689", "pdf_name": "เค้กสาหร่ายไก่หยอง 75 G.", "express_code": "01-0000-28", "keyword": "สาหร่าย"},
+    {"cpall_code": "6002690", "pdf_name": "เค้กช็อกโกแลตเฮเซลนัท 75 G.", "express_code": "01-0000-27", "keyword": "เฮเซลนัท"},
+    {"cpall_code": "6002691", "pdf_name": "ชิฟฟ่อนชีสเค้ก 75 G.", "express_code": "01-0000-26", "keyword": "ชิฟฟ่อน"},
+    {"cpall_code": "6002742", "pdf_name": "วาฟเฟิลครีมโคโคนัทมิลค์ 62 G.", "express_code": "01-0000-30", "keyword": "โคโคนัท"},
+    {"cpall_code": "6002769", "pdf_name": "เค้กโรลนมชมพู 55 G.", "express_code": "01-0000-31", "keyword": "นมชมพู"},
+    {"cpall_code": "6002777", "pdf_name": "วาฟเฟิลครีมราสเบอร์รี่ 62 G.", "express_code": "01-0000-32", "keyword": "ราสเบอร์รี่"},
+    {"cpall_code": "6002781", "pdf_name": "ขนมปังมอนสเตอร์รสบลูเบอร์รี่ 50 G.", "express_code": "01-0000-33", "keyword": "มอนสเตอร์รสบลูเบอร์รี่"},
+    {"cpall_code": "6002798", "pdf_name": "เค้กโรลมัตจะ 55 G.", "express_code": "01-0000-34", "keyword": "มัตจะ"},
+    {"cpall_code": "6002571", "pdf_name": "เค้กท่อไข่เค็ม 63 G.", "express_code": "01-0000-17", "keyword": "ท่อไข่"},
+    {"cpall_code": "6002797", "pdf_name": "ขนมปังมอนสเตอร์รสเยลโล่พีช 50 G.", "express_code": "01-0000-35", "keyword": "มอนสเตอร์รสเยลโล่พีช"},
+    {"cpall_code": "6002829", "pdf_name": "ขนมปังมอนสเตอร์รสสตรอเบอร์รี่ 50 G.", "express_code": "01-0000-36", "keyword": "มอนสเตอร์รสสตรอเบอร์รี่"},
+    {"cpall_code": "6002799", "pdf_name": "มินิเค้กไส้ครีมกลิ่นกล้วยหอม 40 G.", "express_code": "01-0000-37", "keyword": "ครีมกลิ่นกล้วยหอม"}
+  ]
+}
+

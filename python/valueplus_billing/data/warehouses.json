@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "warehouses": [
+    {"group": "มหาชัย", "sequence": 1, "sales_area_code": "CP001", "aliases": ["มหาชัย"], "active": true},
+    {"group": "มหาชัย", "sequence": 2, "sales_area_code": "CP002", "aliases": ["มหาชัย"], "active": true},
+    {"group": "มหาชัย", "sequence": 3, "sales_area_code": "CP003", "aliases": ["มหาชัย"], "active": true},
+    {"group": "สำโรง", "sequence": 1, "sales_area_code": "CP004", "aliases": ["สำโรง"], "active": true},
+    {"group": "สำโรง", "sequence": 2, "sales_area_code": "CP005", "aliases": ["สำโรง"], "active": true},
+    {"group": "ร่มเกล้า", "sequence": 1, "sales_area_code": "CP006", "aliases": ["ร่มเกล้า"], "active": true},
+    {"group": "ร่มเกล้า", "sequence": 2, "sales_area_code": "CP007", "aliases": ["ร่มเกล้า"], "active": true},
+    {"group": "ร่มเกล้า", "sequence": 3, "sales_area_code": "CP028", "aliases": ["ร่มเกล้า"], "active": true},
+    {"group": "ชลบุรี", "sequence": 1, "sales_area_code": "CP008", "aliases": ["ชลบุรี"], "active": true},
+    {"group": "ชลบุรี", "sequence": 2, "sales_area_code": "CP009", "aliases": ["ชลบุรี"], "active": true},
+    {"group": "รังสิต", "sequence": 1, "sales_area_code": "CP010", "aliases": ["รังสิต"], "active": true},
+    {"group": "รังสิต", "sequence": 2, "sales_area_code": "CP011", "aliases": ["รังสิต"], "active": true},
+    {"group": "โชคชัย", "sequence": 1, "sales_area_code": "CP012", "aliases": ["โชคชัย"], "active": true},
+    {"group": "โชคชัย", "sequence": 2, "sales_area_code": "CP013", "aliases": ["โชคชัย"], "active": true},
+    {"group": "เชียงใหม่", "sequence": 1, "sales_area_code": "CP014", "aliases": ["เชียงใหม่"], "active": true},
+    {"group": "เชียงใหม่", "sequence": 2, "sales_area_code": "CP029", "aliases": ["เชียงใหม่", "เชียงใหม่ (LAOS)"], "active": true},
+    {"group": "นครสวรรค์", "sequence": 1, "sales_area_code": "CP015", "aliases": ["นครสวรรค์"], "active": true},
+    {"group": "นครสวรรค์", "sequence": 2, "sales_area_code": "CP016", "aliases": ["นครสวรรค์"], "active": true},
+    {"group": "ขอนแก่น", "sequence": 1, "sales_area_code": "CP017", "aliases": ["ขอนแก่น"], "active": true},
+    {"group": "ขอนแก่น", "sequence": 2, "sales_area_code": "CP018", "aliases": ["ขอนแก่น"], "active": true},
+    {"group": "ขอนแก่น", "sequence": 3, "sales_area_code": "CP019", "aliases": ["ขอนแก่น"], "active": true},
+    {"group": "ขอนแก่น", "sequence": 4, "sales_area_code": "CP027", "aliases": ["ขอนแก่น"], "active": true},
+    {"group": "โคราช", "sequence": 1, "sales_area_code": "CP020", "aliases": ["โคราช", "นครราชสีมา"], "active": true},
+    {"group": "หาดใหญ่", "sequence": 1, "sales_area_code": "CP022", "aliases": ["หาดใหญ่"], "active": true},
+    {"group": "สุราษฎร์ธานี", "sequence": 1, "sales_area_code": "CP023", "aliases": ["สุราษฎร์ธานี", "สุราษธานี", "สุราษฏร์ธานี"], "active": true},
+    {"group": "สุราษฎร์ธานี", "sequence": 2, "sales_area_code": "CP024", "aliases": ["สุราษฎร์ธานี", "สุราษธานี", "สุราษฏร์ธานี"], "active": true}
+  ]
+}
