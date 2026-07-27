@@ -1,7 +1,7 @@
 import {
   ArrowLeft,
+  ClipboardList,
   FileCheck2,
-  Files,
   FolderOpen,
   PencilLine,
   Printer,
@@ -176,7 +176,7 @@ export function SplitRenamePoPage({
               text-blue-300
             "
           >
-            SPLIT &amp; RENAME PO
+            DAILY PICKING
           </p>
 
           <h2
@@ -187,7 +187,7 @@ export function SplitRenamePoPage({
               text-white
             "
           >
-            แยก และเปลี่ยนชื่อ PO
+            ออกใบจัดรายวัน
           </h2>
 
           <p
@@ -219,7 +219,7 @@ export function SplitRenamePoPage({
             text-blue-300
           "
         >
-          <Files size={23} />
+          <ClipboardList size={23} />
         </div>
       </header>
 
