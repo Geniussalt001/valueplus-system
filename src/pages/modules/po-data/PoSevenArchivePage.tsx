@@ -7,10 +7,13 @@ import {
 } from "react";
 
 import {
-  ArrowLeft,
   Archive,
+  ArrowLeft,
+  ChevronRight,
+  Download,
   ExternalLink,
   FileText,
+  Folder,
   FolderArchive,
   LoaderCircle,
   RefreshCw,
@@ -44,8 +47,35 @@ interface PoSevenArchivePageProps {
   onBack: () => void;
 }
 
+interface ArchiveDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
+interface FolderItem {
+  key: number;
+  label: string;
+  records: PoArchiveRecord[];
+}
+
+const thaiMonths = [
+  "",
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
 export function PoSevenArchivePage({
-  currentUser,
   onBack,
 }: PoSevenArchivePageProps) {
   const [records, setRecords] =
@@ -56,17 +86,35 @@ export function PoSevenArchivePage({
     useState(true);
   const [error, setError] =
     useState("");
+  const [success, setSuccess] =
+    useState("");
   const [previewUrl, setPreviewUrl] =
     useState("");
   const [previewName, setPreviewName] =
     useState("");
   const [openingId, setOpeningId] =
     useState("");
+  const [selectedYear, setSelectedYear] =
+    useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] =
+    useState<number | null>(null);
+  const [selectedDay, setSelectedDay] =
+    useState<number | null>(null);
+  const [downloading, setDownloading] =
+    useState(false);
+  const [
+    downloadProgress,
+    setDownloadProgress,
+  ] = useState({
+    current: 0,
+    total: 0,
+  });
 
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
       setError("");
+      setSuccess("");
 
       try {
         const nextRecords =
@@ -124,9 +172,213 @@ export function PoSevenArchivePage({
             .includes(keyword) ||
           record.documentDate
             .toLowerCase()
+            .includes(keyword) ||
+          formatThaiDate(
+            record.documentDate,
+          )
+            .toLowerCase()
             .includes(keyword),
       );
     }, [records, search]);
+
+  const datedRecords =
+    useMemo(
+      () =>
+        records
+          .map((record) => ({
+            record,
+            date: parseArchiveDate(
+              record.documentDate,
+            ),
+          }))
+          .filter(
+            (
+              item,
+            ): item is {
+              record: PoArchiveRecord;
+              date: ArchiveDate;
+            } => Boolean(item.date),
+          ),
+      [records],
+    );
+
+  const yearFolders =
+    useMemo<FolderItem[]>(() => {
+      const groups =
+        new Map<
+          number,
+          PoArchiveRecord[]
+        >();
+
+      datedRecords.forEach(
+        ({ record, date }) => {
+          const group =
+            groups.get(date.year) ??
+            [];
+
+          group.push(record);
+          groups.set(
+            date.year,
+            group,
+          );
+        },
+      );
+
+      return Array.from(
+        groups.entries(),
+      )
+        .sort(
+          ([first], [second]) =>
+            second - first,
+        )
+        .map(([year, items]) => ({
+          key: year,
+          label: `ปี ${toBuddhistYear(year)}`,
+          records: items,
+        }));
+    }, [datedRecords]);
+
+  const monthFolders =
+    useMemo<FolderItem[]>(() => {
+      if (selectedYear === null) {
+        return [];
+      }
+
+      const groups =
+        new Map<
+          number,
+          PoArchiveRecord[]
+        >();
+
+      datedRecords
+        .filter(
+          ({ date }) =>
+            date.year ===
+            selectedYear,
+        )
+        .forEach(
+          ({ record, date }) => {
+            const group =
+              groups.get(
+                date.month,
+              ) ?? [];
+
+            group.push(record);
+            groups.set(
+              date.month,
+              group,
+            );
+          },
+        );
+
+      return Array.from(
+        groups.entries(),
+      )
+        .sort(
+          ([first], [second]) =>
+            second - first,
+        )
+        .map(([month, items]) => ({
+          key: month,
+          label:
+            thaiMonths[month],
+          records: items,
+        }));
+    }, [
+      datedRecords,
+      selectedYear,
+    ]);
+
+  const dayFolders =
+    useMemo<FolderItem[]>(() => {
+      if (
+        selectedYear === null ||
+        selectedMonth === null
+      ) {
+        return [];
+      }
+
+      const groups =
+        new Map<
+          number,
+          PoArchiveRecord[]
+        >();
+
+      datedRecords
+        .filter(
+          ({ date }) =>
+            date.year ===
+              selectedYear &&
+            date.month ===
+              selectedMonth,
+        )
+        .forEach(
+          ({ record, date }) => {
+            const group =
+              groups.get(date.day) ??
+              [];
+
+            group.push(record);
+            groups.set(
+              date.day,
+              group,
+            );
+          },
+        );
+
+      return Array.from(
+        groups.entries(),
+      )
+        .sort(
+          ([first], [second]) =>
+            second - first,
+        )
+        .map(([day, items]) => ({
+          key: day,
+          label: `วันที่ ${day}`,
+          records: items,
+        }));
+    }, [
+      datedRecords,
+      selectedMonth,
+      selectedYear,
+    ]);
+
+  const dayRecords =
+    useMemo(() => {
+      if (
+        selectedYear === null ||
+        selectedMonth === null ||
+        selectedDay === null
+      ) {
+        return [];
+      }
+
+      return datedRecords
+        .filter(
+          ({ date }) =>
+            date.year ===
+              selectedYear &&
+            date.month ===
+              selectedMonth &&
+            date.day === selectedDay,
+        )
+        .map(({ record }) => record)
+        .sort((first, second) =>
+          first.poNumber.localeCompare(
+            second.poNumber,
+            "th",
+            {
+              numeric: true,
+            },
+          ),
+        );
+    }, [
+      datedRecords,
+      selectedDay,
+      selectedMonth,
+      selectedYear,
+    ]);
 
   const warehouseCount =
     useMemo(
@@ -161,6 +413,7 @@ export function PoSevenArchivePage({
   ) => {
     setOpeningId(record.id);
     setError("");
+    setSuccess("");
 
     try {
       const pdf =
@@ -201,6 +454,103 @@ export function PoSevenArchivePage({
     setPreviewName("");
   };
 
+  const downloadAll = async () => {
+    if (
+      dayRecords.length === 0 ||
+      downloading
+    ) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      const folderPath =
+        await poArchiveService
+          .selectDownloadFolder();
+
+      if (!folderPath) {
+        return;
+      }
+
+      setDownloading(true);
+      setDownloadProgress({
+        current: 0,
+        total: dayRecords.length,
+      });
+
+      for (
+        let index = 0;
+        index <
+        dayRecords.length;
+        index += 1
+      ) {
+        const record =
+          dayRecords[index];
+
+        const pdf =
+          await poArchiveService
+            .getPdf(record.id);
+
+        await poArchiveService
+          .savePdf(
+            folderPath,
+            pdf,
+          );
+
+        setDownloadProgress({
+          current: index + 1,
+          total:
+            dayRecords.length,
+        });
+      }
+
+      setSuccess(
+        `ดาวน์โหลด ${dayRecords.length} ไฟล์เรียบร้อยแล้ว`,
+      );
+    } catch (reason) {
+      setError(
+        getErrorMessage(reason),
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const searching =
+    search.trim().length > 0;
+
+  const currentFolders =
+    selectedYear === null
+      ? yearFolders
+      : selectedMonth === null
+        ? monthFolders
+        : dayFolders;
+
+  const currentFolderTitle =
+    selectedYear === null
+      ? "แฟ้มปี"
+      : selectedMonth === null
+        ? `ปี ${toBuddhistYear(
+            selectedYear,
+          )}`
+        : selectedDay === null
+          ? `${
+              thaiMonths[
+                selectedMonth
+              ]
+            } ${toBuddhistYear(
+              selectedYear,
+            )}`
+          : `วันที่ ${selectedDay} ${
+              thaiMonths[
+                selectedMonth
+              ]
+            } ${toBuddhistYear(
+              selectedYear,
+            )}`;
+
   return (
     <div
       className="
@@ -214,11 +564,9 @@ export function PoSevenArchivePage({
       <header
         className="
           flex
-          flex-col
+          items-end
           justify-between
           gap-5
-          md:flex-row
-          md:items-end
         "
       >
         <div>
@@ -233,11 +581,11 @@ export function PoSevenArchivePage({
               text-sm
               text-slate-500
               transition
-              hover:text-cyan-600
+              hover:text-cyan-700
             "
           >
             <ArrowLeft size={17} />
-            กลับหน้าศูนย์แฟ้มข้อมูล
+            กลับ
           </button>
 
           <p
@@ -245,10 +593,10 @@ export function PoSevenArchivePage({
               text-[10px]
               font-semibold
               tracking-[0.24em]
-              text-cyan-600
+              text-cyan-700
             "
           >
-            PO DOCUMENT ARCHIVE
+            SEVEN PO ARCHIVE
           </p>
 
           <h2
@@ -259,21 +607,8 @@ export function PoSevenArchivePage({
               text-slate-900
             "
           >
-            แฟ้มบันทึกข้อมูล
+            แฟ้มข้อมูล PO Seven
           </h2>
-
-          <p
-            className="
-              mt-3
-              max-w-3xl
-              text-sm
-              leading-6
-              text-slate-500
-            "
-          >
-            เอกสารที่แยกและเปลี่ยนชื่อแล้วจะถูกจัดเก็บใน
-            Google Drive อัตโนมัติ เพื่อให้สำนักงานใหญ่ค้นหาและเปิดใช้งานได้
-          </p>
         </div>
 
         <div
@@ -290,7 +625,9 @@ export function PoSevenArchivePage({
             text-cyan-700
           "
         >
-          <FolderArchive size={23} />
+          <FolderArchive
+            size={23}
+          />
         </div>
       </header>
 
@@ -303,17 +640,17 @@ export function PoSevenArchivePage({
         "
       >
         <StatCard
-          label="เอกสารทั้งหมด"
+          label="เอกสาร"
           value={records.length}
           icon={<Archive size={18} />}
         />
         <StatCard
-          label="คลังที่พบ"
+          label="คลัง"
           value={warehouseCount}
           icon={<Warehouse size={18} />}
         />
         <StatCard
-          label="พื้นที่เอกสาร"
+          label="ขนาด"
           value={formatFileSize(totalSize)}
           icon={<FileText size={18} />}
         />
@@ -360,7 +697,7 @@ export function PoSevenArchivePage({
                 event.target.value,
               );
             }}
-            placeholder="ค้นหาเลข PO, คลัง, วันที่ หรือชื่อไฟล์"
+            placeholder="ค้นหา PO คลัง วันที่ หรือชื่อไฟล์"
             className="
               w-full
               bg-transparent
@@ -404,7 +741,7 @@ export function PoSevenArchivePage({
             }
             size={17}
           />
-          โหลดข้อมูลใหม่
+          โหลดใหม่
         </button>
       </section>
 
@@ -426,6 +763,24 @@ export function PoSevenArchivePage({
         </div>
       )}
 
+      {success && (
+        <div
+          className="
+            mt-5
+            rounded-xl
+            border
+            border-emerald-200
+            bg-emerald-50
+            px-5
+            py-4
+            text-sm
+            text-emerald-700
+          "
+        >
+          {success}
+        </div>
+      )}
+
       <section
         className="
           mt-5
@@ -440,210 +795,175 @@ export function PoSevenArchivePage({
         <div
           className="
             flex
-            items-center
-            justify-between
+            flex-col
+            gap-3
             border-b
             border-slate-200
             px-5
             py-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
           <div>
-            <h3
-              className="
-                font-semibold
-                text-slate-900
-              "
-            >
-              เอกสาร PO ใน Google Drive
+            <FolderBreadcrumbs
+              selectedYear={
+                selectedYear
+              }
+              selectedMonth={
+                selectedMonth
+              }
+              selectedDay={
+                selectedDay
+              }
+              searching={searching}
+              onRoot={() => {
+                setSelectedYear(null);
+                setSelectedMonth(null);
+                setSelectedDay(null);
+                setSearch("");
+              }}
+              onYear={() => {
+                setSelectedMonth(null);
+                setSelectedDay(null);
+              }}
+              onMonth={() => {
+                setSelectedDay(null);
+              }}
+            />
+            <h3 className="mt-2 font-semibold text-slate-900">
+              {searching
+                ? "ผลการค้นหา"
+                : currentFolderTitle}
             </h3>
-            <p
-              className="
-                mt-1
-                text-xs
-                text-slate-500
-              "
-            >
-              แสดง {filteredRecords.length} จาก {records.length} ไฟล์ · ผู้ใช้งาน {currentUser.displayName}
-            </p>
           </div>
+
+          {!searching &&
+            selectedDay !== null && (
+              <button
+                type="button"
+                onClick={() => {
+                  void downloadAll();
+                }}
+                disabled={
+                  downloading ||
+                  dayRecords.length === 0
+                }
+                className="
+                  flex
+                  min-h-11
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-emerald-600
+                  px-5
+                  text-sm
+                  font-semibold
+                  text-white
+                  shadow-md
+                  transition
+                  hover:bg-emerald-700
+                  disabled:opacity-50
+                "
+              >
+                {downloading ? (
+                  <LoaderCircle
+                    className="animate-spin"
+                    size={17}
+                  />
+                ) : (
+                  <Download size={17} />
+                )}
+                {downloading
+                  ? `กำลังดาวน์โหลด ${downloadProgress.current}/${downloadProgress.total}`
+                  : `ดาวน์โหลดทั้งหมด (${dayRecords.length})`}
+              </button>
+            )}
         </div>
 
         {loading ? (
-          <div
-            className="
-              flex
-              min-h-72
-              items-center
-              justify-center
-              gap-3
-              text-sm
-              text-slate-500
-            "
-          >
-            <LoaderCircle
-              className="animate-spin"
-              size={22}
+          <EmptyState
+            loading
+            text="กำลังโหลด..."
+          />
+        ) : searching ? (
+          filteredRecords.length >
+          0 ? (
+            <FileTable
+              records={
+                filteredRecords
+              }
+              openingId={openingId}
+              onPreview={openPreview}
             />
-            กำลังโหลดแฟ้มเอกสาร...
-          </div>
-        ) : filteredRecords.length === 0 ? (
+          ) : (
+            <EmptyState
+              text="ไม่พบเอกสาร"
+            />
+          )
+        ) : selectedDay !== null ? (
+          dayRecords.length > 0 ? (
+            <FileTable
+              records={dayRecords}
+              openingId={openingId}
+              onPreview={openPreview}
+            />
+          ) : (
+            <EmptyState
+              text="ไม่พบเอกสาร"
+            />
+          )
+        ) : currentFolders.length >
+          0 ? (
           <div
             className="
-              flex
-              min-h-72
-              flex-col
-              items-center
-              justify-center
-              text-center
-              text-slate-500
+              grid
+              gap-3
+              p-5
+              sm:grid-cols-2
+              lg:grid-cols-3
+              xl:grid-cols-4
             "
           >
-            <FolderArchive size={36} />
-            <p
-              className="
-                mt-4
-                font-medium
-                text-slate-700
-              "
-            >
-              ยังไม่พบเอกสาร
-            </p>
-            <p className="mt-1 text-xs">
-              ไฟล์จะปรากฏหลังประมวลผลหน้าแยกและเปลี่ยนชื่อ PO
-            </p>
+            {currentFolders.map(
+              (folder) => (
+                <FolderCard
+                  key={folder.key}
+                  label={folder.label}
+                  records={
+                    folder.records
+                  }
+                  onClick={() => {
+                    if (
+                      selectedYear ===
+                      null
+                    ) {
+                      setSelectedYear(
+                        folder.key,
+                      );
+                    } else if (
+                      selectedMonth ===
+                      null
+                    ) {
+                      setSelectedMonth(
+                        folder.key,
+                      );
+                    } else {
+                      setSelectedDay(
+                        folder.key,
+                      );
+                    }
+                  }}
+                />
+              ),
+            )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table
-              className="
-                w-full
-                min-w-[900px]
-                text-left
-              "
-            >
-              <thead
-                className="
-                  bg-cyan-50
-                  text-xs
-                  text-slate-600
-                "
-              >
-                <tr>
-                  <th className="px-5 py-3">เลข PO</th>
-                  <th className="px-5 py-3">วันที่เอกสาร</th>
-                  <th className="px-5 py-3">คลัง</th>
-                  <th className="px-5 py-3">ชื่อไฟล์</th>
-                  <th className="px-5 py-3">ขนาด</th>
-                  <th className="px-5 py-3">บันทึกเมื่อ</th>
-                  <th className="px-5 py-3 text-right">เปิดเอกสาร</th>
-                </tr>
-              </thead>
-
-              <tbody
-                className="
-                  divide-y
-                  divide-slate-100
-                  text-sm
-                "
-              >
-                {filteredRecords.map(
-                  (record) => (
-                    <tr
-                      key={record.id}
-                      className="
-                        transition
-                        hover:bg-cyan-50/60
-                      "
-                    >
-                      <td
-                        className="
-                          px-5
-                          py-4
-                          font-semibold
-                          text-cyan-700
-                        "
-                      >
-                        {record.poNumber}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {formatThaiDate(record.documentDate)}
-                      </td>
-                      <td className="px-5 py-4 font-medium text-slate-800">
-                        {record.warehouse}
-                      </td>
-                      <td className="max-w-xs truncate px-5 py-4 text-slate-600">
-                        {record.fileName}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {formatFileSize(record.fileSize)}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {formatThaiDateTime(record.uploadedAt)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div
-                          className="
-                            flex
-                            justify-end
-                            gap-2
-                          "
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void openPreview(record);
-                            }}
-                            disabled={openingId === record.id}
-                            className="
-                              rounded-lg
-                              border
-                              border-cyan-200
-                              bg-cyan-50
-                              px-3
-                              py-2
-                              text-xs
-                              font-semibold
-                              text-cyan-700
-                              hover:bg-cyan-100
-                              disabled:opacity-50
-                            "
-                          >
-                            {openingId === record.id
-                              ? "กำลังเปิด..."
-                              : "Preview"}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void openUrl(record.fileUrl);
-                            }}
-                            className="
-                              flex
-                              items-center
-                              gap-1.5
-                              rounded-lg
-                              bg-[#063b59]
-                              px-3
-                              py-2
-                              text-xs
-                              font-semibold
-                              text-white
-                              hover:bg-[#075071]
-                            "
-                          >
-                            Drive
-                            <ExternalLink size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-          </div>
+          <EmptyState
+            text="ยังไม่มีแฟ้มเอกสาร"
+          />
         )}
       </section>
 
@@ -685,14 +1005,9 @@ export function PoSevenArchivePage({
                 py-4
               "
             >
-              <div>
-                <p className="font-semibold text-slate-900">
-                  {previewName}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Preview จาก Google Drive
-                </p>
-              </div>
+              <p className="font-semibold text-slate-900">
+                {previewName}
+              </p>
 
               <button
                 type="button"
@@ -718,6 +1033,396 @@ export function PoSevenArchivePage({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function FolderBreadcrumbs({
+  selectedYear,
+  selectedMonth,
+  selectedDay,
+  searching,
+  onRoot,
+  onYear,
+  onMonth,
+}: {
+  selectedYear: number | null;
+  selectedMonth: number | null;
+  selectedDay: number | null;
+  searching: boolean;
+  onRoot: () => void;
+  onYear: () => void;
+  onMonth: () => void;
+}) {
+  return (
+    <div
+      className="
+        flex
+        flex-wrap
+        items-center
+        gap-1.5
+        text-xs
+        text-slate-500
+      "
+    >
+      <button
+        type="button"
+        onClick={onRoot}
+        className="
+          font-semibold
+          text-cyan-700
+          hover:underline
+        "
+      >
+        แฟ้ม PO Seven
+      </button>
+
+      {searching && (
+        <>
+          <ChevronRight size={14} />
+          <span>ค้นหา</span>
+        </>
+      )}
+
+      {!searching &&
+        selectedYear !== null && (
+          <>
+            <ChevronRight size={14} />
+            <button
+              type="button"
+              onClick={onYear}
+              className="
+                hover:text-cyan-700
+              "
+            >
+              ปี{" "}
+              {toBuddhistYear(
+                selectedYear,
+              )}
+            </button>
+          </>
+        )}
+
+      {!searching &&
+        selectedMonth !== null && (
+          <>
+            <ChevronRight size={14} />
+            <button
+              type="button"
+              onClick={onMonth}
+              className="
+                hover:text-cyan-700
+              "
+            >
+              {
+                thaiMonths[
+                  selectedMonth
+                ]
+              }
+            </button>
+          </>
+        )}
+
+      {!searching &&
+        selectedDay !== null && (
+          <>
+            <ChevronRight size={14} />
+            <span>
+              วันที่ {selectedDay}
+            </span>
+          </>
+        )}
+    </div>
+  );
+}
+
+function FolderCard({
+  label,
+  records,
+  onClick,
+}: {
+  label: string;
+  records: PoArchiveRecord[];
+  onClick: () => void;
+}) {
+  const size = records.reduce(
+    (total, record) =>
+      total +
+      Number(record.fileSize || 0),
+    0,
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="
+        group
+        flex
+        min-h-28
+        items-center
+        gap-4
+        rounded-xl
+        border
+        border-cyan-200
+        bg-gradient-to-br
+        from-white
+        to-cyan-50
+        p-4
+        text-left
+        shadow-sm
+        transition
+        hover:-translate-y-0.5
+        hover:border-cyan-400
+        hover:shadow-md
+      "
+    >
+      <div
+        className="
+          flex
+          h-12
+          w-12
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          bg-cyan-100
+          text-cyan-700
+        "
+      >
+        <Folder size={25} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p
+          className="
+            truncate
+            font-semibold
+            text-slate-900
+          "
+        >
+          {label}
+        </p>
+        <p
+          className="
+            mt-1
+            text-xs
+            text-slate-500
+          "
+        >
+          {records.length} ไฟล์ ·{" "}
+          {formatFileSize(size)}
+        </p>
+      </div>
+
+      <ChevronRight
+        className="
+          shrink-0
+          text-slate-400
+          transition
+          group-hover:translate-x-0.5
+          group-hover:text-cyan-700
+        "
+        size={18}
+      />
+    </button>
+  );
+}
+
+function FileTable({
+  records,
+  openingId,
+  onPreview,
+}: {
+  records: PoArchiveRecord[];
+  openingId: string;
+  onPreview: (
+    record: PoArchiveRecord,
+  ) => Promise<void>;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table
+        className="
+          w-full
+          min-w-[880px]
+          text-left
+        "
+      >
+        <thead
+          className="
+            bg-cyan-50
+            text-xs
+            text-slate-600
+          "
+        >
+          <tr>
+            <th className="px-5 py-3">
+              เลข PO
+            </th>
+            <th className="px-5 py-3">
+              วันที่
+            </th>
+            <th className="px-5 py-3">
+              คลัง
+            </th>
+            <th className="px-5 py-3">
+              ชื่อไฟล์
+            </th>
+            <th className="px-5 py-3">
+              ขนาด
+            </th>
+            <th className="px-5 py-3 text-right">
+              เปิด
+            </th>
+          </tr>
+        </thead>
+
+        <tbody
+          className="
+            divide-y
+            divide-slate-100
+            text-sm
+          "
+        >
+          {records.map((record) => (
+            <tr
+              key={record.id}
+              className="
+                transition
+                hover:bg-cyan-50/60
+              "
+            >
+              <td
+                className="
+                  px-5
+                  py-4
+                  font-semibold
+                  text-cyan-700
+                "
+              >
+                {record.poNumber}
+              </td>
+              <td className="px-5 py-4 text-slate-600">
+                {formatThaiDate(
+                  record.documentDate,
+                )}
+              </td>
+              <td className="px-5 py-4 font-medium text-slate-800">
+                {record.warehouse}
+              </td>
+              <td className="max-w-xs truncate px-5 py-4 text-slate-600">
+                {record.fileName}
+              </td>
+              <td className="px-5 py-4 text-slate-500">
+                {formatFileSize(
+                  record.fileSize,
+                )}
+              </td>
+              <td className="px-5 py-4">
+                <div
+                  className="
+                    flex
+                    justify-end
+                    gap-2
+                  "
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void onPreview(
+                        record,
+                      );
+                    }}
+                    disabled={
+                      openingId ===
+                      record.id
+                    }
+                    className="
+                      rounded-lg
+                      border
+                      border-cyan-200
+                      bg-cyan-50
+                      px-3
+                      py-2
+                      text-xs
+                      font-semibold
+                      text-cyan-700
+                      hover:bg-cyan-100
+                      disabled:opacity-50
+                    "
+                  >
+                    {openingId ===
+                    record.id
+                      ? "กำลังเปิด"
+                      : "ดูไฟล์"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void openUrl(
+                        record.fileUrl,
+                      );
+                    }}
+                    className="
+                      flex
+                      items-center
+                      gap-1.5
+                      rounded-lg
+                      bg-[#063b59]
+                      px-3
+                      py-2
+                      text-xs
+                      font-semibold
+                      text-white
+                      hover:bg-[#075071]
+                    "
+                  >
+                    Drive
+                    <ExternalLink
+                      size={13}
+                    />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function EmptyState({
+  text,
+  loading = false,
+}: {
+  text: string;
+  loading?: boolean;
+}) {
+  return (
+    <div
+      className="
+        flex
+        min-h-64
+        flex-col
+        items-center
+        justify-center
+        gap-3
+        text-sm
+        text-slate-500
+      "
+    >
+      {loading ? (
+        <LoaderCircle
+          className="animate-spin"
+          size={28}
+        />
+      ) : (
+        <FolderArchive size={34} />
+      )}
+      <p>{text}</p>
     </div>
   );
 }
@@ -755,92 +1460,138 @@ function StatCard({
   );
 }
 
+function parseArchiveDate(
+  value: string,
+): ArchiveDate | null {
+  const normalized =
+    String(value || "").trim();
+
+  const isoMatch =
+    normalized.match(
+      /^(\d{4})-(\d{1,2})-(\d{1,2})/,
+    );
+
+  const localMatch =
+    normalized.match(
+      /^(\d{1,2})[/.](\d{1,2})[/.](\d{4})/,
+    );
+
+  if (isoMatch) {
+    return normalizeArchiveDate(
+      Number(isoMatch[1]),
+      Number(isoMatch[2]),
+      Number(isoMatch[3]),
+    );
+  }
+
+  if (localMatch) {
+    return normalizeArchiveDate(
+      Number(localMatch[3]),
+      Number(localMatch[2]),
+      Number(localMatch[1]),
+    );
+  }
+
+  const parsed =
+    new Date(normalized);
+
+  if (
+    Number.isNaN(
+      parsed.getTime(),
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    year:
+      parsed.getFullYear(),
+    month:
+      parsed.getMonth() + 1,
+    day: parsed.getDate(),
+  };
+}
+
+function normalizeArchiveDate(
+  rawYear: number,
+  month: number,
+  day: number,
+): ArchiveDate | null {
+  const year =
+    rawYear > 2400
+      ? rawYear - 543
+      : rawYear;
+
+  if (
+    year < 1900 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  return {
+    year,
+    month,
+    day,
+  };
+}
+
+function toBuddhistYear(
+  year: number,
+): number {
+  return year > 2400
+    ? year
+    : year + 543;
+}
+
 function formatFileSize(
   bytes: number,
 ): string {
-  if (!bytes) {
-    return "0 KB";
+  const size =
+    Number(bytes || 0);
+
+  if (size < 1024) {
+    return `${size} B`;
   }
 
-  if (bytes < 1024 * 1024) {
+  if (size < 1024 * 1024) {
     return `${(
-      bytes / 1024
+      size / 1024
     ).toFixed(1)} KB`;
   }
 
   return `${(
-    bytes /
-    1024 /
-    1024
+    size /
+    (1024 * 1024)
   ).toFixed(2)} MB`;
 }
 
 function formatThaiDate(
   value: string,
 ): string {
-  if (!value) {
-    return "-";
+  const parsed =
+    parseArchiveDate(value);
+
+  if (!parsed) {
+    return value || "-";
   }
 
-  const date =
-    new Date(
-      `${value}T00:00:00`,
-    );
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "th-TH",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    },
-  ).format(date);
-}
-
-function formatThaiDateTime(
-  value: string,
-): string {
-  if (!value) {
-    return "-";
-  }
-
-  const date =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "th-TH",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    },
-  ).format(date);
+  return `${parsed.day} ${
+    thaiMonths[parsed.month]
+  } ${toBuddhistYear(
+    parsed.year,
+  )}`;
 }
 
 function getErrorMessage(
-  reason: unknown,
+  error: unknown,
 ): string {
-  if (reason instanceof Error) {
-    return reason.message;
+  if (error instanceof Error) {
+    return error.message;
   }
 
-  return String(reason);
+  return String(error);
 }
