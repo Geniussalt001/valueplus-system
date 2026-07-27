@@ -25,6 +25,7 @@ use commands::pdf_splitter::{
 
 use commands::local_pdf::{
     read_local_pdf_base64,
+    save_archive_pdf_base64,
 };
 
 use commands::po_processor::{
@@ -43,6 +44,12 @@ use commands::product_catalog::{
 use commands::receivables_freight::{
     preview_receivables_freight,
     process_receivables_freight,
+};
+
+use commands::sales_billing::{
+    control_sales_billing,
+    preview_sales_billing,
+    run_sales_billing,
 };
 
 #[tauri::command]
@@ -108,12 +115,16 @@ pub fn run() {
                 print_po_workbook,
                 split_po_pdf,
                 read_local_pdf_base64,
+                save_archive_pdf_base64,
                 process_express_summary,
                 preview_daily_so,
                 process_daily_so,
                 preview_receivables_freight,
                 process_receivables_freight,
                 open_receivables_sheet_editor,
+                preview_sales_billing,
+                run_sales_billing,
+                control_sales_billing,
             ],
         )
         .run(
