@@ -3,12 +3,14 @@ import type {
 } from "react";
 
 import {
+  Building2,
   ChevronRight,
   Home,
   Link2,
   LockKeyhole,
   LogOut,
   Server,
+  ShoppingBag,
   UserRound,
 } from "lucide-react";
 
@@ -33,6 +35,7 @@ import {
 } from "../data/systemModules";
 
 import type {
+  WorkspaceScope,
   WorkRoute,
 } from "../types/app";
 
@@ -40,6 +43,10 @@ interface AppLayoutProps {
   children: ReactNode;
   currentRoute: WorkRoute;
   currentUser: AppUser;
+  workspaceScope: WorkspaceScope;
+  onWorkspaceChange: (
+    workspace: WorkspaceScope,
+  ) => void;
   onNavigate: (
     route: WorkRoute,
   ) => void;
@@ -72,6 +79,8 @@ export function AppLayout({
   children,
   currentRoute,
   currentUser,
+  workspaceScope,
+  onWorkspaceChange,
   onNavigate,
   onLogout,
 }: AppLayoutProps) {
@@ -90,6 +99,14 @@ export function AppLayout({
 
   const workspaceName =
     getWorkspaceName(currentUser);
+
+  const availableModules =
+    systemModules.filter(
+      (module) =>
+        module.workspaces.includes(
+          workspaceScope,
+        ),
+    );
 
   return (
     <main className="dashboard min-h-screen bg-[#f4faff] text-[#10243a]">
@@ -110,6 +127,72 @@ export function AppLayout({
         <div className="my-7 h-px bg-gradient-to-r from-cyan-300/40 to-transparent" />
 
         <p className="px-3 text-[10px] tracking-[0.22em] text-slate-600">
+          WORKSPACE
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-1.5">
+          <button
+            type="button"
+            onClick={() =>
+              onWorkspaceChange(
+                "retail",
+              )
+            }
+            className={`
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-lg
+              px-2
+              py-2.5
+              text-xs
+              font-medium
+              transition
+              ${
+                workspaceScope ===
+                "retail"
+                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
+                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+              }
+            `}
+          >
+            <ShoppingBag size={15} />
+            Retail
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              onWorkspaceChange(
+                "head-office",
+              )
+            }
+            className={`
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-lg
+              px-2
+              py-2.5
+              text-xs
+              font-medium
+              transition
+              ${
+                workspaceScope ===
+                "head-office"
+                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
+                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+              }
+            `}
+          >
+            <Building2 size={15} />
+            สำนักงานใหญ่
+          </button>
+        </div>
+
+        <p className="mt-6 px-3 text-[10px] tracking-[0.22em] text-slate-600">
           MAIN NAVIGATION
         </p>
 
@@ -140,7 +223,7 @@ export function AppLayout({
             WORK MODULES
           </p>
 
-          {systemModules.map(
+          {availableModules.map(
             (module) => {
               const Icon =
                 module.icon;
