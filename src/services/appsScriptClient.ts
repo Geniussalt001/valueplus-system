@@ -23,7 +23,7 @@ interface RequestOptions {
 const apiUrl =
   import.meta.env
     .VITE_APPS_SCRIPT_URL ||
-  "https://script.google.com/macros/s/AKfycby8fpraC4QvMcd5Qq6k24VFGnE_TsNPTeo_Ny0FuyEWjlQuxrbklNhHvFsY_p2yJdhF/exec";
+  "https://script.google.com/macros/s/AKfycbxUM9dFWYE9eO8nc5gDx9apWL7g1cgVOYuwUzle0TUjVD_4FQcAn_xyFjPnZXa2pEE_/exec";
 
 const developmentApiToken =
   import.meta.env
