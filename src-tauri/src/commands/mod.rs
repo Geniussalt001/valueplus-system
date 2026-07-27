@@ -1,3 +1,4 @@
+pub mod connection_credentials;
 pub mod daily_so;
 pub mod doll_summary;
 pub mod express_summary;
