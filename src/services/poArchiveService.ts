@@ -3,6 +3,14 @@ import {
 } from "@tauri-apps/api/core";
 
 import {
+  downloadDir,
+} from "@tauri-apps/api/path";
+
+import {
+  open,
+} from "@tauri-apps/plugin-dialog";
+
+import {
   callAppsScript,
 } from "./appsScriptClient";
 
@@ -56,6 +64,37 @@ export const poArchiveService = {
       "archive.getPdf",
       {
         id,
+      },
+    );
+  },
+
+  async selectDownloadFolder():
+    Promise<string | null>
+  {
+    const selected =
+      await open({
+        directory: true,
+        multiple: false,
+        defaultPath:
+          await downloadDir(),
+      });
+
+    return typeof selected === "string"
+      ? selected
+      : null;
+  },
+
+  async savePdf(
+    folderPath: string,
+    pdf: PoArchivePdf,
+  ): Promise<string> {
+    return invoke<string>(
+      "save_archive_pdf_base64",
+      {
+        folderPath,
+        fileName: pdf.fileName,
+        base64Data:
+          pdf.base64Data,
       },
     );
   },
