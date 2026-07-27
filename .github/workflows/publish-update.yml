@@ -57,6 +57,7 @@ jobs:
           New-Item -ItemType Directory -Path src-tauri/binaries -Force | Out-Null
           New-Item -ItemType Directory -Path build/valueplus-engine -Force | Out-Null
           New-Item -ItemType Directory -Path build/valueplus-engine-spec -Force | Out-Null
+          $billingDataPath = (Resolve-Path -LiteralPath "python/valueplus_billing/data").Path
           python -m PyInstaller `
             --noconfirm `
             --clean `
@@ -72,7 +73,7 @@ jobs:
             --hidden-import win32com.client `
             --hidden-import pyautogui `
             --hidden-import pygetwindow `
-            --add-data "python/valueplus_billing/data;valueplus_billing/data" `
+            --add-data "$billingDataPath;valueplus_billing/data" `
             python/valueplus_engine.py
 
           $source = "src-tauri/binaries/valueplus-engine.exe"
