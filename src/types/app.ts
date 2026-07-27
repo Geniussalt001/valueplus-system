@@ -2,10 +2,15 @@ import type {
   LucideIcon,
 } from "lucide-react";
 
+export type WorkspaceScope =
+  | "retail"
+  | "head-office";
+
 export type WorkRoute =
   | "dashboard"
   | "daily-picking"
   | "daily-so"
+  | "sales-billing"
   | "split-rename-po"
   | "daily-summary"
   | "po-data"
@@ -30,4 +35,5 @@ export interface SystemModule {
   icon: LucideIcon;
   color: string;
   status: SystemStatus;
+  workspaces: WorkspaceScope[];
 }
