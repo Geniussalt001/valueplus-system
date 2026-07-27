@@ -3,6 +3,10 @@ import {
 } from "@tauri-apps/plugin-http";
 
 import {
+  invoke,
+} from "@tauri-apps/api/core";
+
+import {
   getSessionToken,
 } from "../auth/authSession";
 
@@ -18,28 +22,136 @@ interface RequestOptions {
 
 const apiUrl =
   import.meta.env
-    .VITE_APPS_SCRIPT_URL as
-    | string
-    | undefined;
+    .VITE_APPS_SCRIPT_URL ||
+  "https://script.google.com/macros/s/AKfycby8fpraC4QvMcd5Qq6k24VFGnE_TsNPTeo_Ny0FuyEWjlQuxrbklNhHvFsY_p2yJdhF/exec";
 
-const apiToken =
+const developmentApiToken =
   import.meta.env
     .VITE_APPS_SCRIPT_TOKEN as
     | string
     | undefined;
 
+let cachedDeviceToken:
+  | string
+  | null
+  | undefined;
+
 function validateConfiguration() {
   if (!apiUrl) {
     throw new Error(
-      "ยังไม่ได้ตั้งค่า VITE_APPS_SCRIPT_URL ใน .env.local",
+      "ยังไม่ได้ตั้งค่าที่อยู่ Apps Script",
+    );
+  }
+}
+
+async function getApiToken() {
+  if (
+    cachedDeviceToken !==
+    undefined
+  ) {
+    return (
+      cachedDeviceToken ||
+      developmentApiToken ||
+      ""
     );
   }
 
-  if (!apiToken) {
+  try {
+    cachedDeviceToken =
+      await invoke<
+        string | null
+      >(
+        "get_connection_token",
+      );
+  } catch {
+    cachedDeviceToken = null;
+  }
+
+  return (
+    cachedDeviceToken ||
+    developmentApiToken ||
+    ""
+  );
+}
+
+export async function hasAppsScriptConnection() {
+  return Boolean(
+    await getApiToken(),
+  );
+}
+
+export async function clearAppsScriptConnection() {
+  await invoke(
+    "clear_connection_token",
+  );
+  cachedDeviceToken = null;
+}
+
+interface ActivationResult {
+  deviceToken: string;
+  activatedAt: string;
+}
+
+export async function activateAppsScript(
+  activationCode: string,
+) {
+  validateConfiguration();
+
+  const response = await fetch(
+    apiUrl,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify({
+        action:
+          "system.activate",
+        data: {
+          activationCode:
+            activationCode.trim(),
+          deviceName:
+            "ValuePlus Windows",
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
     throw new Error(
-      "ยังไม่ได้ตั้งค่า VITE_APPS_SCRIPT_TOKEN ใน .env.local",
+      `เชื่อมต่อระบบไม่สำเร็จ (${response.status})`,
     );
   }
+
+  const result =
+    (await response.json()) as
+      AppsScriptResponse<
+        ActivationResult
+      >;
+
+  if (
+    !result.success ||
+    !result.data?.deviceToken
+  ) {
+    throw new Error(
+      result.message ||
+        "รหัสเปิดใช้งานไม่ถูกต้อง",
+    );
+  }
+
+  await invoke(
+    "save_connection_token",
+    {
+      token:
+        result.data.deviceToken,
+    },
+  );
+
+  cachedDeviceToken =
+    result.data.deviceToken;
+
+  return result.data;
 }
 
 export async function callAppsScript<T>(
@@ -48,6 +160,14 @@ export async function callAppsScript<T>(
   options: RequestOptions = {},
 ): Promise<T> {
   validateConfiguration();
+  const apiToken =
+    await getApiToken();
+
+  if (!apiToken) {
+    throw new Error(
+      "ACTIVATION_REQUIRED",
+    );
+  }
 
   const requireSession =
     options.requireSession !==
@@ -68,7 +188,7 @@ export async function callAppsScript<T>(
   }
 
   const response = await fetch(
-    apiUrl!,
+    apiUrl,
     {
       method: "POST",
 
@@ -97,6 +217,16 @@ export async function callAppsScript<T>(
       AppsScriptResponse<T>;
 
   if (!result.success) {
+    if (
+      result.message ===
+      "ไม่มีสิทธิ์เข้าใช้งาน API"
+    ) {
+      await clearAppsScriptConnection();
+      throw new Error(
+        "ACTIVATION_REQUIRED",
+      );
+    }
+
     throw new Error(
       result.message ||
         "Apps Script ไม่สามารถดำเนินการได้",
