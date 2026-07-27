@@ -15,36 +15,54 @@ import {
 
 import type {
   SystemModule,
+  WorkspaceScope,
   WorkRoute,
 } from "../types/app";
 
 interface DashboardPageProps {
+  workspaceScope: WorkspaceScope;
   onNavigate: (
     route: WorkRoute,
   ) => void;
 }
 
 export function DashboardPage({
+  workspaceScope,
   onNavigate,
 }: DashboardPageProps) {
-  const onlineCount =
+  const availableModules =
     systemModules.filter(
+      (module) =>
+        module.workspaces.includes(
+          workspaceScope,
+        ),
+    );
+
+  const onlineCount =
+    availableModules.filter(
       (module) =>
         module.status === "online",
     ).length;
 
   const availability =
-    Math.round(
-      (onlineCount /
-        systemModules.length) *
-        100,
-    );
+    availableModules.length > 0
+      ? Math.round(
+          (onlineCount /
+            availableModules.length) *
+            100,
+        )
+      : 0;
 
   const openModule = (
     module: SystemModule,
   ) => {
     onNavigate(module.route);
   };
+
+  const workspaceTitle =
+    workspaceScope === "retail"
+      ? "ระบบงานฝั่ง Retail"
+      : "ระบบงานสำนักงานใหญ่";
 
   return (
     <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
@@ -75,7 +93,7 @@ export function DashboardPage({
             <StatusBox
               icon={Boxes}
               value={String(
-                systemModules.length,
+                availableModules.length,
               ).padStart(2, "0")}
               label="ระบบงาน"
               color="text-cyan-600"
@@ -92,8 +110,13 @@ export function DashboardPage({
 
             <StatusBox
               icon={ShieldCheck}
-              value="LOCAL"
-              label="การเชื่อมต่อ"
+              value={
+                workspaceScope ===
+                "retail"
+                  ? "RETAIL"
+                  : "HQ"
+              }
+              label="พื้นที่ทำงาน"
               color="text-blue-600"
               statusClass="status-online"
             />
@@ -109,7 +132,7 @@ export function DashboardPage({
             </p>
 
             <h2 className="mt-2 text-2xl font-semibold">
-              ระบบงานทั้งหมด
+              {workspaceTitle}
             </h2>
           </div>
 
@@ -119,7 +142,7 @@ export function DashboardPage({
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-          {systemModules.map(
+          {availableModules.map(
             (module) => (
               <SystemCard
                 key={module.id}
