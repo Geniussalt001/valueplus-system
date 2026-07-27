@@ -5,6 +5,10 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - "main"
+    paths:
+      - ".github/release-version.txt"
 
 jobs:
   publish-windows-update:
