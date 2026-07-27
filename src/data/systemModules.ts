@@ -1,10 +1,11 @@
 import {
   BarChart3,
   ClipboardList,
-  FolderArchive,
   FileSpreadsheet,
   Files,
+  FolderArchive,
   HandCoins,
+  ReceiptText,
 } from "lucide-react";
 
 import type {
@@ -16,7 +17,7 @@ export const systemModules:
     {
       id: 1,
       route:
-        "split-rename-po",
+        "daily-picking",
       title:
         "ออกใบจัดรายวัน",
       subtitle:
@@ -29,6 +30,9 @@ export const systemModules:
         "#00c7ed",
       status:
         "online",
+      workspaces: [
+        "retail",
+      ],
     },
 
     {
@@ -47,12 +51,36 @@ export const systemModules:
         "#247bff",
       status:
         "online",
+      workspaces: [
+        "retail",
+      ],
     },
 
     {
       id: 3,
       route:
-        "daily-picking",
+        "sales-billing",
+      title:
+        "เปิดบิลขายสินค้า",
+      subtitle:
+        "SALES BILLING",
+      description:
+        "ส่วนงานสำหรับเตรียม ตรวจสอบ และเปิดบิลขายสินค้า",
+      icon:
+        ReceiptText,
+      color:
+        "#0f9f8f",
+      status:
+        "online",
+      workspaces: [
+        "retail",
+      ],
+    },
+
+    {
+      id: 4,
+      route:
+        "split-rename-po",
       title:
         "แยก และเปลี่ยนชื่อ PO",
       subtitle:
@@ -65,10 +93,13 @@ export const systemModules:
         "#5965d8",
       status:
         "online",
+      workspaces: [
+        "retail",
+      ],
     },
 
     {
-      id: 4,
+      id: 5,
       route:
         "daily-summary",
       title:
@@ -83,10 +114,34 @@ export const systemModules:
         "#e58a00",
       status:
         "online",
+      workspaces: [
+        "retail",
+      ],
     },
 
     {
-      id: 5,
+      id: 6,
+      route:
+        "receivables-freight",
+      title:
+        "ลงยอดลูกหนี้–ค่าขนส่ง",
+      subtitle:
+        "RECEIVABLES & FREIGHT",
+      description:
+        "บันทึก ตรวจสอบ และติดตามยอดลูกหนี้กับค่าขนส่ง",
+      icon:
+        HandCoins,
+      color:
+        "#0891b2",
+      status:
+        "online",
+      workspaces: [
+        "retail",
+      ],
+    },
+
+    {
+      id: 7,
       route:
         "po-data",
       title:
@@ -101,31 +156,9 @@ export const systemModules:
         "#0e7490",
       status:
         "online",
+      workspaces: [
+        "retail",
+        "head-office",
+      ],
     },
-
-    {
-      id: 6,
-
-      route:
-        "receivables-freight",
-
-      title:
-        "ลงยอดลูกหนี้–ค่าขนส่ง",
-
-      subtitle:
-        "RECEIVABLES & FREIGHT",
-
-      description:
-        "บันทึก ตรวจสอบ และติดตามยอดลูกหนี้กับค่าขนส่ง",
-
-      icon:
-        HandCoins,
-
-      color:
-        "#0891b2",
-
-      status:
-        "online",
-    },
-
   ];
