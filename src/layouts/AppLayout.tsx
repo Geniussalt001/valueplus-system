@@ -31,6 +31,10 @@ import {
 } from "../components/update/UpdateCenter";
 
 import {
+  NotificationCenter,
+} from "../components/notifications/NotificationCenter";
+
+import {
   systemModules,
 } from "../data/systemModules";
 
@@ -360,6 +364,11 @@ export function AppLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            <NotificationCenter
+              currentUser={currentUser}
+              onNavigate={onNavigate}
+            />
+
             <div className="hidden items-center gap-2.5 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] px-3 py-2 sm:flex">
               <span
                 className="status-light status-online"
