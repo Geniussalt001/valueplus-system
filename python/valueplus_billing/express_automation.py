@@ -94,6 +94,25 @@ class ExpressAutomation:
         if self.stop_event.is_set():
             raise AutomationStopped("ผู้ใช้กดหยุดฉุกเฉิน")
 
+    def _sleep(self, seconds: float) -> None:
+        deadline = (
+            time.monotonic()
+            + max(0.0, float(seconds))
+        )
+
+        while True:
+            self._check_stop()
+            remaining = (
+                deadline
+                - time.monotonic()
+            )
+            if remaining <= 0:
+                return
+
+            self.stop_event.wait(
+                min(0.05, remaining),
+            )
+
     def _focus_express(self) -> str:
         window = self.find_express_window()
         if window is None:
@@ -106,7 +125,7 @@ class ExpressAutomation:
         if window.isMinimized:
             window.restore()
         window.activate()
-        time.sleep(FOCUS_SETTLE_DELAY)
+        self._sleep(FOCUS_SETTLE_DELAY)
         return str(window.title)
 
     def _press(self, key: str, presses: int = 1) -> None:
@@ -115,14 +134,14 @@ class ExpressAutomation:
             self._focus_express()
             pyautogui.press(key)
             if self.key_delay > 0:
-                time.sleep(self.key_delay)
+                self._sleep(self.key_delay)
 
     def _hotkey(self, *keys: str) -> None:
         self._check_stop()
         self._focus_express()
         pyautogui.hotkey(*keys)
         if self.field_delay > 0:
-            time.sleep(self.field_delay)
+            self._sleep(self.field_delay)
 
     @staticmethod
     def _escape_sendkeys(value: str) -> str:
@@ -179,7 +198,7 @@ class ExpressAutomation:
         if completed.returncode != 0:
             raise RuntimeError("Windows SendKeys ส่งข้อความเข้า Express ไม่สำเร็จ")
         if self.field_delay > 0:
-            time.sleep(self.field_delay)
+            self._sleep(self.field_delay)
 
     def _clear_and_type(self, value: str) -> None:
         self._hotkey("ctrl", "a")
@@ -193,13 +212,13 @@ class ExpressAutomation:
             raise ValueError(f"วันที่ Express ต้องมี 6 หลัก แต่ได้รับ {value!r}")
 
         self._hotkey("ctrl", "a")
-        time.sleep(DATE_SELECT_DELAY)
+        self._sleep(DATE_SELECT_DELAY)
         self._press("backspace", 1)
-        time.sleep(DATE_DELETE_DELAY)
+        self._sleep(DATE_DELETE_DELAY)
         for digit in digits:
             self._type_text(digit)
-            time.sleep(DATE_DIGIT_DELAY)
-        time.sleep(DATE_VALUE_SETTLE_DELAY)
+            self._sleep(DATE_DIGIT_DELAY)
+        self._sleep(DATE_VALUE_SETTLE_DELAY)
 
     def _status(
         self,
@@ -239,12 +258,12 @@ class ExpressAutomation:
         order_index: int,
     ) -> None:
         self._focus_express()
-        time.sleep(ORDER_START_SETTLE_DELAY)
+        self._sleep(ORDER_START_SETTLE_DELAY)
 
         # ลำดับ header ยึดตาม express-bot-1/src/expressBot.js
         self._status(order_index, "สร้าง IV ใหม่", detail="Alt+A")
         self._hotkey("alt", "a")
-        time.sleep(NEW_INVOICE_SETTLE_DELAY)
+        self._sleep(NEW_INVOICE_SETTLE_DELAY)
 
         self._press("enter", 1)
         self._status(
@@ -253,7 +272,7 @@ class ExpressAutomation:
             detail=order.iv_number,
         )
         self._type_text(order.iv_number)
-        time.sleep(IV_FIELD_SETTLE_DELAY)
+        self._sleep(IV_FIELD_SETTLE_DELAY)
 
         self._press("enter", 1)
         self._status(
@@ -266,7 +285,7 @@ class ExpressAutomation:
         self._press("enter", 1)
         self._status(order_index, "พิมพ์รหัสลูกค้า", detail="MT001")
         self._type_text("MT001")
-        time.sleep(HEADER_FIELD_SETTLE_DELAY)
+        self._sleep(HEADER_FIELD_SETTLE_DELAY)
 
         self._press("enter", 4)
         self._status(
@@ -275,7 +294,7 @@ class ExpressAutomation:
             detail=order.po_number,
         )
         self._type_text(order.po_number)
-        time.sleep(HEADER_FIELD_SETTLE_DELAY)
+        self._sleep(HEADER_FIELD_SETTLE_DELAY)
 
         self._press("enter", 4)
         self._status(
@@ -284,7 +303,7 @@ class ExpressAutomation:
             detail=order.sales_area_code,
         )
         self._type_text(order.sales_area_code)
-        time.sleep(SALES_AREA_SETTLE_DELAY)
+        self._sleep(SALES_AREA_SETTLE_DELAY)
 
         self._press("enter", 8)
         active_items = [item for item in order.items if not item.excluded]
@@ -299,7 +318,7 @@ class ExpressAutomation:
             len(active_items) - 1,
             f"{LAST_ITEM_SETTLE_DELAY:.2f} วินาที",
         )
-        time.sleep(LAST_ITEM_SETTLE_DELAY)
+        self._sleep(LAST_ITEM_SETTLE_DELAY)
         self._status(
             order_index,
             "บันทึก IV",
@@ -307,9 +326,9 @@ class ExpressAutomation:
             "Esc 2 ครั้ง",
         )
         self._press("esc", 1)
-        time.sleep(BETWEEN_SAVE_ESC_DELAY)
+        self._sleep(BETWEEN_SAVE_ESC_DELAY)
         self._press("esc", 1)
-        time.sleep(AFTER_INVOICE_SAVE_DELAY)
+        self._sleep(AFTER_INVOICE_SAVE_DELAY)
 
     def _wait_if_pause_requested(self, order_index: int) -> None:
         if not self.pause_requested.is_set():
@@ -345,15 +364,15 @@ class ExpressAutomation:
             item_index,
             f"{item.express_input_code} • {settle_delay:.2f} วินาที",
         )
-        time.sleep(settle_delay)
+        self._sleep(settle_delay)
         self._press("enter", 1)
         self._status(order_index, "เปลี่ยนคลังสินค้า", item_index, "02")
         self._hotkey("ctrl", "a")
-        time.sleep(WAREHOUSE_SELECT_DELAY)
+        self._sleep(WAREHOUSE_SELECT_DELAY)
         self._press("backspace", 1)
-        time.sleep(WAREHOUSE_DELETE_DELAY)
+        self._sleep(WAREHOUSE_DELETE_DELAY)
         self._type_text("02")
-        time.sleep(WAREHOUSE_VALUE_SETTLE_DELAY)
+        self._sleep(WAREHOUSE_VALUE_SETTLE_DELAY)
 
         self._press("enter", 1)
         quantity = f"{item.quantity:.2f}"
