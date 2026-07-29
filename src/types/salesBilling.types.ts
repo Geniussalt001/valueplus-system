@@ -42,7 +42,15 @@ export interface SalesBillingPreview {
 }
 
 export interface SalesBillingProgress {
-  type: "progress" | "paused" | "finished";
+  type:
+    | "progress"
+    | "paused"
+    | "finished"
+    | "control";
+  action?:
+    | "PAUSE"
+    | "RESUME"
+    | "STOP";
   success?: boolean;
   message?: string;
   orderIndex?: number;
