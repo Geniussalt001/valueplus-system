@@ -28,6 +28,10 @@ import {
   dailySoService,
 } from "../../services/dailySoService";
 
+import {
+  ProcessStatusOverlay,
+} from "../../components/common/ProcessStatusOverlay";
+
 import type {
   DailySoGroup,
   DailySoPaths,
@@ -168,6 +172,23 @@ export function DailySoPage({
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!success) {
+      return;
+    }
+
+    const timer =
+      window.setTimeout(() => {
+        setSuccess("");
+      }, 4500);
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      );
+    };
+  }, [success]);
 
   const choosePdf = async () => {
     if (busy) {
@@ -424,6 +445,14 @@ export function DailySoPage({
         lg:px-10
       "
     >
+      <ProcessStatusOverlay
+        open={busy}
+        title={
+          activity === "export"
+            ? "กำลังสร้างไฟล์ Q19 และ Q20..."
+            : "กำลังอ่าน PDF และรวมยอด SO..."
+        }
+      />
       <header
         className="
           flex
@@ -536,13 +565,19 @@ export function DailySoPage({
             gap-4
             rounded-2xl
             border
-            border-sky-300/25
-            bg-sky-300/[0.06]
+            border-sky-200
+            bg-gradient-to-br
+            from-white
+            via-white
+            to-cyan-50
             p-5
             text-left
+            shadow-sm
             transition
-            hover:border-sky-300/45
-            hover:bg-sky-300/[0.1]
+            hover:-translate-y-0.5
+            hover:border-cyan-400
+            hover:shadow-lg
+            hover:shadow-cyan-100/70
             disabled:opacity-40
           "
         >
@@ -556,9 +591,9 @@ export function DailySoPage({
               justify-center
               rounded-xl
               border
-              border-sky-300/25
-              bg-sky-300/10
-              text-sky-300
+              border-cyan-200
+              bg-cyan-50
+              text-sky-600
             "
           >
             <Upload
@@ -570,7 +605,7 @@ export function DailySoPage({
             <p
               className="
                 font-medium
-                text-white
+                text-slate-900
               "
             >
               อัปโหลดไฟล์ PDF
@@ -583,8 +618,8 @@ export function DailySoPage({
                 text-xs
                 ${
                   pdfPath
-                    ? "text-emerald-300"
-                    : "text-slate-500"
+                    ? "font-medium text-emerald-600"
+                    : "text-slate-400"
                 }
               `}
             >
@@ -698,14 +733,68 @@ export function DailySoPage({
       )}
 
       {success && (
-        <MessageBox
-          kind="success"
-          title={success}
-          message={
-            preview?.output_paths
-              .join(" | ") ?? ""
-          }
-        />
+        <div
+          role="status"
+          className="
+            fixed
+            right-6
+            top-24
+            z-[100]
+            w-[min(440px,calc(100vw-3rem))]
+            rounded-2xl
+            border
+            border-emerald-200
+            bg-white
+            p-4
+            shadow-2xl
+            shadow-slate-900/15
+          "
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className="
+                mt-0.5
+                flex
+                h-9
+                w-9
+                shrink-0
+                items-center
+                justify-center
+                rounded-xl
+                bg-emerald-50
+                text-emerald-600
+              "
+            >
+              <CheckCircle2 size={19} />
+            </div>
+
+            <div className="min-w-0">
+              <p className="font-semibold text-slate-900">
+                {success}
+              </p>
+
+              {preview?.output_paths.length ? (
+                <p
+                  className="
+                    mt-1
+                    truncate
+                    text-xs
+                    text-slate-500
+                  "
+                  title={
+                    preview.output_paths
+                      .join(" | ")
+                  }
+                >
+                  {
+                    preview.output_paths
+                      .join(" | ")
+                  }
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
       )}
 
       <div
@@ -935,18 +1024,22 @@ export function DailySoPage({
               gap-2
               rounded-xl
               border
-              border-sky-400/40
-              bg-sky-500
+              border-cyan-300
+              bg-gradient-to-r
+              from-cyan-50
+              to-sky-50
               px-6
               py-3
               text-sm
               font-semibold
-              text-white
+              text-cyan-800
               shadow-lg
-              shadow-sky-500/20
+              shadow-cyan-200/40
               transition
               hover:-translate-y-0.5
-              hover:bg-sky-600
+              hover:border-cyan-400
+              hover:from-cyan-100
+              hover:to-sky-100
               disabled:cursor-not-allowed
               disabled:opacity-35
             "
@@ -1052,6 +1145,10 @@ export function DailySoPage({
                 <GroupPreview
                   key={group.code}
                   group={group}
+                  documentDate={
+                    preview
+                      .document_date
+                  }
                   adjusting={
                     adjusting
                   }
@@ -1103,12 +1200,14 @@ export function DailySoPage({
 
 function GroupPreview({
   group,
+  documentDate,
   adjusting,
   quantityEdits,
   onQuantityChange,
   onQuantityRestore,
 }: {
   group: DailySoGroup;
+  documentDate: string;
   adjusting: boolean;
   quantityEdits:
     QuantityEdits;
@@ -1245,7 +1344,13 @@ function GroupPreview({
             text-slate-400
           "
         >
-          {group.po_text}
+          {group.code}{" "}
+          {group.po_text}{" "}
+          {
+            formatCompactDocumentDate(
+              documentDate,
+            )
+          }
         </p>
       </div>
 
@@ -2212,6 +2317,58 @@ function formatNumber(
   return numberFormatter.format(
     value,
   );
+}
+
+function formatCompactDocumentDate(
+  value: string,
+): string {
+  const parts = String(
+    value || "",
+  )
+    .trim()
+    .split(/[./-]/)
+    .filter(Boolean);
+
+  if (parts.length !== 3) {
+    return value;
+  }
+
+  const yearFirst =
+    parts[0].length === 4;
+
+  const day = Number(
+    yearFirst
+      ? parts[2]
+      : parts[0],
+  );
+
+  const month = Number(
+    parts[1],
+  );
+
+  let year = Number(
+    yearFirst
+      ? parts[0]
+      : parts[2],
+  );
+
+  if (
+    !Number.isFinite(day) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(year)
+  ) {
+    return value;
+  }
+
+  if (year >= 2400) {
+    year -= 543;
+  }
+
+  const shortYear = String(
+    year % 100,
+  ).padStart(2, "0");
+
+  return `${day}/${month}/${shortYear}`;
 }
 
 function getErrorMessage(
