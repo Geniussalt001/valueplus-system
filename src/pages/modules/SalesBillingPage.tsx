@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -24,9 +25,12 @@ import {
   Octagon,
   Play,
   ReceiptText,
-  RefreshCw,
   ShieldCheck,
 } from "lucide-react";
+
+import {
+  ProcessStatusOverlay,
+} from "../../components/common/ProcessStatusOverlay";
 
 import {
   salesBillingService,
@@ -40,6 +44,8 @@ import type {
 
 interface SalesBillingPageProps {
   onBack: () => void;
+  initialPdfPath?: string;
+  onInitialPdfConsumed?: () => void;
 }
 
 type Activity =
@@ -50,7 +56,11 @@ type Activity =
 
 export function SalesBillingPage({
   onBack,
+  initialPdfPath,
+  onInitialPdfConsumed,
 }: SalesBillingPageProps) {
+  const consumedPdfRef =
+    useRef("");
   const [pdfPath, setPdfPath] =
     useState("");
   const [startIv, setStartIv] =
@@ -77,6 +87,30 @@ export function SalesBillingPage({
     useState("");
 
   useEffect(() => {
+    if (
+      !initialPdfPath ||
+      consumedPdfRef.current ===
+        initialPdfPath
+    ) {
+      return;
+    }
+
+    consumedPdfRef.current =
+      initialPdfPath;
+    setPdfPath(initialPdfPath);
+    setPreview(null);
+    setProgress(null);
+    setError("");
+    setSuccess(
+      "รับไฟล์ PDF จากขั้นตอนลงยอด SO แล้ว",
+    );
+    onInitialPdfConsumed?.();
+  }, [
+    initialPdfPath,
+    onInitialPdfConsumed,
+  ]);
+
+  useEffect(() => {
     let active = true;
     let stopListening:
       | (() => void)
@@ -89,6 +123,28 @@ export function SalesBillingPage({
           return;
         }
         setProgress(event.payload);
+        if (
+          event.payload.type ===
+          "control"
+        ) {
+          if (
+            event.payload.action ===
+            "PAUSE"
+          ) {
+            setPaused(true);
+          } else if (
+            event.payload.action ===
+            "RESUME"
+          ) {
+            setPaused(false);
+          } else if (
+            event.payload.action ===
+            "STOP"
+          ) {
+            setPaused(false);
+            setSuccess("");
+          }
+        }
         if (
           event.payload.type ===
           "finished"
@@ -384,6 +440,22 @@ export function SalesBillingPage({
 
   return (
     <div className="mx-auto max-w-[1580px] px-6 py-8 lg:px-10">
+      <ProcessStatusOverlay
+        open={
+          activity === "selecting" ||
+          activity === "previewing"
+        }
+        title={
+          activity === "selecting"
+            ? "กำลังเปิดหน้าต่างเลือกไฟล์ PDF..."
+            : "กำลังอ่าน PDF และจัดคิว IV..."
+        }
+        description={
+          activity === "selecting"
+            ? "กรุณาเลือกไฟล์ที่ต้องการนำมาเปิดบิล"
+            : "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล"
+        }
+      />
       <button
         type="button"
         onClick={onBack}
@@ -419,23 +491,23 @@ export function SalesBillingPage({
           onClick={() => {
             void choosePdf();
           }}
-          className="min-h-32 rounded-2xl border border-cyan-300 bg-gradient-to-r from-[#063653] to-[#075b78] p-6 text-left text-white shadow-[0_12px_30px_rgba(8,145,178,0.14)] transition hover:-translate-y-0.5 disabled:opacity-50"
+          className="min-h-32 rounded-2xl border border-cyan-300 bg-gradient-to-br from-white via-cyan-50/70 to-blue-50 p-6 text-left text-slate-900 shadow-[0_12px_30px_rgba(8,145,178,0.12)] transition hover:-translate-y-0.5 hover:border-cyan-400 disabled:opacity-50"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
               <FileUp
                 size={24}
-                className="text-cyan-200"
+                className="text-cyan-600"
               />
               <h3 className="mt-4 font-semibold">
                 อัปโหลดไฟล์ PDF
               </h3>
-              <p className="mt-2 break-all text-xs leading-5 text-cyan-100/80">
+              <p className="mt-2 break-all text-xs leading-5 text-slate-500">
                 {pdfPath ||
                   "เลือกไฟล์รายงาน PO จาก CP ALL"}
               </p>
             </div>
-            <span className="rounded-full border border-cyan-200/30 px-3 py-1 text-[10px] text-cyan-100">
+            <span className="rounded-full border border-cyan-200 bg-white px-3 py-1 text-[10px] font-semibold text-cyan-700">
               PDF
             </span>
           </div>
@@ -463,6 +535,11 @@ export function SalesBillingPage({
               className="min-w-0 flex-1 bg-transparent px-4 py-3 font-mono text-slate-800 outline-none"
             />
           </div>
+        </div>
+      </section>
+
+      {activity !== "previewing" && (
+        <div className="mt-5 flex justify-end">
           <button
             type="button"
             disabled={
@@ -473,21 +550,13 @@ export function SalesBillingPage({
             onClick={() => {
               void buildPreview();
             }}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#063653] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-950/10 transition hover:bg-[#075b78] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-w-[280px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#063653] to-[#08769a] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/15 transition hover:-translate-y-0.5 hover:from-[#075b78] hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {activity ===
-            "previewing" ? (
-              <RefreshCw
-                size={18}
-                className="animate-spin"
-              />
-            ) : (
-              <FileSearch size={18} />
-            )}
+            <FileSearch size={18} />
             ประมวลผลและแสดง Preview
           </button>
         </div>
-      </section>
+      )}
 
       {(error || success) && (
         <div
@@ -956,6 +1025,29 @@ export function SalesBillingPage({
                   ที่หน้า IV
                   และห้ามใช้เมาส์หรือคีย์บอร์ดระหว่างระบบทำงาน
                 </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[10px] font-semibold tracking-[0.16em] text-slate-500">
+                    ปุ่มลัดควบคุม EXPRESS
+                  </p>
+                  <div className="mt-3 grid gap-2 text-xs text-slate-600">
+                    <HotkeyHint
+                      hotkey="F12"
+                      label="หยุดการคีย์ทันที"
+                      tone="red"
+                    />
+                    <HotkeyHint
+                      hotkey="Pause / Break"
+                      label="จบ IV ปัจจุบันแล้วพัก"
+                      tone="amber"
+                    />
+                    <HotkeyHint
+                      hotkey="Insert"
+                      label="ทำงานต่อจาก Pause"
+                      tone="emerald"
+                    />
+                  </div>
+                </div>
               </div>
             </aside>
           </div>
@@ -1038,6 +1130,39 @@ function MonitorField({
       <p className="mt-1 break-words text-sm font-semibold text-slate-800">
         {value}
       </p>
+    </div>
+  );
+}
+
+function HotkeyHint({
+  hotkey,
+  label,
+  tone,
+}: {
+  hotkey: string;
+  label: string;
+  tone:
+    | "red"
+    | "amber"
+    | "emerald";
+}) {
+  const toneClass = {
+    red: "border-red-200 bg-red-50 text-red-700",
+    amber:
+      "border-amber-200 bg-amber-50 text-amber-700",
+    emerald:
+      "border-emerald-200 bg-emerald-50 text-emerald-700",
+  }[tone];
+
+  return (
+    <div className="flex items-center justify-between gap-3 text-xs text-slate-600">
+      <span>{label}</span>
+
+      <kbd
+        className={`min-w-20 rounded-lg border px-2.5 py-1.5 text-center font-mono text-[11px] font-semibold shadow-sm ${toneClass}`}
+      >
+        {hotkey}
+      </kbd>
     </div>
   );
 }
