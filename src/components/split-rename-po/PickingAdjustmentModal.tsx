@@ -82,6 +82,11 @@ export function PickingAdjustmentModal({
   ] = useState("");
 
   const [
+    productSearch,
+    setProductSearch,
+  ] = useState("");
+
+  const [
     stockRemaining,
     setStockRemaining,
   ] = useState("");
@@ -193,6 +198,31 @@ export function PickingAdjustmentModal({
       (product) =>
         product.key ===
         selectedProductKey,
+    );
+
+  const filteredProducts =
+    useMemo(
+      () => {
+        const query =
+          normalizeSearchText(
+            productSearch,
+          );
+
+        if (!query) {
+          return realtimeProducts;
+        }
+
+        return realtimeProducts.filter(
+          (product) =>
+            normalizeSearchText(
+              `${product.name} ${product.barcode}`,
+            ).includes(query),
+        );
+      },
+      [
+        productSearch,
+        realtimeProducts,
+      ],
     );
 
   const visibleRecords =
@@ -705,7 +735,7 @@ export function PickingAdjustmentModal({
               "
             >
               <label
-                htmlFor="picking-product-filter"
+                htmlFor="picking-product-search"
                 className="
                   flex
                   items-center
@@ -723,6 +753,151 @@ export function PickingAdjustmentModal({
                 />
                 1. เลือกสินค้าที่ต้องการตัดยอด
               </label>
+
+              <div
+                className="
+                  relative
+                  mt-2
+                "
+              >
+                <Search
+                  size={16}
+                  className="
+                    pointer-events-none
+                    absolute
+                    left-3
+                    top-1/2
+                    -translate-y-1/2
+                    text-sky-500
+                  "
+                />
+
+                <input
+                  id="picking-product-search"
+                  type="search"
+                  value={productSearch}
+                  onChange={(event) => {
+                    setProductSearch(
+                      event.target.value,
+                    );
+                  }}
+                  disabled={disabled}
+                  placeholder="ค้นหาชื่อสินค้า หรือบาร์โค้ด..."
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-sky-200
+                    bg-white
+                    py-2.5
+                    pl-10
+                    pr-3
+                    text-sm
+                    text-slate-900
+                    outline-none
+                    transition
+                    placeholder:text-slate-400
+                    focus:border-cyan-400
+                    focus:ring-2
+                    focus:ring-cyan-100
+                    disabled:opacity-50
+                  "
+                />
+              </div>
+
+              {productSearch.trim() &&
+                filteredProducts.length > 0 && (
+                <div
+                  className="
+                    mt-2
+                    max-h-44
+                    overflow-y-auto
+                    rounded-xl
+                    border
+                    border-sky-200
+                    bg-white
+                    p-1.5
+                    shadow-lg
+                    shadow-sky-950/10
+                  "
+                  role="listbox"
+                  aria-label="ผลการค้นหาสินค้า"
+                >
+                  {filteredProducts
+                    .slice(0, 12)
+                    .map((product) => (
+                      <button
+                        key={product.key}
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          product.key ===
+                          selectedProductKey
+                        }
+                        onClick={() => {
+                          setSelectedProductKey(
+                            product.key,
+                          );
+                          setProductSearch("");
+                        }}
+                        className="
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+                          rounded-lg
+                          border-0
+                          !bg-transparent
+                          px-3
+                          py-2
+                          text-left
+                          shadow-none
+                          transition
+                          hover:!bg-cyan-50
+                        "
+                      >
+                        <span className="min-w-0">
+                          <span
+                            className="
+                              block
+                              truncate
+                              text-sm
+                              font-medium
+                              text-slate-800
+                            "
+                          >
+                            {product.name}
+                          </span>
+                          <span
+                            className="
+                              mt-0.5
+                              block
+                              text-[10px]
+                              text-slate-400
+                            "
+                          >
+                            {product.barcode ||
+                              "ไม่มีบาร์โค้ด"}
+                          </span>
+                        </span>
+
+                        <span
+                          className="
+                            shrink-0
+                            text-xs
+                            font-semibold
+                            text-emerald-600
+                          "
+                        >
+                          {formatNumber(
+                            product.current,
+                          )} ชิ้น
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              )}
 
               <div
                 className="
@@ -769,7 +944,7 @@ export function PickingAdjustmentModal({
                     แสดงสินค้าทั้งหมด
                   </option>
 
-                  {realtimeProducts.map(
+                  {filteredProducts.map(
                     (product) => (
                       <option
                         key={product.key}
@@ -812,6 +987,25 @@ export function PickingAdjustmentModal({
                   </button>
                 )}
               </div>
+
+              {productSearch.trim() &&
+                filteredProducts.length === 0 && (
+                <p
+                  className="
+                    mt-2
+                    rounded-lg
+                    border
+                    border-amber-200
+                    bg-amber-50
+                    px-3
+                    py-2
+                    text-xs
+                    text-amber-700
+                  "
+                >
+                  ไม่พบสินค้าที่ตรงกับ “{productSearch.trim()}”
+                </p>
+              )}
 
               {!selectedProduct && (
                 <div
@@ -2115,4 +2309,14 @@ function formatNumber(
   return formatter.format(
     value,
   );
+}
+
+function normalizeSearchText(
+  value: string,
+): string {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase("th-TH")
+    .replace(/\s+/g, " ")
+    .trim();
 }
