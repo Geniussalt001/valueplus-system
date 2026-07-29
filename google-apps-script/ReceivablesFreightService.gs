@@ -22,7 +22,10 @@ const RECEIVABLES_CONFIG = {
   ],
 };
 
-function saveReceivablesMonthly(input) {
+function saveReceivablesMonthly(
+  input,
+  userCode,
+) {
   const records =
     input && Array.isArray(input.records)
       ? input.records
@@ -149,6 +152,30 @@ function saveReceivablesMonthly(input) {
     );
 
     SpreadsheetApp.flush();
+
+    if (inserted.length > 0) {
+      createValuePlusNotification({
+        targetUserCode:
+          "HEADOFFICE",
+        category:
+          "receivables-archive",
+        title:
+          "อัปเดตแฟ้มลูกหนี้–ค่าขนส่ง",
+        message:
+          title +
+          " · เพิ่ม " +
+          inserted.length +
+          " Invoice",
+        entityType:
+          "receivables-archive",
+        entityId:
+          spreadsheet.getId(),
+        archiveSection:
+          "receivables",
+        createdBy:
+          userCode || "OFFICE",
+      });
+    }
 
     return {
       spreadsheetId:

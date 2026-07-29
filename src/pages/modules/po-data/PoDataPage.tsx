@@ -37,11 +37,14 @@ export function PoDataPage({
   currentUser,
   onBack,
 }: PoDataPageProps) {
+  const initialSection =
+    getInitialArchiveSection();
+
   const [
     selectedSection,
     setSelectedSection,
   ] = useState<ArchiveSection>(
-    null,
+    initialSection,
   );
 
   if (
@@ -210,6 +213,28 @@ export function PoDataPage({
 
     </div>
   );
+}
+
+function getInitialArchiveSection(): ArchiveSection {
+  const savedSection =
+    sessionStorage.getItem(
+      "valueplus-archive-section",
+    );
+
+  sessionStorage.removeItem(
+    "valueplus-archive-section",
+  );
+
+  if (
+    savedSection ===
+      "po-seven" ||
+    savedSection ===
+      "receivables"
+  ) {
+    return savedSection;
+  }
+
+  return null;
 }
 
 interface ArchiveFolderCardProps {

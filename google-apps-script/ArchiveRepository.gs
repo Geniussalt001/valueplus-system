@@ -187,6 +187,27 @@ function uploadPoArchive(
       "",
     ]);
 
+    createValuePlusNotification({
+      targetUserCode:
+        "HEADOFFICE",
+      category: "po-archive",
+      title:
+        "มีเอกสาร PO ใหม่",
+      message:
+        poNumber +
+        " · " +
+        cleanText(
+          input.warehouse,
+        ),
+      entityType:
+        "po-archive",
+      entityId: id,
+      archiveSection:
+        "po-seven",
+      createdBy:
+        userCode || "OFFICE",
+    });
+
     return {
       status: "stored",
       message:

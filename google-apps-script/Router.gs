@@ -129,6 +129,29 @@ function doPost(event) {
         data =
           saveReceivablesMonthly(
             request.data,
+            session.userCode,
+          );
+        break;
+
+      case "notification.listUnread":
+        data =
+          listUnreadValuePlusNotifications(
+            session.userCode,
+          );
+        break;
+
+      case "notification.markRead":
+        data =
+          markValuePlusNotificationRead(
+            request.data.id,
+            session.userCode,
+          );
+        break;
+
+      case "notification.markAllRead":
+        data =
+          markAllValuePlusNotificationsRead(
+            session.userCode,
           );
         break;
 
