@@ -182,9 +182,9 @@ function App() {
     setRoute("daily-so");
   };
 
-  const continueToPdfSplitter = (pdfPath: string) => {
+  const continueToSalesBilling = (pdfPath: string) => {
     setNextProcessPdfPath(pdfPath);
-    setRoute("split-rename-po");
+    setRoute("sales-billing");
   };
 
   const continueToDailySummary = () => {
@@ -212,7 +212,7 @@ function App() {
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
             onInitialPdfConsumed={consumeNextProcessPdf}
-            onNextProcess={continueToPdfSplitter}
+            onNextProcess={continueToSalesBilling}
           />
         );
 
@@ -220,6 +220,8 @@ function App() {
         return (
           <SalesBillingPage
             onBack={backToDashboard}
+            initialPdfPath={nextProcessPdfPath}
+            onInitialPdfConsumed={consumeNextProcessPdf}
           />
         );
 
