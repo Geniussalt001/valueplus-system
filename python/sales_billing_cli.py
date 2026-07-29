@@ -179,6 +179,70 @@ def read_control(control_path: Path) -> str:
         return ""
 
 
+def watch_global_hotkeys(
+    automation: Any,
+    finished: threading.Event,
+) -> None:
+    if os.name != "nt":
+        return
+
+    import ctypes
+
+    user32 = ctypes.windll.user32
+    shortcuts = {
+        0x7B: (
+            "STOP",
+            automation.stop,
+            "F12: หยุดการคีย์ทันที",
+        ),
+        0x2D: (
+            "RESUME",
+            automation.resume,
+            "Insert: ทำงานต่อ",
+        ),
+        0x13: (
+            "PAUSE",
+            automation.request_pause,
+            "Pause/Break: จะพักหลังจบ IV ปัจจุบัน",
+        ),
+    }
+    pressed: set[int] = set()
+
+    while not finished.wait(0.04):
+        for virtual_key, (
+            action,
+            callback,
+            message,
+        ) in shortcuts.items():
+            is_down = bool(
+                user32.GetAsyncKeyState(
+                    virtual_key,
+                )
+                & 0x8000
+            )
+
+            if (
+                is_down
+                and virtual_key
+                not in pressed
+            ):
+                callback()
+                write_json(
+                    {
+                        "type": "control",
+                        "action": action,
+                        "message": message,
+                    },
+                )
+
+            if is_down:
+                pressed.add(virtual_key)
+            else:
+                pressed.discard(
+                    virtual_key,
+                )
+
+
 def run_automation(
     orders: list[PurchaseOrder],
     control_path: Path,
@@ -222,6 +286,14 @@ def run_automation(
         daemon=True,
     )
     watcher.start()
+
+    hotkey_watcher = threading.Thread(
+        target=watch_global_hotkeys,
+        args=(automation, finished),
+        daemon=True,
+    )
+    hotkey_watcher.start()
+
     automation.run_orders(orders)
     finished.set()
     write_json({
