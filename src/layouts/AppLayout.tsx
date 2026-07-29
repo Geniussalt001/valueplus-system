@@ -9,7 +9,6 @@ import {
   Link2,
   LockKeyhole,
   LogOut,
-  Server,
   ShoppingBag,
   UserRound,
 } from "lucide-react";
@@ -134,7 +133,7 @@ export function AppLayout({
           WORKSPACE
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-1.5">
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5">
           <button
             type="button"
             onClick={() =>
@@ -156,8 +155,8 @@ export function AppLayout({
               ${
                 workspaceScope ===
                 "retail"
-                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
-                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+                  ? "border border-cyan-500 bg-cyan-500 text-white shadow-md shadow-cyan-500/25"
+                  : "border border-transparent text-cyan-700 hover:bg-cyan-50"
               }
             `}
           >
@@ -186,8 +185,8 @@ export function AppLayout({
               ${
                 workspaceScope ===
                 "head-office"
-                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
-                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+                  ? "border border-violet-600 bg-violet-600 text-white shadow-md shadow-violet-500/25"
+                  : "border border-transparent text-violet-700 hover:bg-violet-50"
               }
             `}
           >
@@ -200,7 +199,7 @@ export function AppLayout({
           MAIN NAVIGATION
         </p>
 
-        <nav className="mt-4 space-y-1.5">
+        <nav className="mt-5 space-y-2.5">
           <button
             type="button"
             onClick={() =>
@@ -223,7 +222,7 @@ export function AppLayout({
             />
           </button>
 
-          <p className="px-3 pb-1 pt-5 text-[10px] tracking-[0.2em] text-slate-700">
+          <p className="px-3 pb-2 pt-6 text-[10px] tracking-[0.2em] text-slate-700">
             WORK MODULES
           </p>
 
@@ -318,32 +317,8 @@ export function AppLayout({
           )}
         </nav>
 
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto space-y-3 pt-6">
           <UpdateCenter />
-
-          <div className="rounded-xl border border-cyan-600/15 bg-cyan-50/70 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span
-                className="status-light status-online"
-                aria-hidden="true"
-              />
-
-              <Server
-                size={18}
-                className="text-emerald-600"
-              />
-
-              <div>
-                <p className="text-xs text-slate-300">
-                  Local Service
-                </p>
-
-                <p className="mt-1 text-[10px] tracking-[0.15em] text-emerald-300">
-                  CONNECTED
-                </p>
-              </div>
-            </div>
-          </div>
 
           <p className="pt-2 text-[10px] tracking-[0.15em] text-slate-700">
             VALUEPLUS SYSTEM · AUTO UPDATE
