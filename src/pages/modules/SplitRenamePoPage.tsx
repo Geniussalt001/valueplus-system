@@ -1,5 +1,11 @@
 import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
   ArrowLeft,
+  CheckCircle2,
   ClipboardList,
   FileCheck2,
   FolderOpen,
@@ -56,9 +62,35 @@ export function SplitRenamePoPage({
   const processor =
     usePoProcessor();
 
+  const [
+    successToast,
+    setSuccessToast,
+  ] = useState("");
+
   const busy =
     processor.activity !==
     "idle";
+
+  useEffect(() => {
+    if (!processor.success) {
+      return;
+    }
+
+    setSuccessToast(
+      processor.success,
+    );
+
+    const timer =
+      window.setTimeout(() => {
+        setSuccessToast("");
+      }, 4500);
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      );
+    };
+  }, [processor.success]);
 
   return (
     <div
@@ -75,6 +107,74 @@ export function SplitRenamePoPage({
           processor.activity
         }
       />
+
+      {successToast && (
+        <div
+          role="status"
+          className="
+            fixed
+            right-6
+            top-24
+            z-[100]
+            flex
+            w-[min(420px,calc(100vw-3rem))]
+            items-start
+            gap-3
+            rounded-2xl
+            border
+            border-emerald-200
+            bg-white
+            px-5
+            py-4
+            text-emerald-800
+            shadow-2xl
+            shadow-emerald-900/15
+          "
+        >
+          <span
+            className="
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              bg-emerald-50
+              text-emerald-600
+            "
+          >
+            <CheckCircle2 size={20} />
+          </span>
+
+          <div className="min-w-0">
+            <p className="font-semibold">
+              {successToast}
+            </p>
+
+            {processor
+              .savedOutputPath && (
+              <p
+                className="
+                  mt-1
+                  truncate
+                  text-xs
+                  text-slate-500
+                "
+                title={
+                  processor
+                    .savedOutputPath
+                }
+              >
+                {
+                  processor
+                    .savedOutputPath
+                }
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <PickingAdjustmentModal
         open={
@@ -291,46 +391,6 @@ export function SplitRenamePoPage({
               processor.error
             }
           </p>
-        </div>
-      )}
-
-      {processor.success && (
-        <div
-          className="
-            mt-5
-            rounded-xl
-            border
-            border-emerald-300/20
-            bg-emerald-300/[0.07]
-            px-5
-            py-4
-            text-sm
-            leading-6
-            text-emerald-200
-          "
-        >
-          <p className="font-medium">
-            {
-              processor.success
-            }
-          </p>
-
-          {processor
-            .savedOutputPath && (
-            <p
-              className="
-                mt-1
-                break-all
-                text-xs
-                text-emerald-200/80
-              "
-            >
-              {
-                processor
-                  .savedOutputPath
-              }
-            </p>
-          )}
         </div>
       )}
 
