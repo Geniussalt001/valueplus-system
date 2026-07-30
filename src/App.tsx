@@ -274,7 +274,6 @@ function App() {
         return (
           <PoDataPage
             currentUser={currentUser}
-            workspaceScope={workspaceScope}
             onBack={backToDashboard}
           />
         );

@@ -18,10 +18,6 @@ import type {
   AppUser,
 } from "../../../auth/auth.types";
 
-import type {
-  WorkspaceScope,
-} from "../../../types/app";
-
 import {
   PoSevenArchivePage,
 } from "./PoSevenArchivePage";
@@ -32,7 +28,6 @@ import {
 
 interface PoDataPageProps {
   currentUser: AppUser;
-  workspaceScope: WorkspaceScope;
   onBack: () => void;
 }
 
@@ -43,7 +38,6 @@ type ArchiveSection =
 
 export function PoDataPage({
   currentUser,
-  workspaceScope,
   onBack,
 }: PoDataPageProps) {
   const [
@@ -182,63 +176,58 @@ export function PoDataPage({
           lg:grid-cols-2
         "
       >
-        {workspaceScope ===
-        "retail" ? (
-          <>
-            <ArchiveFolderCard
-              title="แฟ้มข้อมูล PO Seven"
-              subtitle="SEVEN PO ARCHIVE"
-              description=""
-              icon={
-                <FileArchive
-                  size={25}
-                />
-              }
-              accent="cyan"
-              status="พร้อมใช้งาน"
-              features={[]}
-              onClick={() => {
-                setSelectedSection(
-                  "po-seven",
-                );
-              }}
+        <ArchiveFolderCard
+          title="แฟ้มข้อมูล PO Seven"
+          subtitle="SEVEN PO ARCHIVE"
+          description=""
+          icon={
+            <FileArchive
+              size={25}
             />
+          }
+          accent="cyan"
+          status="พร้อมใช้งาน"
+          features={[]}
+          onClick={() => {
+            setSelectedSection(
+              "po-seven",
+            );
+          }}
+        />
 
-            <ArchiveFolderCard
-              title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
-              subtitle="RECEIVABLES & FREIGHT"
-              description=""
-              icon={
-                <Truck
-                  size={25}
-                />
-              }
-              accent="amber"
-              status="พร้อมใช้งาน"
-              features={[]}
-              onClick={() => {
-                setSelectedSection(
-                  "receivables",
-                );
-              }}
+        <ArchiveFolderCard
+          title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
+          subtitle="RECEIVABLES & FREIGHT"
+          description=""
+          icon={
+            <Truck
+              size={25}
             />
-          </>
-        ) : (
-          <ArchiveFolderCard
-            title="แฟ้มข้อมูล รีเทลขายเวิร์ลไวด์"
-            subtitle="RETAIL WORLDWIDE ARCHIVE"
-            description="พื้นที่เตรียมแฟ้มข้อมูลสำหรับงานรีเทลขายเวิร์ลไวด์"
-            icon={
-              <Globe2
-                size={25}
-              />
-            }
-            accent="violet"
-            status="OFFLINE"
-            features={[]}
-            locked
-          />
-        )}
+          }
+          accent="amber"
+          status="พร้อมใช้งาน"
+          features={[]}
+          onClick={() => {
+            setSelectedSection(
+              "receivables",
+            );
+          }}
+        />
+
+        <ArchiveFolderCard
+          title="แฟ้มข้อมูล รีเทลขายเวิร์ลไวด์"
+          subtitle="RETAIL WORLDWIDE ARCHIVE"
+          description="พื้นที่เตรียมแฟ้มข้อมูลสำหรับงานรีเทลขายเวิร์ลไวด์"
+          icon={
+            <Globe2
+              size={25}
+            />
+          }
+          accent="violet"
+          status="OFFLINE"
+          features={[]}
+          locked
+        />
       </section>
 
     </div>
