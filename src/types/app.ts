@@ -13,6 +13,7 @@ export type WorkRoute =
   | "sales-billing"
   | "split-rename-po"
   | "daily-summary"
+  | "retail-worldwide-po"
   | "po-data"
   | "product-catalog"
   | "receivables-freight";

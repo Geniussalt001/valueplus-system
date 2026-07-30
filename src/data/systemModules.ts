@@ -4,6 +4,7 @@ import {
   FileSpreadsheet,
   Files,
   FolderArchive,
+  Globe2,
   HandCoins,
   ReceiptText,
 } from "lucide-react";
@@ -135,6 +136,27 @@ export const systemModules:
         "#0891b2",
       status:
         "online",
+      workspaces: [
+        "retail",
+      ],
+    },
+
+    {
+      id: 8,
+      route:
+        "retail-worldwide-po",
+      title:
+        "ลงยอด PO รีเทล ขายเวิร์ลไวด์",
+      subtitle:
+        "RETAIL WORLDWIDE PO",
+      description:
+        "พื้นที่เตรียมระบบสำหรับลงยอดและจัดการข้อมูล PO รีเทลขายเวิร์ลไวด์",
+      icon:
+        Globe2,
+      color:
+        "#6551bd",
+      status:
+        "offline",
       workspaces: [
         "retail",
       ],

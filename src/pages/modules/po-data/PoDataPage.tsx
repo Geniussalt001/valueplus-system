@@ -8,12 +8,19 @@ import {
   ArrowRight,
   FileArchive,
   FolderArchive,
+  Globe2,
+  Link2,
+  LockKeyhole,
   Truck,
 } from "lucide-react";
 
 import type {
   AppUser,
 } from "../../../auth/auth.types";
+
+import type {
+  WorkspaceScope,
+} from "../../../types/app";
 
 import {
   PoSevenArchivePage,
@@ -25,6 +32,7 @@ import {
 
 interface PoDataPageProps {
   currentUser: AppUser;
+  workspaceScope: WorkspaceScope;
   onBack: () => void;
 }
 
@@ -35,6 +43,7 @@ type ArchiveSection =
 
 export function PoDataPage({
   currentUser,
+  workspaceScope,
   onBack,
 }: PoDataPageProps) {
   const [
@@ -173,43 +182,63 @@ export function PoDataPage({
           lg:grid-cols-2
         "
       >
-        <ArchiveFolderCard
-          title="แฟ้มข้อมูล PO Seven"
-          subtitle="SEVEN PO ARCHIVE"
-          description=""
-          icon={
-            <FileArchive
-              size={25}
+        {workspaceScope ===
+        "retail" ? (
+          <>
+            <ArchiveFolderCard
+              title="แฟ้มข้อมูล PO Seven"
+              subtitle="SEVEN PO ARCHIVE"
+              description=""
+              icon={
+                <FileArchive
+                  size={25}
+                />
+              }
+              accent="cyan"
+              status="พร้อมใช้งาน"
+              features={[]}
+              onClick={() => {
+                setSelectedSection(
+                  "po-seven",
+                );
+              }}
             />
-          }
-          accent="cyan"
-          status="พร้อมใช้งาน"
-          features={[]}
-          onClick={() => {
-            setSelectedSection(
-              "po-seven",
-            );
-          }}
-        />
 
-        <ArchiveFolderCard
-          title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
-          subtitle="RECEIVABLES & FREIGHT"
-          description=""
-          icon={
-            <Truck
-              size={25}
+            <ArchiveFolderCard
+              title="แฟ้มข้อมูลลูกหนี้–ค่าขนส่ง"
+              subtitle="RECEIVABLES & FREIGHT"
+              description=""
+              icon={
+                <Truck
+                  size={25}
+                />
+              }
+              accent="amber"
+              status="พร้อมใช้งาน"
+              features={[]}
+              onClick={() => {
+                setSelectedSection(
+                  "receivables",
+                );
+              }}
             />
-          }
-          accent="amber"
-          status="พร้อมใช้งาน"
-          features={[]}
-          onClick={() => {
-            setSelectedSection(
-              "receivables",
-            );
-          }}
-        />
+          </>
+        ) : (
+          <ArchiveFolderCard
+            title="แฟ้มข้อมูล รีเทลขายเวิร์ลไวด์"
+            subtitle="RETAIL WORLDWIDE ARCHIVE"
+            description="พื้นที่เตรียมแฟ้มข้อมูลสำหรับงานรีเทลขายเวิร์ลไวด์"
+            icon={
+              <Globe2
+                size={25}
+              />
+            }
+            accent="violet"
+            status="OFFLINE"
+            features={[]}
+            locked
+          />
+        )}
       </section>
 
     </div>
@@ -223,10 +252,12 @@ interface ArchiveFolderCardProps {
   icon: ReactNode;
   accent:
     | "cyan"
-    | "amber";
+    | "amber"
+    | "violet";
   status: string;
   features: string[];
-  onClick: () => void;
+  locked?: boolean;
+  onClick?: () => void;
 }
 
 const accentStyles = {
@@ -258,6 +289,20 @@ const accentStyles = {
     dot:
       "bg-amber-500 shadow-amber-400/60",
   },
+  violet: {
+    border:
+      "border-violet-200",
+    icon:
+      "border-violet-200 bg-violet-50 text-violet-700",
+    badge:
+      "border-slate-200 bg-slate-100 text-slate-500",
+    glow:
+      "from-violet-300/10 via-indigo-200/5 to-transparent",
+    button:
+      "bg-slate-200 text-slate-500",
+    dot:
+      "bg-slate-400 shadow-slate-300/50",
+  },
 };
 
 function ArchiveFolderCard({
@@ -268,6 +313,7 @@ function ArchiveFolderCard({
   accent,
   status,
   features,
+  locked = false,
   onClick,
 }: ArchiveFolderCardProps) {
   const styles =
@@ -277,6 +323,7 @@ function ArchiveFolderCard({
     <button
       type="button"
       onClick={onClick}
+      disabled={locked}
       className={`
         vp-folder-card
         group
@@ -291,8 +338,11 @@ function ArchiveFolderCard({
         shadow-[0_18px_45px_rgba(15,23,42,0.08)]
         transition
         duration-300
-        hover:-translate-y-1
-        hover:shadow-[0_24px_55px_rgba(8,145,178,0.14)]
+        ${
+          locked
+            ? "cursor-not-allowed opacity-75"
+            : "hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(8,145,178,0.14)]"
+        }
         ${styles.border}
       `}
     >
@@ -352,16 +402,23 @@ function ArchiveFolderCard({
               ${styles.badge}
             `}
           >
-            <span
-              className={`
-                h-2
-                w-2
-                animate-pulse
-                rounded-full
-                shadow-[0_0_10px_currentColor]
-                ${styles.dot}
-              `}
-            />
+            {locked ? (
+              <>
+                <Link2 size={12} />
+                <LockKeyhole size={13} />
+              </>
+            ) : (
+              <span
+                className={`
+                  h-2
+                  w-2
+                  animate-pulse
+                  rounded-full
+                  shadow-[0_0_10px_currentColor]
+                  ${styles.dot}
+                `}
+              />
+            )}
             {status}
           </span>
         </div>
@@ -452,7 +509,9 @@ function ArchiveFolderCard({
               text-slate-500
             "
           >
-            คลิกเพื่อเปิดแฟ้ม
+            {locked
+              ? "รอออกแบบและเปิดใช้งาน"
+              : "คลิกเพื่อเปิดแฟ้ม"}
           </span>
 
           <span
@@ -469,9 +528,16 @@ function ArchiveFolderCard({
               ${styles.button}
             `}
           >
-            <ArrowRight
-              size={18}
-            />
+            {locked ? (
+              <span className="flex items-center gap-1">
+                <Link2 size={13} />
+                <LockKeyhole size={16} />
+              </span>
+            ) : (
+              <ArrowRight
+                size={18}
+              />
+            )}
           </span>
         </div>
       </div>
