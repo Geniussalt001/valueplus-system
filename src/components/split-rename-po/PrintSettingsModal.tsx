@@ -11,6 +11,10 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  createPortal,
+} from "react-dom";
+
 interface PrintRecord {
   warehouse: string;
   target_sheet: string;
@@ -168,9 +172,9 @@ export function PrintSettingsModal({
     onConfirm(jobs);
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white text-slate-900 shadow-2xl">
+  return createPortal(
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center overflow-hidden bg-slate-950/45 p-4 backdrop-blur-[3px]">
+      <div className="flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-sky-200 bg-white text-slate-900 shadow-[0_24px_90px_rgba(15,23,42,0.3)]">
         <header className="flex items-center justify-between gap-4 px-7 py-6">
           <div className="flex items-center gap-3">
             <Printer className="text-violet-600" size={25} />
@@ -284,6 +288,7 @@ export function PrintSettingsModal({
           </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
