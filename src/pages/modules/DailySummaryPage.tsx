@@ -24,6 +24,7 @@ import {
 
 interface DailySummaryPageProps {
   onBack: () => void;
+  onNextProcess: () => void;
 }
 
 type SummaryMode =
@@ -33,6 +34,7 @@ type SummaryMode =
 
 export function DailySummaryPage({
   onBack,
+  onNextProcess,
 }: DailySummaryPageProps) {
   const [selectedMode, setSelectedMode] =
     useState<SummaryMode | null>(null);
@@ -45,6 +47,7 @@ export function DailySummaryPage({
     return (
       <ExpressSummaryPage
         onBack={backToSummaryMenu}
+        onNextProcess={onNextProcess}
       />
     );
   }
@@ -53,6 +56,7 @@ export function DailySummaryPage({
     return (
       <DollSummaryPage
         onBack={backToSummaryMenu}
+        onNextProcess={onNextProcess}
       />
     );
   }

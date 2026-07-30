@@ -6,6 +6,7 @@ import {
 
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
   Check,
   ClipboardCopy,
@@ -28,6 +29,7 @@ import type {
 
 interface DollSummaryPageProps {
   onBack: () => void;
+  onNextProcess: () => void;
 }
 
 type QuantityByProduct =
@@ -132,6 +134,7 @@ const lineWarehouseGroups: Array<{
 
 export function DollSummaryPage({
   onBack,
+  onNextProcess,
 }: DollSummaryPageProps) {
   const [products, setProducts] =
     useState<ProductCatalogItem[]>([]);
@@ -433,6 +436,17 @@ export function DollSummaryPage({
                   {copied ? <Check size={18} /> : <ClipboardCopy size={18} />}
                   {copied ? "คัดลอกเรียบร้อยแล้ว" : "คัดลอกส่ง LINE"}
                 </button>
+
+                {copied && (
+                  <button
+                    type="button"
+                    onClick={onNextProcess}
+                    className="vp-next-process mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-400/40 bg-sky-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:bg-sky-600"
+                  >
+                    Next Process
+                    <ArrowRight size={18} />
+                  </button>
+                )}
               </div>
             </div>
           </aside>

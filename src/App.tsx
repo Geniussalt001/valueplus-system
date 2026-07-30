@@ -187,9 +187,19 @@ function App() {
     setRoute("sales-billing");
   };
 
+  const continueToSplitRename = (pdfPath: string) => {
+    setNextProcessPdfPath(pdfPath);
+    setRoute("split-rename-po");
+  };
+
   const continueToDailySummary = () => {
     setNextProcessPdfPath("");
     setRoute("daily-summary");
+  };
+
+  const continueToReceivablesFreight = () => {
+    setNextProcessPdfPath("");
+    setRoute("receivables-freight");
   };
 
   const consumeNextProcessPdf = () => {
@@ -222,6 +232,7 @@ function App() {
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
             onInitialPdfConsumed={consumeNextProcessPdf}
+            onNextProcess={continueToSplitRename}
           />
         );
 
@@ -237,7 +248,10 @@ function App() {
 
       case "daily-summary":
         return (
-          <DailySummaryPage onBack={backToDashboard} />
+          <DailySummaryPage
+            onBack={backToDashboard}
+            onNextProcess={continueToReceivablesFreight}
+          />
         );
 
       case "product-catalog":

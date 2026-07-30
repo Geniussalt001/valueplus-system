@@ -6,6 +6,7 @@ import {
 import {
   Activity,
   ArrowLeft,
+  ArrowRight,
   Boxes,
   Building2,
   Check,
@@ -29,10 +30,12 @@ import type {
 
 interface ExpressSummaryPageProps {
   onBack: () => void;
+  onNextProcess: () => void;
 }
 
 export function ExpressSummaryPage({
   onBack,
+  onNextProcess,
 }: ExpressSummaryPageProps) {
   const [
     csvPath,
@@ -567,6 +570,7 @@ export function ExpressSummaryPage({
 
         <RealtimeCard
           result={result}
+          onNextProcess={onNextProcess}
         />
       </div>
     </div>
@@ -755,13 +759,22 @@ function WarehouseCard({
 
 function RealtimeCard({
   result,
+  onNextProcess,
 }: {
   result:
     ExpressSummaryResult | null;
+  onNextProcess: () => void;
 }) {
   const [
     copied,
     setCopied,
+  ] = useState(
+    false,
+  );
+
+  const [
+    copyCompleted,
+    setCopyCompleted,
   ] = useState(
     false,
   );
@@ -793,6 +806,10 @@ function RealtimeCard({
     setCopied(
       false,
     );
+
+    setCopyCompleted(
+      false,
+    );
   }, [result]);
 
   const copyForLine = async () => {
@@ -808,6 +825,10 @@ function RealtimeCard({
     );
 
     setCopied(
+      true,
+    );
+
+    setCopyCompleted(
       true,
     );
 
@@ -1179,6 +1200,39 @@ function RealtimeCard({
               ? `คัดลอกส่ง LINE (${copyPartIndex + 1}/${lineMessages.length})`
               : "คัดลอกส่ง LINE"}
         </button>
+
+        {copyCompleted && (
+          <button
+            type="button"
+            onClick={onNextProcess}
+            className="
+              vp-next-process
+              mt-3
+              flex
+              w-full
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-sky-400/40
+              bg-sky-500
+              px-5
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              shadow-lg
+              shadow-sky-500/20
+              transition
+              hover:-translate-y-0.5
+              hover:bg-sky-600
+            "
+          >
+            Next Process
+            <ArrowRight size={18} />
+          </button>
+        )}
       </div>
     </aside>
   );

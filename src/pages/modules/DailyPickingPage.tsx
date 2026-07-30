@@ -153,7 +153,7 @@ export function DailyPickingPage({
         id: logSequence.current,
         level: "info",
         message:
-          "รับไฟล์ PDF จากขั้นตอนลงยอด SO รายวันเรียบร้อยแล้ว",
+          "รับไฟล์ PDF ต้นฉบับจากขั้นตอนออกใบจัดรายวันเรียบร้อยแล้ว",
       },
     ]);
     onInitialPdfConsumed?.();
@@ -733,7 +733,6 @@ export function DailyPickingPage({
             transition
             hover:-translate-y-0.5
             hover:border-cyan-300/40
-            hover:bg-cyan-300/[0.06]
             disabled:cursor-not-allowed
             disabled:opacity-50
           "

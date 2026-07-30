@@ -12,6 +12,7 @@ import {
 import {
   ArrowDown,
   ArrowLeft,
+  ArrowRight,
   ArrowUp,
   CheckCircle2,
   ChevronDown,
@@ -44,6 +45,7 @@ interface SalesBillingPageProps {
   onBack: () => void;
   initialPdfPath?: string;
   onInitialPdfConsumed?: () => void;
+  onNextProcess: (pdfPath: string) => void;
 }
 
 type Activity =
@@ -56,6 +58,7 @@ export function SalesBillingPage({
   onBack,
   initialPdfPath,
   onInitialPdfConsumed,
+  onNextProcess,
 }: SalesBillingPageProps) {
   const consumedPdfRef =
     useRef("");
@@ -532,7 +535,7 @@ export function SalesBillingPage({
       </section>
 
       {activity !== "previewing" && (
-        <div className="vp-action-bar mt-5 flex justify-end">
+        <div className="vp-action-bar mt-5 flex flex-wrap justify-end gap-3">
           <button
             type="button"
             disabled={
@@ -547,6 +550,20 @@ export function SalesBillingPage({
           >
             <FileSearch size={18} />
             ประมวลผลและแสดง Preview
+          </button>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              onNextProcess(
+                pdfPath,
+              );
+            }}
+            className="vp-next-process flex min-w-[190px] items-center justify-center gap-2 rounded-xl border border-sky-400/40 bg-sky-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Next Process
+            <ArrowRight size={18} />
           </button>
         </div>
       )}
