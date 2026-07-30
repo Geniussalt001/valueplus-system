@@ -11,12 +11,12 @@ export function SplashPage() {
       />
 
       <div
-        className="absolute right-[8%] h-[460px] w-[460px] rounded-full bg-red-500/10 blur-[110px]"
+        className="absolute right-[8%] h-[460px] w-[460px] rounded-full bg-cyan-500/10 blur-[110px]"
         aria-hidden="true"
       />
 
       <div className="splash-hybrid-panel relative z-10 flex w-full max-w-[500px] flex-col items-center rounded-[28px] px-8 py-10 text-center backdrop-blur-2xl sm:px-12 sm:py-12">
-        <p className="text-[10px] font-semibold tracking-[0.34em] text-red-300">
+        <p className="text-[10px] font-semibold tracking-[0.34em] text-cyan-700">
           WELCOME TO
         </p>
 
@@ -27,7 +27,7 @@ export function SplashPage() {
           />
         </div>
 
-        <p className="mt-7 text-xs font-semibold tracking-[0.38em] text-white">
+        <p className="mt-7 text-xs font-semibold tracking-[0.38em] text-slate-900">
           VALUEPLUS SYSTEM
         </p>
 
@@ -37,7 +37,7 @@ export function SplashPage() {
           <span className="loading-dot loading-dot-three" />
         </div>
 
-        <p className="mt-5 text-[10px] tracking-[0.22em] text-slate-400">
+        <p className="mt-5 text-[10px] tracking-[0.22em] text-slate-500">
           INITIALIZING WORKSPACE
         </p>
       </div>

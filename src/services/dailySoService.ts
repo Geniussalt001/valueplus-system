@@ -13,6 +13,7 @@ import {
 
 import {
   openPath,
+  openUrl,
 } from "@tauri-apps/plugin-opener";
 
 import type {
@@ -26,6 +27,9 @@ const reportFolderName =
 
 const templateFileName =
   "Data-SO.Import.xlsx";
+
+const wmsUrl =
+  "http://203.150.191.169/vpwms/login.aspx";
 
 const pdfFilter = [
   {
@@ -144,6 +148,14 @@ export const dailySoService = {
 
     await openPath(
       folderPath,
+    );
+  },
+
+  async openWms():
+    Promise<void>
+  {
+    await openUrl(
+      wmsUrl,
     );
   },
 };

@@ -9,7 +9,6 @@ import {
   Link2,
   LockKeyhole,
   LogOut,
-  Server,
   ShoppingBag,
   UserRound,
 } from "lucide-react";
@@ -130,7 +129,7 @@ export function AppLayout({
           WORKSPACE
         </p>
 
-        <div className="workspace-switcher mt-3 grid grid-cols-2 gap-3 rounded-2xl border border-cyan-600/15 bg-cyan-50/60 p-2">
+        <div className="workspace-switcher mt-3 grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50/90 p-2">
           <button
             type="button"
             onClick={() =>
@@ -139,6 +138,7 @@ export function AppLayout({
               )
             }
             className={`
+              workspace-retail-button
               flex
               items-center
               justify-center
@@ -152,8 +152,8 @@ export function AppLayout({
               ${
                 workspaceScope ===
                 "retail"
-                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
-                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+                  ? "workspace-retail-active bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md shadow-cyan-900/20"
+                  : "border border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100"
               }
             `}
           >
@@ -169,6 +169,7 @@ export function AppLayout({
               )
             }
             className={`
+              workspace-head-office-button
               flex
               items-center
               justify-center
@@ -182,8 +183,8 @@ export function AppLayout({
               ${
                 workspaceScope ===
                 "head-office"
-                  ? "bg-[#073652] text-white shadow-md shadow-cyan-900/15"
-                  : "text-slate-500 hover:bg-white hover:text-cyan-700"
+                  ? "workspace-head-office-active bg-gradient-to-r from-violet-600 to-indigo-700 text-white shadow-md shadow-indigo-900/20"
+                  : "border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"
               }
             `}
           >
@@ -316,30 +317,6 @@ export function AppLayout({
 
         <div className="mt-auto space-y-4 pt-6">
           <UpdateCenter />
-
-          <div className="service-status-card rounded-2xl border border-cyan-600/15 bg-cyan-50/70 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span
-                className="status-light status-online"
-                aria-hidden="true"
-              />
-
-              <Server
-                size={18}
-                className="text-emerald-600"
-              />
-
-              <div>
-                <p className="text-xs text-slate-300">
-                  Local Service
-                </p>
-
-                <p className="mt-1 text-[10px] tracking-[0.15em] text-emerald-300">
-                  CONNECTED
-                </p>
-              </div>
-            </div>
-          </div>
 
           <p className="pt-2 text-[10px] tracking-[0.15em] text-slate-700">
             VALUEPLUS SYSTEM · AUTO UPDATE

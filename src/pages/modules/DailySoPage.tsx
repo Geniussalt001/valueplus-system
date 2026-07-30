@@ -13,6 +13,7 @@ import {
   FileCheck2,
   FileSpreadsheet,
   FolderOpen,
+  ExternalLink,
   Check,
   LoaderCircle,
   LockKeyhole,
@@ -1023,6 +1024,54 @@ export function DailySoPage({
             />
 
             เปิดโฟลเดอร์ผลลัพธ์
+          </button>
+        )}
+
+        {preview &&
+          preview.output_paths.length > 0 && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              void dailySoService
+                .openWms()
+                .catch((reason) => {
+                  setError(
+                    getErrorMessage(
+                      reason,
+                    ),
+                  );
+                });
+            }}
+            className="
+              vp-action-button
+              vp-action-wms
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-violet-400
+              bg-violet-600
+              px-6
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              shadow-lg
+              shadow-violet-200/60
+              transition
+              hover:-translate-y-0.5
+              hover:bg-violet-700
+              disabled:cursor-not-allowed
+              disabled:opacity-35
+            "
+          >
+            <ExternalLink
+              size={18}
+            />
+
+            เปิด WMS
           </button>
         )}
 

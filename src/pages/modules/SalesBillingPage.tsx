@@ -20,12 +20,10 @@ import {
   CirclePlay,
   FileSearch,
   FileUp,
-  FlaskConical,
   MonitorDot,
   Octagon,
   Play,
   ReceiptText,
-  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -73,8 +71,6 @@ export function SalesBillingPage({
     useState<Activity>("idle");
   const [expandedPo, setExpandedPo] =
     useState<string | null>(null);
-  const [simulate, setSimulate] =
-    useState(true);
   const [progress, setProgress] =
     useState<SalesBillingProgress | null>(
       null,
@@ -285,7 +281,6 @@ export function SalesBillingPage({
       return;
     }
     if (
-      !simulate &&
       !window.confirm(
         `ยืนยันเปิดบิลจริง ${selectedOrders.length} IV?\n\nกรุณาเปิด Express ที่หน้า IV และงดใช้เมาส์หรือคีย์บอร์ดจนกว่างานจะเสร็จ`,
       )
@@ -297,9 +292,7 @@ export function SalesBillingPage({
     setSuccess("");
     setProgress({
       type: "progress",
-      step: simulate
-        ? "กำลังเริ่มโหมดจำลอง"
-        : "กำลังเชื่อมต่อ Express",
+      step: "กำลังเชื่อมต่อ Express",
       orderIndex: 0,
       orderTotal:
         selectedOrders.length,
@@ -308,7 +301,7 @@ export function SalesBillingPage({
       const result =
         await salesBillingService.run(
           selectedOrders,
-          simulate,
+          false,
         );
       setProgress(result);
       if (result.success) {
@@ -624,7 +617,7 @@ export function SalesBillingPage({
 
           <div className="mt-6 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
             <section className="vp-data-card overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
-              <div className="flex flex-col justify-between gap-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white px-5 py-4 sm:flex-row sm:items-center">
+              <div className="border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white px-5 py-4">
                 <div>
                   <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
                     IV QUEUE
@@ -632,42 +625,6 @@ export function SalesBillingPage({
                   <h3 className="mt-1 font-semibold text-slate-900">
                     คิวเปิดบิลขายสินค้า
                   </h3>
-                </div>
-                <div className="vp-segmented-control flex gap-2 rounded-xl border border-cyan-200 bg-white p-1.5">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      setSimulate(true)
-                    }
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${
-                      simulate
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    <FlaskConical
-                      size={15}
-                    />
-                    จำลอง
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      setSimulate(false)
-                    }
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${
-                      !simulate
-                        ? "bg-emerald-600 text-white"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    <ShieldCheck
-                      size={15}
-                    />
-                    เปิดบิลจริง
-                  </button>
                 </div>
               </div>
 
@@ -895,19 +852,19 @@ export function SalesBillingPage({
             </section>
 
             <aside className="vp-live-monitor sticky top-5 overflow-hidden rounded-2xl border border-cyan-300 bg-white shadow-[0_16px_40px_rgba(8,145,178,0.14)]">
-              <div className="bg-gradient-to-br from-[#062c46] to-[#075b78] p-5 text-white">
+              <div className="vp-live-monitor-header border-b border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 text-slate-900">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-200">
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
                       LIVE MONITOR
                     </p>
                     <h3 className="mt-2 text-lg font-semibold">
                       สถานะเปิดบิล
                     </h3>
                   </div>
-                  <MonitorDot className="text-cyan-200" />
+                  <MonitorDot className="text-cyan-600" />
                 </div>
-                <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/15">
+                <div className="mt-5 h-2 overflow-hidden rounded-full bg-cyan-100">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-blue-400 transition-all"
                     style={{
@@ -915,7 +872,7 @@ export function SalesBillingPage({
                     }}
                   />
                 </div>
-                <div className="mt-2 flex justify-between text-xs text-cyan-100">
+                <div className="mt-2 flex justify-between text-xs text-slate-500">
                   <span>
                     {activity ===
                     "running"
@@ -1003,16 +960,10 @@ export function SalesBillingPage({
                     onClick={() => {
                       void runBilling();
                     }}
-                    className={`vp-run-button flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-35 ${
-                      simulate
-                        ? "bg-blue-600 shadow-blue-200"
-                        : "bg-emerald-600 shadow-emerald-200"
-                    }`}
+                    className="vp-run-button flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-35"
                   >
                     <Play size={18} />
-                    {simulate
-                      ? "เริ่มจำลองการเปิดบิล"
-                      : "ยืนยันเปิดบิลจริง"}
+                    ยืนยันเปิดบิลจริง
                   </button>
                 )}
 

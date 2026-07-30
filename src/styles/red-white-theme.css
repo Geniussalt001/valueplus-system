@@ -69,10 +69,10 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Hybrid identity: black/red entry experience, white/blue work surfaces. */
+/* Hybrid identity: bright white/blue entry experience and work surfaces. */
 .login-hybrid {
-  color: #ffffff;
-  background-color: #060607;
+  color: var(--vp-ink);
+  background-color: #edf7fc;
   background-position: center;
 }
 
@@ -81,30 +81,30 @@ button {
   background:
     linear-gradient(
       90deg,
-      rgb(2 3 5 / 5%) 0%,
-      rgb(3 4 7 / 8%) 38%,
-      rgb(4 5 8 / 56%) 62%,
-      rgb(4 5 8 / 88%) 100%
+      rgb(255 255 255 / 1%) 0%,
+      rgb(238 248 253 / 6%) 42%,
+      rgb(239 248 253 / 66%) 66%,
+      rgb(245 251 255 / 92%) 100%
     ),
     linear-gradient(
       180deg,
-      rgb(0 0 0 / 18%),
+      rgb(7 26 43 / 4%),
       transparent 42%,
-      rgb(0 0 0 / 28%)
+      rgb(7 26 43 / 9%)
     );
 }
 
 .login-hybrid-card {
-  border: 1px solid rgb(248 113 113 / 30%);
+  border: 1px solid rgb(0 159 200 / 28%);
   border-radius: 28px;
-  color: #ffffff;
+  color: var(--vp-ink);
   background:
-    radial-gradient(circle at 100% 0, rgb(220 38 38 / 15%), transparent 34%),
-    linear-gradient(145deg, rgb(13 14 18 / 91%), rgb(6 7 10 / 86%));
+    radial-gradient(circle at 100% 0, rgb(0 199 237 / 12%), transparent 34%),
+    linear-gradient(145deg, rgb(255 255 255 / 94%), rgb(241 249 253 / 90%));
   box-shadow:
-    0 40px 110px rgb(0 0 0 / 58%),
-    0 0 0 1px rgb(255 255 255 / 4%) inset,
-    0 0 55px rgb(220 38 38 / 11%);
+    0 38px 100px rgb(7 26 43 / 20%),
+    0 0 0 1px rgb(255 255 255 / 72%) inset,
+    0 0 55px rgb(0 199 237 / 10%);
 }
 
 .login-hybrid-card::before {
@@ -115,44 +115,44 @@ button {
   height: 3px;
   border-radius: 0 0 999px 999px;
   content: "";
-  background: linear-gradient(90deg, transparent, #ef4444, #ff7b7b, transparent);
-  box-shadow: 0 3px 22px rgb(239 68 68 / 60%);
+  background: linear-gradient(90deg, transparent, var(--vp-cyan), var(--vp-blue), transparent);
+  box-shadow: 0 3px 22px rgb(0 199 237 / 45%);
 }
 
 .login-hybrid-logo,
 .splash-hybrid-logo {
-  background: linear-gradient(105deg, #ffffff 0%, #fecaca 48%, #ef4444 100%) !important;
+  background: linear-gradient(105deg, #071a2b 0%, #009fc8 48%, #247bff 100%) !important;
   filter:
-    drop-shadow(0 7px 18px rgb(0 0 0 / 35%))
-    drop-shadow(0 0 16px rgb(239 68 68 / 28%)) !important;
+    drop-shadow(0 7px 18px rgb(7 26 43 / 16%))
+    drop-shadow(0 0 16px rgb(0 199 237 / 20%)) !important;
 }
 
 .login-hybrid-divider {
-  background: linear-gradient(90deg, #ef4444, rgb(248 113 113 / 35%), transparent);
-  box-shadow: 0 0 14px rgb(239 68 68 / 22%);
+  background: linear-gradient(90deg, var(--vp-cyan), rgb(36 123 255 / 36%), transparent);
+  box-shadow: 0 0 14px rgb(0 199 237 / 20%);
 }
 
 .login-hybrid-surface {
-  border: 1px solid rgb(248 113 113 / 19%);
+  border: 1px solid rgb(0 159 200 / 18%);
   background:
-    linear-gradient(145deg, rgb(255 255 255 / 6%), rgb(255 255 255 / 2%)),
-    rgb(4 5 8 / 42%);
+    linear-gradient(145deg, rgb(255 255 255 / 96%), rgb(240 249 253 / 92%)),
+    #ffffff;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 4%),
-    0 14px 38px rgb(0 0 0 / 18%);
+    inset 0 1px 0 #ffffff,
+    0 14px 38px rgb(7 26 43 / 9%);
 }
 
 .login-hybrid-icon {
-  border: 1px solid rgb(248 113 113 / 25%);
-  background: rgb(239 68 68 / 9%);
+  border: 1px solid rgb(0 159 200 / 24%);
+  background: rgb(0 199 237 / 8%);
   box-shadow:
-    inset 0 0 18px rgb(239 68 68 / 7%),
-    0 0 18px rgb(239 68 68 / 5%);
+    inset 0 0 18px rgb(0 199 237 / 6%),
+    0 0 18px rgb(0 199 237 / 6%);
 }
 
 .login-hybrid-input {
-  border: 1px solid rgb(148 163 184 / 25%);
-  background: rgb(2 3 5 / 52%);
+  border: 1px solid rgb(148 163 184 / 36%);
+  background: rgb(255 255 255 / 82%);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -160,97 +160,97 @@ button {
 }
 
 .login-hybrid-input:focus-within {
-  border-color: rgb(248 113 113 / 78%);
-  background: rgb(2 3 5 / 72%);
+  border-color: rgb(0 159 200 / 72%);
+  background: #ffffff;
   box-shadow:
-    0 0 0 3px rgb(239 68 68 / 11%),
-    0 0 22px rgb(239 68 68 / 10%);
+    0 0 0 3px rgb(0 199 237 / 11%),
+    0 0 22px rgb(0 199 237 / 10%);
 }
 
 .login-hybrid-primary,
 .login-account-arrow {
-  border: 1px solid rgb(248 113 113 / 64%);
-  background: linear-gradient(135deg, #8f1726, #dc263d);
+  border: 1px solid rgb(0 199 237 / 70%);
+  background: linear-gradient(135deg, var(--vp-navy), #0b5f82);
   box-shadow:
-    0 13px 28px rgb(116 18 32 / 30%),
-    0 0 22px rgb(239 68 68 / 13%);
+    0 13px 28px rgb(7 26 43 / 22%),
+    0 0 22px rgb(0 199 237 / 14%);
 }
 
 .login-hybrid-primary:hover {
-  border-color: #fca5a5;
-  background: linear-gradient(135deg, #a91b2d, #f03851);
+  border-color: var(--vp-cyan);
+  background: linear-gradient(135deg, #0b2b44, #08769a);
   box-shadow:
-    0 17px 34px rgb(116 18 32 / 36%),
-    0 0 30px rgb(239 68 68 / 20%);
+    0 17px 34px rgb(7 26 43 / 26%),
+    0 0 30px rgb(0 199 237 / 20%);
   transform: translateY(-2px);
 }
 
 .login-account-card {
-  border: 1px solid rgb(148 163 184 / 17%);
+  border: 1px solid rgb(0 159 200 / 17%);
   background:
-    linear-gradient(135deg, rgb(255 255 255 / 6%), rgb(255 255 255 / 2%)),
-    rgb(7 8 12 / 46%);
+    linear-gradient(135deg, rgb(255 255 255 / 98%), rgb(239 249 253 / 94%)),
+    #ffffff;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 3%),
-    0 12px 28px rgb(0 0 0 / 12%);
+    inset 0 1px 0 #ffffff,
+    0 12px 28px rgb(7 26 43 / 8%);
 }
 
 .login-account-card:hover {
-  border-color: rgb(248 113 113 / 48%);
+  border-color: rgb(0 159 200 / 46%);
   background:
-    linear-gradient(135deg, rgb(239 68 68 / 10%), rgb(255 255 255 / 3%)),
-    rgb(7 8 12 / 68%);
+    linear-gradient(135deg, #ffffff, #eaf8fd),
+    #ffffff;
   box-shadow:
-    0 18px 40px rgb(0 0 0 / 24%),
-    0 0 24px rgb(239 68 68 / 9%);
+    0 18px 40px rgb(7 26 43 / 13%),
+    0 0 24px rgb(0 199 237 / 10%);
   transform: translateY(-2px);
 }
 
 .login-hybrid button:focus-visible {
-  outline: 3px solid rgb(248 113 113 / 24%);
+  outline: 3px solid rgb(0 199 237 / 24%);
   outline-offset: 3px;
 }
 
 .splash-hybrid {
-  color: #ffffff;
-  background-color: #050506;
-  background-image: url("/images/login-background-dark-red-v2.webp");
+  color: var(--vp-ink);
+  background-color: #edf7fc;
+  background-image: url("/images/login-background-white-blue-v2.webp");
 }
 
 .splash-hybrid-vignette {
   z-index: 0;
   background: linear-gradient(
     90deg,
-    rgb(1 2 3 / 5%) 0%,
-    rgb(2 3 5 / 10%) 43%,
-    rgb(3 4 7 / 62%) 68%,
-    rgb(3 4 7 / 90%) 100%
+    rgb(255 255 255 / 1%) 0%,
+    rgb(238 248 253 / 7%) 43%,
+    rgb(239 248 253 / 64%) 68%,
+    rgb(245 251 255 / 92%) 100%
   );
 }
 
 .splash-hybrid-panel {
-  border: 1px solid rgb(248 113 113 / 24%);
+  border: 1px solid rgb(0 159 200 / 24%);
   background:
-    radial-gradient(circle at 100% 0, rgb(220 38 38 / 13%), transparent 36%),
-    linear-gradient(145deg, rgb(12 13 17 / 88%), rgb(5 6 9 / 79%));
+    radial-gradient(circle at 100% 0, rgb(0 199 237 / 11%), transparent 36%),
+    linear-gradient(145deg, rgb(255 255 255 / 94%), rgb(240 249 253 / 88%));
   box-shadow:
-    0 38px 100px rgb(0 0 0 / 55%),
-    0 0 50px rgb(220 38 38 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 4%);
+    0 38px 100px rgb(7 26 43 / 20%),
+    0 0 50px rgb(0 199 237 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 72%);
 }
 
 .splash-hybrid .splash-logo-container {
-  border-color: rgb(248 113 113 / 22%);
-  background: rgb(255 255 255 / 3%);
+  border-color: rgb(0 159 200 / 22%);
+  background: rgb(255 255 255 / 76%);
   box-shadow:
-    0 22px 60px rgb(0 0 0 / 25%),
-    0 0 38px rgb(239 68 68 / 10%),
-    inset 0 1px 0 rgb(255 255 255 / 4%);
+    0 22px 60px rgb(7 26 43 / 11%),
+    0 0 38px rgb(0 199 237 / 10%),
+    inset 0 1px 0 #ffffff;
 }
 
 .splash-hybrid .loading-dot {
-  background: #f87171;
-  box-shadow: 0 0 13px #ef4444;
+  background: var(--vp-cyan);
+  box-shadow: 0 0 13px var(--vp-cyan);
 }
 
 /* White Tron brand signature: midnight navy, cyan and electric blue. */
@@ -376,6 +376,29 @@ button {
   box-shadow:
     inset 0 1px 0 #ffffff,
     0 8px 20px rgb(16 36 58 / 5%);
+}
+
+.dashboard .workspace-retail-active {
+  border-color: #089ec1 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #0796b8, #1769c2) !important;
+  box-shadow:
+    0 9px 20px rgb(8 145 178 / 20%),
+    0 0 16px rgb(0 199 237 / 11%) !important;
+}
+
+.dashboard .workspace-head-office-active {
+  border-color: #6857bd !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #7056c7, #454fb3) !important;
+  box-shadow:
+    0 9px 20px rgb(79 70 175 / 20%),
+    0 0 16px rgb(112 86 199 / 10%) !important;
+}
+
+.dashboard .workspace-retail-active *,
+.dashboard .workspace-head-office-active * {
+  color: #ffffff !important;
 }
 
 .service-status-card,
@@ -758,9 +781,30 @@ button {
 
 .dashboard .vp-live-monitor {
   border-radius: 22px !important;
+  background: #ffffff !important;
   box-shadow:
     0 18px 46px rgb(8 145 178 / 14%),
     0 0 0 1px rgb(255 255 255 / 80%) inset !important;
+}
+
+.dashboard .vp-live-monitor-header {
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(36 123 255 / 9%), transparent 35%),
+    linear-gradient(145deg, #f2fbff, #ffffff) !important;
+}
+
+.dashboard button.vp-action-wms {
+  border-color: #7565c9 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #4d3ca1, #7565c9) !important;
+  box-shadow:
+    0 11px 24px rgb(77 60 161 / 20%),
+    0 0 18px rgb(117 101 201 / 11%) !important;
+}
+
+.dashboard button.vp-action-wms:hover {
+  background: linear-gradient(135deg, #40308b, #6551bd) !important;
 }
 
 .dashboard button.vp-control-pause,
@@ -1399,14 +1443,14 @@ button {
 
   .login-hybrid-vignette,
   .splash-hybrid-vignette {
-    background: rgb(3 4 7 / 60%);
+    background: rgb(241 249 253 / 64%);
   }
 
   .login-hybrid-card,
   .splash-hybrid-panel {
     background:
-      radial-gradient(circle at 100% 0, rgb(220 38 38 / 14%), transparent 35%),
-      rgb(7 8 12 / 91%);
+      radial-gradient(circle at 100% 0, rgb(0 199 237 / 12%), transparent 35%),
+      rgb(255 255 255 / 93%);
   }
 
   .login-red-white {

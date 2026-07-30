@@ -207,7 +207,7 @@ export function LoginPage({
       className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-16 xl:px-20"
       style={{
         backgroundImage:
-          "url('/images/login-background-dark-red-v2.webp')",
+          "url('/images/login-background-white-blue-v2.webp')",
       }}
     >
       <div
@@ -225,18 +225,18 @@ export function LoginPage({
           <div className="login-hybrid-divider mt-7 h-px" />
 
           <div className="mt-8">
-            <div className="flex items-center gap-2.5 text-red-300">
+            <div className="flex items-center gap-2.5 text-cyan-700">
               <ShieldCheck size={18} />
               <span className="text-xs font-semibold tracking-[0.18em]">
                 VALUEPLUS SYSTEM
               </span>
             </div>
 
-            <h1 className="mt-4 text-3xl font-semibold text-white">
+            <h1 className="mt-4 text-3xl font-semibold text-slate-900">
               ยินดีต้อนรับ
             </h1>
 
-            <p className="mt-3 text-sm leading-7 text-slate-300">
+            <p className="mt-3 text-sm leading-7 text-slate-600">
               เลือกส่วนงาน Office หรือ Head Office
               เพื่อเข้าสู่ระบบได้ทันที
             </p>
@@ -247,12 +247,12 @@ export function LoginPage({
             <div className="login-hybrid-surface mt-8 flex min-h-[210px] flex-col items-center justify-center rounded-2xl px-6 text-center">
               <LoaderCircle
                 size={30}
-                className="animate-spin text-red-400"
+                className="animate-spin text-cyan-600"
               />
-              <p className="mt-4 font-semibold text-white">
+              <p className="mt-4 font-semibold text-slate-900">
                 กำลังตรวจสอบการเชื่อมต่อ
               </p>
-              <p className="mt-1.5 text-xs text-slate-400">
+              <p className="mt-1.5 text-xs text-slate-500">
                 กรุณารอสักครู่
               </p>
             </div>
@@ -270,27 +270,27 @@ export function LoginPage({
               }}
             >
               <div className="flex items-center gap-3">
-                <span className="login-hybrid-icon flex h-11 w-11 items-center justify-center rounded-xl text-red-300">
+                <span className="login-hybrid-icon flex h-11 w-11 items-center justify-center rounded-xl text-cyan-700">
                   <Wifi size={21} />
                 </span>
                 <div>
-                  <p className="font-semibold text-white">
+                  <p className="font-semibold text-slate-900">
                     เชื่อมต่อระบบครั้งแรก
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500">
                     กรอกรหัสเปิดใช้งานสำหรับเครื่องนี้
                   </p>
                 </div>
               </div>
 
-              <label className="mt-6 block text-xs font-medium text-slate-300">
+              <label className="mt-6 block text-xs font-medium text-slate-600">
                 รหัสเปิดใช้งาน
               </label>
 
               <div className="login-hybrid-input mt-2.5 flex items-center rounded-xl px-4">
                 <KeyRound
                   size={18}
-                  className="text-red-300"
+                  className="text-cyan-700"
                 />
                 <input
                   autoFocus
@@ -311,7 +311,7 @@ export function LoginPage({
                     setError("");
                   }}
                   placeholder="กรอกรหัสที่ได้รับ"
-                  className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold uppercase tracking-[0.12em] text-white outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500"
+                  className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-900 outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400"
                 />
               </div>
 
@@ -365,18 +365,18 @@ export function LoginPage({
                   }}
                   className="login-account-card group flex min-h-[92px] w-full items-center gap-4 rounded-2xl p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 >
-                  <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-red-300">
+                  <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-cyan-700">
                     <Icon size={22} />
                   </span>
 
                   <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold text-white">
+                    <span className="block text-base font-semibold text-slate-900">
                       {account.label}
                     </span>
-                    <span className="mt-1 block text-[10px] font-semibold tracking-[0.16em] text-red-300">
+                    <span className="mt-1 block text-[10px] font-semibold tracking-[0.16em] text-cyan-700">
                       {account.englishLabel}
                     </span>
-                    <span className="mt-1.5 block text-xs leading-5 text-slate-400">
+                    <span className="mt-1.5 block text-xs leading-5 text-slate-500">
                       {account.description}
                     </span>
                   </span>
@@ -404,10 +404,10 @@ export function LoginPage({
           )}
 
           <div className="mt-8 flex items-center justify-between gap-4 text-[11px]">
-            <span className="text-slate-400">
+            <span className="text-slate-500">
               VALUEPLUS RETAIL CO., LTD.
             </span>
-            <span className="flex items-center gap-2.5 font-medium text-emerald-300">
+            <span className="flex items-center gap-2.5 font-medium text-emerald-700">
               <span
                 className="status-light status-online"
                 aria-hidden="true"
