@@ -1,7 +1,7 @@
 {
     "name": "valueplus-system",
     "private": true,
-    "version": "1.0.10",
+    "version": "1.0.11",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -24,6 +24,7 @@
     },
     "devDependencies": {
         "@tauri-apps/cli": "^2",
+        "@types/node": "^24.0.0",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
         "@vitejs/plugin-react": "^4.6.0",
