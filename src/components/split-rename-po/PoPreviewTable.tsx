@@ -27,6 +27,7 @@ export function PoPreviewTable({
   return (
     <div
       className="
+        vp-data-card
         overflow-hidden
         rounded-2xl
         border

@@ -121,6 +121,7 @@ export function PoProcessingSummary({
                 card.label
               }
               className={`
+                vp-summary-card
                 rounded-xl
                 border
                 p-4

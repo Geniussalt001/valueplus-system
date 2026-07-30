@@ -95,6 +95,8 @@ export function SplitRenamePoPage({
   return (
     <div
       className="
+        vp-work-page
+        daily-picking-workspace
         mx-auto
         max-w-[1500px]
         px-6
@@ -238,6 +240,7 @@ export function SplitRenamePoPage({
 
       <header
         className="
+          vp-page-header
           flex
           flex-col
           justify-between
@@ -307,6 +310,7 @@ export function SplitRenamePoPage({
 
         <div
           className="
+            vp-page-icon
             flex
             h-12
             w-12
@@ -325,6 +329,7 @@ export function SplitRenamePoPage({
 
       <section
         className="
+          vp-setup-grid
           mt-7
           grid
           gap-4
@@ -396,6 +401,7 @@ export function SplitRenamePoPage({
 
       <div
         className="
+          vp-action-bar
           mt-6
           flex
           flex-col
@@ -416,6 +422,8 @@ export function SplitRenamePoPage({
               .buildPreview();
           }}
           className="
+            vp-action-button
+            vp-action-primary
             flex
             items-center
             justify-center
@@ -455,6 +463,8 @@ export function SplitRenamePoPage({
                 .openAdjustmentModal
             }
             className="
+              vp-action-button
+              vp-action-warning
               flex
               items-center
               justify-center
@@ -515,6 +525,8 @@ export function SplitRenamePoPage({
               .exportWorkbook();
           }}
           className="
+            vp-action-button
+            vp-action-success
             flex
             items-center
             justify-center
@@ -551,6 +563,8 @@ export function SplitRenamePoPage({
                 .openSavedFolder();
             }}
             className="
+              vp-action-button
+              vp-action-secondary
               flex
               items-center
               justify-center
@@ -588,6 +602,8 @@ export function SplitRenamePoPage({
                 .openPrintModal
             }
             className="
+              vp-action-button
+              vp-action-secondary
               flex
               items-center
               justify-center
@@ -634,6 +650,7 @@ export function SplitRenamePoPage({
               );
             }}
             className="
+              vp-next-process
               flex
               items-center
               justify-center
@@ -669,6 +686,7 @@ export function SplitRenamePoPage({
       {processor.preview && (
         <section
           className="
+            vp-preview-section
             mt-7
             space-y-5
           "

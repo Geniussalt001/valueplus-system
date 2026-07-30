@@ -236,8 +236,8 @@ export function ProductCatalogPage({
   };
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
-      <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <div className="vp-work-page product-catalog-workspace mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+      <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button
             type="button"
@@ -262,7 +262,7 @@ export function ProductCatalogPage({
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-6 py-3 text-sm font-medium text-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-300/15"
+          className="vp-action-button vp-action-success flex items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-6 py-3 text-sm font-medium text-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-300/15"
         >
           <PackagePlus size={18} />
           เพิ่มสินค้า
@@ -281,8 +281,8 @@ export function ProductCatalogPage({
         </div>
       )}
 
-      <section className="mt-6 rounded-2xl border border-cyan-300/15 bg-[#071827]">
-        <div className="flex flex-col gap-3 border-b border-slate-700/70 p-4 lg:flex-row lg:items-center">
+      <section className="vp-data-card mt-6 rounded-2xl border border-cyan-300/15 bg-[#071827]">
+        <div className="vp-catalog-toolbar flex flex-col gap-3 border-b border-slate-700/70 p-4 lg:flex-row lg:items-center">
           <label className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-slate-700 bg-[#03111e] px-4 py-3 text-slate-300 focus-within:border-cyan-300/40">
             <Search size={18} className="shrink-0 text-cyan-300" />
             <input
@@ -307,7 +307,7 @@ export function ProductCatalogPage({
             type="button"
             onClick={() => void loadProducts()}
             disabled={loading}
-            className="flex items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-5 py-3 text-sm text-cyan-200 disabled:opacity-40"
+            className="vp-action-button vp-action-secondary flex items-center justify-center gap-2 rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] px-5 py-3 text-sm text-cyan-200 disabled:opacity-40"
           >
             <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
             โหลดใหม่
@@ -353,7 +353,7 @@ export function ProductCatalogPage({
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="vp-icon-button-group flex justify-end gap-3">
                         <IconButton label="แก้ไข" onClick={() => openEdit(product)}><Pencil size={16} /></IconButton>
                         <IconButton label={product.active ? "ปิดใช้งาน" : "เปิดใช้งาน"} onClick={() => void toggleActive(product)} tone={product.active ? "amber" : "emerald"}><Power size={16} /></IconButton>
                         <IconButton label="ลบถาวร" onClick={() => void deleteProduct(product)} tone="red"><Trash2 size={16} /></IconButton>
@@ -369,7 +369,7 @@ export function ProductCatalogPage({
 
       {modalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-5 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl border border-cyan-300/20 bg-[#071827] shadow-2xl">
+          <div className="vp-data-card w-full max-w-xl rounded-2xl border border-cyan-300/20 bg-[#071827] shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-700/70 px-6 py-5">
               <div>
                 <p className="text-lg font-semibold text-white">{editingCode ? "แก้ไขสินค้า" : "เพิ่มสินค้าใหม่"}</p>
@@ -392,7 +392,7 @@ export function ProductCatalogPage({
               )}
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-slate-700/70 px-6 py-5">
+            <div className="vp-modal-actions flex justify-end gap-3 border-t border-slate-700/70 px-6 py-5">
               <button type="button" onClick={() => setModalOpen(false)} disabled={saving} className="rounded-xl border border-slate-700 px-5 py-3 text-sm text-slate-300">ยกเลิก</button>
               <button type="button" onClick={() => void saveProduct()} disabled={saving} className="flex items-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-6 py-3 text-sm font-medium text-emerald-200 disabled:opacity-40">
                 {saving ? <LoaderCircle className="animate-spin" size={17} /> : <Check size={17} />}
@@ -408,7 +408,7 @@ export function ProductCatalogPage({
 
 function SummaryCard({ label, value, icon, tone = "cyan" }: { label: string; value: number; icon: ReactNode; tone?: "cyan" | "emerald" | "amber" }) {
   const tones = { cyan: "text-cyan-300", emerald: "text-emerald-300", amber: "text-amber-300" };
-  return <div className="rounded-2xl border border-slate-700/80 bg-[#071827] p-5"><div className={`flex items-center gap-2 ${tones[tone]}`}>{icon}<span className="text-xs font-medium">{label}</span></div><p className="mt-3 text-3xl font-semibold text-white">{value.toLocaleString("th-TH")}</p></div>;
+  return <div className="vp-summary-card rounded-2xl border border-slate-700/80 bg-[#071827] p-5"><div className={`flex items-center gap-2 ${tones[tone]}`}>{icon}<span className="text-xs font-medium">{label}</span></div><p className="mt-3 text-3xl font-semibold text-white">{value.toLocaleString("th-TH")}</p></div>;
 }
 
 function IconButton({ label, onClick, children, tone = "slate" }: { label: string; onClick: () => void; children: ReactNode; tone?: "slate" | "amber" | "emerald" | "red" }) {

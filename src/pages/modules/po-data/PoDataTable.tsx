@@ -373,7 +373,7 @@ export function PoDataTable({
                     </td>
 
                     <td className="px-5 py-5">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="vp-icon-button-group flex items-center justify-center gap-3">
                         <button
                           type="button"
                           onClick={() =>

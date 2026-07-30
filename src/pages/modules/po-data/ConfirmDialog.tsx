@@ -58,7 +58,7 @@ export function ConfirmDialog({
           </p>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t border-red-300/10 px-6 py-5">
+        <footer className="vp-modal-actions flex justify-end gap-3 border-t border-red-300/10 px-6 py-5">
           <button
             type="button"
             disabled={processing}

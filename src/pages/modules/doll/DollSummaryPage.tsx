@@ -284,8 +284,8 @@ export function DollSummaryPage({
   }
 
   return (
-    <div className="doll-summary mx-auto max-w-[1720px] px-6 py-8 lg:px-10">
-      <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <div className="vp-work-page doll-summary mx-auto max-w-[1720px] px-6 py-8 lg:px-10">
+      <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button
             type="button"
@@ -307,7 +307,7 @@ export function DollSummaryPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="vp-header-actions flex flex-wrap items-center justify-end gap-3">
           <label className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm text-slate-600">
             <CalendarDays size={17} className="text-blue-600" />
             <input
@@ -323,13 +323,13 @@ export function DollSummaryPage({
           <button
             type="button"
             onClick={clearAll}
-            className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:text-red-600"
+            className="vp-action-button vp-action-danger flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:text-red-600"
           >
             <RotateCcw size={17} />
             ล้างยอดทั้งหมด
           </button>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-300/35 bg-blue-50 text-blue-600">
+          <div className="vp-page-icon flex h-12 w-12 items-center justify-center rounded-xl border border-blue-300/35 bg-blue-50 text-blue-600">
             <Gift size={23} />
           </div>
         </div>

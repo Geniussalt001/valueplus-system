@@ -144,6 +144,8 @@ export function ExpressSummaryPage({
   return (
     <div
       className="
+        vp-work-page
+        express-summary-workspace
         mx-auto
         max-w-[1700px]
         px-6
@@ -153,6 +155,7 @@ export function ExpressSummaryPage({
     >
       <header
         className="
+          vp-page-header
           flex
           flex-col
           justify-between
@@ -225,6 +228,7 @@ export function ExpressSummaryPage({
 
         <div
           className="
+            vp-page-icon
             flex
             h-12
             w-12
@@ -243,6 +247,7 @@ export function ExpressSummaryPage({
 
       <section
         className="
+          vp-setup-card
           mt-7
           rounded-2xl
           border
@@ -253,6 +258,7 @@ export function ExpressSummaryPage({
       >
         <div
           className="
+            vp-action-bar
             flex
             flex-col
             gap-4
@@ -268,6 +274,7 @@ export function ExpressSummaryPage({
             }}
             disabled={processing}
             className="
+              vp-upload-card
               flex
               min-w-0
               flex-1
@@ -346,6 +353,8 @@ export function ExpressSummaryPage({
               void processCsv();
             }}
             className="
+              vp-action-button
+              vp-action-success
               flex
               items-center
               justify-center

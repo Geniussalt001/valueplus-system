@@ -1328,6 +1328,7 @@ export function PickingAdjustmentModal({
 
         <footer
           className="
+            vp-modal-actions
             flex
             shrink-0
             flex-col-reverse

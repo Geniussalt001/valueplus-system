@@ -41,6 +41,8 @@ export function FileUploadCard({
       disabled={disabled}
       onClick={onSelect}
       className="
+        vp-setup-card
+        vp-upload-card
         group
         min-h-44
         rounded-2xl

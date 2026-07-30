@@ -438,6 +438,8 @@ export function DailySoPage({
   return (
     <div
       className="
+        vp-work-page
+        daily-so-workspace
         mx-auto
         max-w-[1600px]
         px-6
@@ -455,6 +457,7 @@ export function DailySoPage({
       />
       <header
         className="
+          vp-page-header
           flex
           flex-col
           justify-between
@@ -526,6 +529,7 @@ export function DailySoPage({
 
         <div
           className="
+            vp-page-icon
             flex
             h-12
             w-12
@@ -546,6 +550,7 @@ export function DailySoPage({
 
       <section
         className="
+          vp-setup-grid
           mt-7
           grid
           gap-4
@@ -559,6 +564,8 @@ export function DailySoPage({
           }}
           disabled={busy}
           className="
+            vp-setup-card
+            vp-upload-card
             flex
             min-w-0
             items-center
@@ -633,6 +640,7 @@ export function DailySoPage({
 
         <div
           className="
+            vp-setup-card
             flex
             min-w-0
             items-center
@@ -799,6 +807,7 @@ export function DailySoPage({
 
       <div
         className="
+          vp-action-bar
           mt-6
           flex
           flex-wrap
@@ -817,6 +826,8 @@ export function DailySoPage({
             void buildPreview();
           }}
           className="
+            vp-action-button
+            vp-action-primary
             flex
             items-center
             gap-2
@@ -864,6 +875,8 @@ export function DailySoPage({
               );
             }}
             className={`
+              vp-action-button
+              vp-action-warning
               flex
               items-center
               gap-2
@@ -907,6 +920,8 @@ export function DailySoPage({
               );
             }}
             className="
+              vp-action-button
+              vp-action-secondary
               flex
               items-center
               gap-2
@@ -940,6 +955,8 @@ export function DailySoPage({
             void exportFiles();
           }}
           className="
+            vp-action-button
+            vp-action-success
             flex
             items-center
             gap-2
@@ -985,6 +1002,8 @@ export function DailySoPage({
                 );
             }}
             className="
+              vp-action-button
+              vp-action-secondary
               flex
               items-center
               gap-2
@@ -1019,6 +1038,7 @@ export function DailySoPage({
               );
             }}
             className="
+              vp-next-process
               flex
               items-center
               gap-2
@@ -1050,7 +1070,7 @@ export function DailySoPage({
         )}
       </div>
 
-      <section className="mt-7">
+      <section className="vp-preview-section mt-7">
         <div
           className="
             mb-4
@@ -1105,6 +1125,7 @@ export function DailySoPage({
         {!preview ? (
           <div
             className="
+              vp-empty-state
               flex
               min-h-[360px]
               flex-col
@@ -1248,6 +1269,7 @@ function GroupPreview({
   return (
     <article
       className={`
+        vp-data-card
         min-w-0
         overflow-hidden
         rounded-2xl

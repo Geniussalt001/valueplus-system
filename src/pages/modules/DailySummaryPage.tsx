@@ -67,8 +67,8 @@ export function DailySummaryPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-      <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <div className="vp-work-page daily-summary-workspace mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
+      <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button
             type="button"
@@ -92,18 +92,18 @@ export function DailySummaryPage({
           </p>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-600/30 bg-cyan-100/70 text-cyan-700">
+        <div className="vp-page-icon flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-600/30 bg-cyan-100/70 text-cyan-700">
           <BarChart3 size={23} />
         </div>
       </header>
 
-      <section className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+      <section className="vp-summary-choice-grid mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <button
           type="button"
           onClick={() => {
             setSelectedMode("express");
           }}
-          className="summary-choice summary-choice-express group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
+          className="vp-summary-menu-card summary-choice summary-choice-express group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
         >
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-3xl transition group-hover:bg-white/20" />
 
@@ -131,7 +131,7 @@ export function DailySummaryPage({
           onClick={() => {
             setSelectedMode("doll");
           }}
-          className="summary-choice summary-choice-doll group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
+          className="vp-summary-menu-card summary-choice summary-choice-doll group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
         >
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-3xl transition group-hover:bg-white/20" />
 
@@ -159,7 +159,7 @@ export function DailySummaryPage({
           onClick={() => {
             setSelectedMode("catalog");
           }}
-          className="group relative min-h-[280px] overflow-hidden rounded-3xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50/70 to-cyan-50 p-8 text-left shadow-[0_20px_55px_rgba(5,150,105,0.10)] transition duration-300 hover:-translate-y-1 hover:border-emerald-400"
+          className="vp-summary-menu-card group relative min-h-[280px] overflow-hidden rounded-3xl border border-emerald-300 bg-gradient-to-br from-white via-emerald-50/70 to-cyan-50 p-8 text-left shadow-[0_20px_55px_rgba(5,150,105,0.10)] transition duration-300 hover:-translate-y-1 hover:border-emerald-400"
         >
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-100/70 blur-3xl transition group-hover:bg-emerald-200/80" />
 

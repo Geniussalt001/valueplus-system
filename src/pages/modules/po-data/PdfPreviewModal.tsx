@@ -24,7 +24,7 @@ export function PdfPreviewModal({
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <a
             href={fileUrl}
             target="_blank"

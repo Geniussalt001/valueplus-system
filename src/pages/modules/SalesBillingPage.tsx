@@ -439,7 +439,7 @@ export function SalesBillingPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1580px] px-6 py-8 lg:px-10">
+    <div className="vp-work-page sales-billing-workspace mx-auto max-w-[1580px] px-6 py-8 lg:px-10">
       <ProcessStatusOverlay
         open={
           activity === "selecting" ||
@@ -456,17 +456,17 @@ export function SalesBillingPage({
             : "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล"
         }
       />
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-cyan-700 transition hover:text-cyan-500"
-      >
-        <ArrowLeft size={17} />
-        กลับหน้าแดชบอร์ด
-      </button>
-
-      <header className="mt-7 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+      <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-5 flex items-center gap-2 text-sm text-cyan-700 transition hover:text-cyan-500"
+          >
+            <ArrowLeft size={17} />
+            กลับหน้าแดชบอร์ด
+          </button>
+
           <p className="text-[10px] font-semibold tracking-[0.24em] text-emerald-600">
             SALES BILLING AUTOMATION
           </p>
@@ -479,19 +479,19 @@ export function SalesBillingPage({
             Express แบบควบคุมได้
           </p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-300/50 bg-emerald-50 text-emerald-600">
+        <div className="vp-page-icon flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-300/50 bg-emerald-50 text-emerald-600">
           <ReceiptText size={23} />
         </div>
       </header>
 
-      <section className="mt-7 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+      <section className="vp-setup-grid mt-7 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
         <button
           type="button"
           disabled={busy}
           onClick={() => {
             void choosePdf();
           }}
-          className="min-h-32 rounded-2xl border border-cyan-300 bg-gradient-to-br from-white via-cyan-50/70 to-blue-50 p-6 text-left text-slate-900 shadow-[0_12px_30px_rgba(8,145,178,0.12)] transition hover:-translate-y-0.5 hover:border-cyan-400 disabled:opacity-50"
+          className="vp-setup-card vp-upload-card min-h-32 rounded-2xl border border-cyan-300 bg-gradient-to-br from-white via-cyan-50/70 to-blue-50 p-6 text-left text-slate-900 shadow-[0_12px_30px_rgba(8,145,178,0.12)] transition hover:-translate-y-0.5 hover:border-cyan-400 disabled:opacity-50"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -513,7 +513,7 @@ export function SalesBillingPage({
           </div>
         </button>
 
-        <div className="rounded-2xl border border-blue-200 bg-white p-6 shadow-sm">
+        <div className="vp-setup-card rounded-2xl border border-blue-200 bg-white p-6 shadow-sm">
           <label className="text-[10px] font-semibold tracking-[0.2em] text-blue-600">
             IV NUMBER เริ่มต้น
           </label>
@@ -539,7 +539,7 @@ export function SalesBillingPage({
       </section>
 
       {activity !== "previewing" && (
-        <div className="mt-5 flex justify-end">
+        <div className="vp-action-bar mt-5 flex justify-end">
           <button
             type="button"
             disabled={
@@ -550,7 +550,7 @@ export function SalesBillingPage({
             onClick={() => {
               void buildPreview();
             }}
-            className="flex min-w-[280px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#063653] to-[#08769a] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/15 transition hover:-translate-y-0.5 hover:from-[#075b78] hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-40"
+            className="vp-action-button vp-action-primary flex min-w-[280px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#063653] to-[#08769a] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/15 transition hover:-translate-y-0.5 hover:from-[#075b78] hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <FileSearch size={18} />
             ประมวลผลและแสดง Preview
@@ -623,7 +623,7 @@ export function SalesBillingPage({
           </section>
 
           <div className="mt-6 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
+            <section className="vp-data-card overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
               <div className="flex flex-col justify-between gap-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white px-5 py-4 sm:flex-row sm:items-center">
                 <div>
                   <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
@@ -633,7 +633,7 @@ export function SalesBillingPage({
                     คิวเปิดบิลขายสินค้า
                   </h3>
                 </div>
-                <div className="flex rounded-xl border border-cyan-200 bg-white p-1">
+                <div className="vp-segmented-control flex gap-2 rounded-xl border border-cyan-200 bg-white p-1.5">
                   <button
                     type="button"
                     disabled={busy}
@@ -765,7 +765,7 @@ export function SalesBillingPage({
                               }
                             </p>
                           </button>
-                          <div className="flex items-center gap-1">
+                          <div className="vp-icon-button-group flex items-center gap-3">
                             <button
                               type="button"
                               disabled={
@@ -894,7 +894,7 @@ export function SalesBillingPage({
               </div>
             </section>
 
-            <aside className="sticky top-5 overflow-hidden rounded-2xl border border-cyan-300 bg-white shadow-[0_16px_40px_rgba(8,145,178,0.14)]">
+            <aside className="vp-live-monitor sticky top-5 overflow-hidden rounded-2xl border border-cyan-300 bg-white shadow-[0_16px_40px_rgba(8,145,178,0.14)]">
               <div className="bg-gradient-to-br from-[#062c46] to-[#075b78] p-5 text-white">
                 <div className="flex items-start justify-between">
                   <div>
@@ -953,7 +953,7 @@ export function SalesBillingPage({
 
                 {activity ===
                 "running" ? (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -963,7 +963,7 @@ export function SalesBillingPage({
                             : "PAUSE",
                         );
                       }}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-3 py-3 text-xs font-semibold text-white"
+                      className="vp-control-pause flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-3 py-3 text-xs font-semibold text-white"
                     >
                       {paused ? (
                         <CirclePlay
@@ -985,7 +985,7 @@ export function SalesBillingPage({
                           "STOP",
                         );
                       }}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-3 py-3 text-xs font-semibold text-white"
+                      className="vp-control-stop flex items-center justify-center gap-2 rounded-xl bg-red-600 px-3 py-3 text-xs font-semibold text-white"
                     >
                       <Octagon
                         size={17}
@@ -1003,7 +1003,7 @@ export function SalesBillingPage({
                     onClick={() => {
                       void runBilling();
                     }}
-                    className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-35 ${
+                    className={`vp-run-button flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-35 ${
                       simulate
                         ? "bg-blue-600 shadow-blue-200"
                         : "bg-emerald-600 shadow-emerald-200"
@@ -1103,7 +1103,7 @@ function SummaryCard({
   };
   return (
     <div
-      className={`rounded-xl border bg-white px-5 py-4 shadow-sm ${colors[tone]}`}
+      className={`vp-summary-card rounded-xl border bg-white px-5 py-4 shadow-sm ${colors[tone]}`}
     >
       <p className="text-xs text-slate-500">
         {label}

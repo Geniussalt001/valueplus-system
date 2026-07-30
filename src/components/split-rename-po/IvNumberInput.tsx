@@ -18,6 +18,7 @@ export function IvNumberInput({
   return (
     <label
       className="
+        vp-setup-card
         block
         rounded-2xl
         border

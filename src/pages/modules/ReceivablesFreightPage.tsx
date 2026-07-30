@@ -129,8 +129,8 @@ export function ReceivablesFreightPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-      <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <div className="vp-work-page receivables-freight-workspace mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
+      <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button
             type="button"
@@ -154,17 +154,17 @@ export function ReceivablesFreightPage({
           </p>
         </div>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300 bg-cyan-50 text-cyan-700">
+        <div className="vp-page-icon flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300 bg-cyan-50 text-cyan-700">
           <FileSpreadsheet size={23} />
         </div>
       </header>
 
-      <section className="mt-8 grid gap-4 lg:grid-cols-2">
+      <section className="vp-setup-grid mt-8 grid gap-4 lg:grid-cols-2">
         <button
           type="button"
           disabled={Boolean(busy)}
           onClick={() => void chooseCsv()}
-          className="group min-h-[126px] rounded-2xl border border-cyan-300 bg-white p-5 text-left shadow-[0_16px_35px_rgba(8,145,178,0.08)] transition hover:-translate-y-0.5 hover:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="vp-setup-card vp-upload-card group min-h-[126px] rounded-2xl border border-cyan-300 bg-white p-5 text-left shadow-[0_16px_35px_rgba(8,145,178,0.08)] transition hover:-translate-y-0.5 hover:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="flex items-center gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-300 bg-cyan-50 text-cyan-700">
@@ -184,7 +184,7 @@ export function ReceivablesFreightPage({
           </div>
         </button>
 
-        <div className="min-h-[126px] rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
+        <div className="vp-setup-card min-h-[126px] rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
           <div className="flex items-center gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-white text-blue-700">
               <Sheet size={21} />
@@ -238,12 +238,12 @@ export function ReceivablesFreightPage({
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap justify-end gap-3">
+      <div className="vp-action-bar mt-6 flex flex-wrap justify-end gap-3">
         <button
           type="button"
           disabled={!csvPath || Boolean(busy)}
           onClick={() => void buildPreview()}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#063b59] px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#075071] disabled:cursor-not-allowed disabled:opacity-40"
+          className="vp-action-button vp-action-primary inline-flex items-center gap-2 rounded-xl bg-[#063b59] px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#075071] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy === "previewing" ? (
             <LoaderCircle className="animate-spin" size={18} />
@@ -257,7 +257,7 @@ export function ReceivablesFreightPage({
           type="button"
           disabled={!canExport || Boolean(busy)}
           onClick={() => void saveMonthlySheet()}
-          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="vp-action-button vp-action-success inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy === "saving" ? (
             <LoaderCircle className="animate-spin" size={18} />
@@ -295,7 +295,7 @@ export function ReceivablesFreightPage({
             />
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+          <div className="vp-data-card mt-5 overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <div className="max-h-[590px] overflow-auto">
               <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-[#eaf8fc] text-xs text-slate-600">
@@ -352,7 +352,7 @@ function Stat({
   warning?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-cyan-200 bg-white px-5 py-4">
+    <div className="vp-summary-card rounded-xl border border-cyan-200 bg-white px-5 py-4">
       <p className="text-xs text-slate-500">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${warning ? "text-amber-600" : "text-slate-900"}`}>
         {value}

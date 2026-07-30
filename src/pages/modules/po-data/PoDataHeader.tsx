@@ -31,7 +31,7 @@ export function PoDataHeader({
     currentUser.role === "admin";
 
   return (
-    <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
       <div>
         <button
           type="button"
@@ -63,7 +63,7 @@ export function PoDataHeader({
       </div>
 
       {isAdmin && (
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="vp-header-actions flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             disabled={
@@ -71,7 +71,7 @@ export function PoDataHeader({
               clearing
             }
             onClick={onClear}
-            className="flex items-center justify-center gap-2 rounded-xl border border-red-300/20 bg-red-300/[0.06] px-5 py-3 text-sm text-red-300 transition hover:bg-red-300/10 disabled:cursor-not-allowed disabled:opacity-35"
+            className="vp-action-button vp-action-danger flex items-center justify-center gap-2 rounded-xl border border-red-300/20 bg-red-300/[0.06] px-5 py-3 text-sm text-red-300 transition hover:bg-red-300/10 disabled:cursor-not-allowed disabled:opacity-35"
           >
             {clearing ? (
               <LoaderCircle
@@ -88,7 +88,7 @@ export function PoDataHeader({
           <button
             type="button"
             onClick={onCreate}
-            className="flex items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-medium text-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-300/15"
+            className="vp-action-button vp-action-success flex items-center justify-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-medium text-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-300/15"
           >
             <Plus size={18} />
             เพิ่มรายการ PO

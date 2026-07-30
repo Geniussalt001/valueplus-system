@@ -59,8 +59,8 @@ export function SystemCard({
           : `${module.title} ยังไม่เปิดใช้งาน`
       }
       className={`
-        module-card group relative min-h-[285px]
-        overflow-hidden p-6 text-left
+        module-card group relative min-h-[300px]
+        overflow-hidden p-7 text-left
         ${
           isOnline
             ? "cursor-pointer"
@@ -100,7 +100,7 @@ export function SystemCard({
         </div>
 
         <p
-          className="mt-7 text-[10px] font-semibold tracking-[0.22em]"
+          className="mt-8 text-[10px] font-semibold tracking-[0.22em]"
           style={{
             color: isOnline
               ? module.color
@@ -110,15 +110,15 @@ export function SystemCard({
           {module.subtitle}
         </p>
 
-        <h3 className="mt-3 text-xl font-semibold">
+        <h3 className="mt-3.5 text-xl font-semibold">
           {module.title}
         </h3>
 
-        <p className="mt-3 text-sm leading-6">
+        <p className="mt-3.5 text-sm leading-6">
           {module.description}
         </p>
 
-        <div className="mt-auto flex items-center justify-between pt-7">
+        <div className="mt-auto flex items-center justify-between gap-5 pt-8">
           <span
             className={`
               inline-flex items-center gap-2 text-xs
@@ -140,7 +140,7 @@ export function SystemCard({
           </span>
 
           {isOnline ? (
-            <span className="module-open-button flex h-9 w-9 items-center justify-center">
+            <span className="module-open-button flex h-10 w-10 items-center justify-center">
               <ArrowUpRight
                 size={17}
               />

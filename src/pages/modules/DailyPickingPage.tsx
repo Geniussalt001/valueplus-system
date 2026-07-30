@@ -603,6 +603,8 @@ export function DailyPickingPage({
   return (
     <div
       className="
+        vp-work-page
+        split-rename-workspace
         mx-auto
         max-w-[1500px]
         px-6
@@ -612,6 +614,7 @@ export function DailyPickingPage({
     >
       <header
         className="
+          vp-page-header
           flex
           flex-col
           justify-between
@@ -684,6 +687,7 @@ export function DailyPickingPage({
 
         <div
           className="
+            vp-page-icon
             flex
             h-12
             w-12
@@ -702,6 +706,7 @@ export function DailyPickingPage({
 
       <section
         className="
+          vp-setup-grid
           mt-7
           grid
           gap-4
@@ -715,6 +720,8 @@ export function DailyPickingPage({
           }}
           disabled={processing}
           className="
+            vp-setup-card
+            vp-upload-card
             group
             min-h-52
             rounded-2xl
@@ -786,6 +793,7 @@ export function DailyPickingPage({
 
         <div
           className="
+            vp-setup-card
             min-h-52
             rounded-2xl
             border
@@ -893,6 +901,7 @@ export function DailyPickingPage({
 
       <div
         className="
+          vp-action-bar
           mt-6
           flex
           flex-col
@@ -913,6 +922,8 @@ export function DailyPickingPage({
             void processPdf();
           }}
           className="
+            vp-action-button
+            vp-action-primary
             flex
             items-center
             justify-center
@@ -955,6 +966,8 @@ export function DailyPickingPage({
               void openOutputFolder();
             }}
             className="
+              vp-action-button
+              vp-action-secondary
               flex
               items-center
               justify-center
@@ -987,6 +1000,8 @@ export function DailyPickingPage({
             disabled={processing}
             onClick={onNextProcess}
             className="
+              vp-action-button
+              vp-next-process
               flex
               items-center
               justify-center
@@ -1061,6 +1076,8 @@ export function DailyPickingPage({
 
       <section
         className="
+          vp-data-card
+          vp-processing-log
           mt-6
           overflow-hidden
           rounded-2xl
@@ -1120,7 +1137,7 @@ export function DailyPickingPage({
             className="
               flex
               items-center
-              gap-2
+              gap-3
             "
           >
             <span
@@ -1297,6 +1314,7 @@ function SummaryCard({
   return (
     <div
       className={`
+        vp-summary-card
         rounded-2xl
         border
         p-5

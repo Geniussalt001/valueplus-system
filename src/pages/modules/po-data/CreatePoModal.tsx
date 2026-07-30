@@ -159,7 +159,7 @@ export function CreatePoModal({
           />
         </div>
 
-        <footer className="flex justify-end gap-3 border-t border-white/[0.06] px-6 py-5">
+        <footer className="vp-modal-actions flex justify-end gap-3 border-t border-white/[0.06] px-6 py-5">
           <button
             type="button"
             disabled={saving}

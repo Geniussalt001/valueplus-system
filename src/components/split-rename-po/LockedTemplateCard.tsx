@@ -20,6 +20,7 @@ export function LockedTemplateCard({
   return (
     <div
       className="
+        vp-setup-card
         relative
         min-h-44
         overflow-hidden

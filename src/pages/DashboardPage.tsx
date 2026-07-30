@@ -65,13 +65,13 @@ export function DashboardPage({
       : "ระบบงานสำนักงานใหญ่";
 
   return (
-    <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-      <section className="dashboard-hero relative overflow-hidden rounded-2xl border border-cyan-300/15 p-7 lg:p-9">
+    <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10 lg:py-10">
+      <section className="dashboard-hero relative overflow-hidden rounded-[26px] border border-cyan-300/15 p-7 sm:p-8 lg:p-10">
         <div className="hero-light" />
 
-        <div className="relative z-10 flex flex-col justify-between gap-8 xl:flex-row xl:items-center">
+        <div className="relative z-10 flex flex-col justify-between gap-10 xl:flex-row xl:items-center">
           <div>
-            <div className="flex items-center gap-2 text-cyan-300">
+            <div className="dashboard-eyebrow flex items-center gap-2.5 text-cyan-300">
               <Sparkles size={17} />
 
               <span className="text-xs font-semibold tracking-[0.2em]">
@@ -79,17 +79,17 @@ export function DashboardPage({
               </span>
             </div>
 
-            <h2 className="mt-4 text-3xl font-semibold lg:text-4xl">
+            <h2 className="mt-5 text-3xl font-semibold tracking-[-0.025em] lg:text-4xl">
               ยินดีต้อนรับเข้าสู่ระบบ
             </h2>
 
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400">
               ศูนย์กลางสำหรับจัดการเอกสาร ประมวลผลข้อมูล
               และติดตามงานภายในองค์กร
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <StatusBox
               icon={Boxes}
               value={String(
@@ -124,8 +124,8 @@ export function DashboardPage({
         </div>
       </section>
 
-      <section className="mt-9">
-        <div className="mb-6 flex items-end justify-between">
+      <section className="mt-10">
+        <div className="mb-7 flex items-end justify-between gap-6">
           <div>
             <p className="text-[10px] tracking-[0.22em] text-cyan-300">
               WORK MODULES
@@ -141,7 +141,7 @@ export function DashboardPage({
           </p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+        <div className="module-grid grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
           {availableModules.map(
             (module) => (
               <SystemCard
@@ -173,7 +173,7 @@ function StatusBox({
   statusClass,
 }: StatusBoxProps) {
   return (
-    <div className="relative min-w-32 rounded-xl border border-cyan-700/15 bg-white/70 p-4 shadow-sm">
+    <div className="dashboard-stat relative min-w-32 rounded-2xl border border-cyan-700/15 bg-white/80 p-5 shadow-sm">
       <span
         className={`status-light status-corner right-4 top-4 ${statusClass}`}
         aria-hidden="true"
@@ -185,7 +185,7 @@ function StatusBox({
       />
 
       <p
-        className={`mt-4 text-xl font-semibold ${color}`}
+        className={`mt-5 text-xl font-semibold ${color}`}
       >
         {value}
       </p>

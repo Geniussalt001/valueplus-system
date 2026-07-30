@@ -130,7 +130,7 @@ export function AppLayout({
           WORKSPACE
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-1.5">
+        <div className="workspace-switcher mt-3 grid grid-cols-2 gap-3 rounded-2xl border border-cyan-600/15 bg-cyan-50/60 p-2">
           <button
             type="button"
             onClick={() =>
@@ -143,9 +143,9 @@ export function AppLayout({
               items-center
               justify-center
               gap-2
-              rounded-lg
+              rounded-xl
               px-2
-              py-2.5
+              py-3
               text-xs
               font-medium
               transition
@@ -173,9 +173,9 @@ export function AppLayout({
               items-center
               justify-center
               gap-2
-              rounded-lg
+              rounded-xl
               px-2
-              py-2.5
+              py-3
               text-xs
               font-medium
               transition
@@ -196,7 +196,7 @@ export function AppLayout({
           MAIN NAVIGATION
         </p>
 
-        <nav className="mt-4 space-y-1.5">
+        <nav className="mt-4 space-y-2">
           <button
             type="button"
             onClick={() =>
@@ -314,10 +314,10 @@ export function AppLayout({
           )}
         </nav>
 
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto space-y-4 pt-6">
           <UpdateCenter />
 
-          <div className="rounded-xl border border-cyan-600/15 bg-cyan-50/70 p-4 shadow-sm">
+          <div className="service-status-card rounded-2xl border border-cyan-600/15 bg-cyan-50/70 p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <span
                 className="status-light status-online"
@@ -348,7 +348,7 @@ export function AppLayout({
       </aside>
 
       <section className="relative z-10 min-h-screen lg:ml-72">
-        <header className="app-red-header sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-cyan-600/15 bg-white/90 px-6 backdrop-blur-xl lg:px-10">
+        <header className="app-red-header sticky top-0 z-20 flex min-h-20 items-center justify-between gap-6 border-b border-cyan-600/15 bg-white/90 px-6 backdrop-blur-xl lg:px-10">
           <div>
             <p className="text-[10px] tracking-[0.22em] text-cyan-300">
               VALUEPLUS WORKSPACE
@@ -360,7 +360,7 @@ export function AppLayout({
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-2.5 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] px-3 py-2 sm:flex">
+            <div className="user-context-chip hidden min-h-10 items-center gap-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.04] px-4 py-2 sm:flex">
               <span
                 className="status-light status-online"
                 aria-hidden="true"
@@ -381,7 +381,7 @@ export function AppLayout({
             <button
               type="button"
               onClick={onLogout}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 shadow-sm transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600"
+              className="logout-button flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-500 shadow-sm transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600"
               aria-label="ออกจากระบบ"
               title="ออกจากระบบ"
             >

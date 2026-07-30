@@ -78,6 +78,8 @@ export function PoDataPage({
   return (
     <div
       className="
+        vp-work-page
+        po-data-workspace
         mx-auto
         max-w-[1500px]
         px-6
@@ -87,6 +89,7 @@ export function PoDataPage({
     >
       <header
         className="
+          vp-page-header
           flex
           flex-col
           justify-between
@@ -142,6 +145,7 @@ export function PoDataPage({
 
         <div
           className="
+            vp-page-icon
             flex
             h-12
             w-12
@@ -165,7 +169,7 @@ export function PoDataPage({
         className="
           mt-8
           grid
-          gap-5
+          gap-6
           lg:grid-cols-2
         "
       >
@@ -274,6 +278,7 @@ function ArchiveFolderCard({
       type="button"
       onClick={onClick}
       className={`
+        vp-folder-card
         group
         relative
         min-h-[240px]

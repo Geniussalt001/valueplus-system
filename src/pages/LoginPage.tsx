@@ -204,31 +204,39 @@ export function LoginPage({
 
   return (
     <main
-      className="login-red-white relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-20"
+      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-16 xl:px-20"
       style={{
         backgroundImage:
-          "url('/images/login-background-white-tron.webp')",
+          "url('/images/login-background-dark-red-v2.webp')",
       }}
     >
-      <section className="login-red-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-xl sm:p-10">
-        <div className="relative z-10">
-          <BrandLogo size="medium" />
+      <div
+        className="login-hybrid-vignette pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      />
 
-          <div className="mt-7 h-px bg-gradient-to-r from-cyan-500/80 via-blue-500/20 to-transparent" />
+      <section className="login-hybrid-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-2xl sm:p-10">
+        <div className="relative z-10">
+          <BrandLogo
+            size="medium"
+            className="login-hybrid-logo"
+          />
+
+          <div className="login-hybrid-divider mt-7 h-px" />
 
           <div className="mt-8">
-            <div className="flex items-center gap-2 text-cyan-700">
+            <div className="flex items-center gap-2.5 text-red-300">
               <ShieldCheck size={18} />
               <span className="text-xs font-semibold tracking-[0.18em]">
                 VALUEPLUS SYSTEM
               </span>
             </div>
 
-            <h1 className="mt-4 text-3xl font-semibold text-slate-900">
+            <h1 className="mt-4 text-3xl font-semibold text-white">
               ยินดีต้อนรับ
             </h1>
 
-            <p className="mt-3 text-sm leading-7 text-slate-600">
+            <p className="mt-3 text-sm leading-7 text-slate-300">
               เลือกส่วนงาน Office หรือ Head Office
               เพื่อเข้าสู่ระบบได้ทันที
             </p>
@@ -236,53 +244,53 @@ export function LoginPage({
 
           {connectionState ===
             "checking" && (
-            <div className="mt-8 flex min-h-[210px] flex-col items-center justify-center rounded-2xl border border-cyan-200 bg-white/85 px-6 text-center">
+            <div className="login-hybrid-surface mt-8 flex min-h-[210px] flex-col items-center justify-center rounded-2xl px-6 text-center">
               <LoaderCircle
                 size={30}
-                className="animate-spin text-cyan-600"
+                className="animate-spin text-red-400"
               />
-              <p className="mt-4 font-semibold text-slate-900">
+              <p className="mt-4 font-semibold text-white">
                 กำลังตรวจสอบการเชื่อมต่อ
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1.5 text-xs text-slate-400">
                 กรุณารอสักครู่
               </p>
             </div>
           )}
 
           {(connectionState ===
-            "required" ||
+              "required" ||
             connectionState ===
               "activating") && (
             <form
-              className="mt-8 rounded-2xl border border-cyan-200 bg-white/90 p-5 shadow-sm"
+              className="login-hybrid-surface mt-8 rounded-2xl p-5"
               onSubmit={(event) => {
                 event.preventDefault();
                 void activateSystem();
               }}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
+                <span className="login-hybrid-icon flex h-11 w-11 items-center justify-center rounded-xl text-red-300">
                   <Wifi size={21} />
                 </span>
                 <div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-white">
                     เชื่อมต่อระบบครั้งแรก
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-400">
                     กรอกรหัสเปิดใช้งานสำหรับเครื่องนี้
                   </p>
                 </div>
               </div>
 
-              <label className="mt-5 block text-xs font-medium text-slate-600">
+              <label className="mt-6 block text-xs font-medium text-slate-300">
                 รหัสเปิดใช้งาน
               </label>
 
-              <div className="mt-2 flex items-center rounded-xl border border-slate-200 bg-white px-4 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-100">
+              <div className="login-hybrid-input mt-2.5 flex items-center rounded-xl px-4">
                 <KeyRound
                   size={18}
-                  className="text-cyan-700"
+                  className="text-red-300"
                 />
                 <input
                   autoFocus
@@ -303,7 +311,7 @@ export function LoginPage({
                     setError("");
                   }}
                   placeholder="กรอกรหัสที่ได้รับ"
-                  className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-900 outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400"
+                  className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold uppercase tracking-[0.12em] text-white outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-500"
                 />
               </div>
 
@@ -314,7 +322,7 @@ export function LoginPage({
                   connectionState ===
                     "activating"
                 }
-                className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#063b59] text-sm font-semibold text-white shadow-md transition hover:bg-[#075071] disabled:cursor-not-allowed disabled:opacity-50"
+                className="login-hybrid-primary mt-5 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {connectionState ===
                 "activating" ? (
@@ -334,7 +342,7 @@ export function LoginPage({
 
           {connectionState ===
             "ready" && (
-          <div className="mt-7 space-y-3">
+          <div className="mt-8 space-y-4">
             {accounts.map((account) => {
               const Icon =
                 account.icon;
@@ -355,25 +363,25 @@ export function LoginPage({
                       account.code,
                     );
                   }}
-                  className="group flex w-full items-center gap-4 rounded-2xl border border-cyan-200 bg-white/90 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-500 hover:bg-cyan-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-55"
+                  className="login-account-card group flex min-h-[92px] w-full items-center gap-4 rounded-2xl p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-cyan-50 text-cyan-700">
+                  <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-red-300">
                     <Icon size={22} />
                   </span>
 
                   <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold text-slate-900">
+                    <span className="block text-base font-semibold text-white">
                       {account.label}
                     </span>
-                    <span className="mt-0.5 block text-[10px] font-semibold tracking-[0.16em] text-cyan-700">
+                    <span className="mt-1 block text-[10px] font-semibold tracking-[0.16em] text-red-300">
                       {account.englishLabel}
                     </span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">
+                    <span className="mt-1.5 block text-xs leading-5 text-slate-400">
                       {account.description}
                     </span>
                   </span>
 
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#063b59] text-white transition group-hover:translate-x-1 group-hover:bg-[#075071]">
+                  <span className="login-account-arrow flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white transition group-hover:translate-x-1">
                     <ArrowRight
                       size={18}
                       className={
@@ -390,16 +398,16 @@ export function LoginPage({
           )}
 
           {error && (
-            <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p className="mt-5 rounded-xl border border-red-400/35 bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
               {error}
             </p>
           )}
 
-          <div className="mt-7 flex items-center justify-between text-[11px]">
-            <span className="text-slate-500">
+          <div className="mt-8 flex items-center justify-between gap-4 text-[11px]">
+            <span className="text-slate-400">
               VALUEPLUS RETAIL CO., LTD.
             </span>
-            <span className="flex items-center gap-2 font-medium text-emerald-700">
+            <span className="flex items-center gap-2.5 font-medium text-emerald-300">
               <span
                 className="status-light status-online"
                 aria-hidden="true"
