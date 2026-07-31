@@ -51,7 +51,11 @@ class DailySoWorkbookTest(unittest.TestCase):
                 document_date="31/07/2026",
                 group={
                     "code": "Q19",
-                    "po_text": "รวม 12 คลัง",
+                    "po_text": "รวม 12 PO",
+                    "so_text": (
+                        "Q19 รวม 12 PO 31/7/26"
+                    ),
+                    "po_count": 12,
                     "records": [
                         {
                             "item_code": "01-0000-29",
@@ -70,7 +74,7 @@ class DailySoWorkbookTest(unittest.TestCase):
             try:
                 self.assertEqual(
                     result["Sheet1"]["A2"].value,
-                    "Q19",
+                    "Q19 รวม 12 PO 31/7/26",
                 )
             finally:
                 result.close()
