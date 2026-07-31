@@ -1215,6 +1215,10 @@ export function DailySoPage({
                 <GroupPreview
                   key={group.code}
                   group={group}
+                  documentDate={
+                    preview
+                      .document_date
+                  }
                   adjusting={
                     adjusting
                   }
@@ -1266,12 +1270,14 @@ export function DailySoPage({
 
 function GroupPreview({
   group,
+  documentDate,
   adjusting,
   quantityEdits,
   onQuantityChange,
   onQuantityRestore,
 }: {
   group: DailySoGroup;
+  documentDate: string;
   adjusting: boolean;
   quantityEdits:
     QuantityEdits;
@@ -1409,7 +1415,11 @@ function GroupPreview({
             text-slate-400
           "
         >
-          {group.so_text}
+          {group.so_text ||
+            buildSoText(
+              group,
+              documentDate,
+            )}
         </p>
       </div>
 
@@ -2376,6 +2386,65 @@ function formatNumber(
   return numberFormatter.format(
     value,
   );
+}
+
+function buildSoText(
+  group: DailySoGroup,
+  documentDate: string,
+): string {
+  return `${group.code} รวม ${group.po_count} PO ${formatCompactDocumentDate(
+    documentDate,
+  )}`;
+}
+
+function formatCompactDocumentDate(
+  value: string,
+): string {
+  const parts = String(
+    value || "",
+  )
+    .trim()
+    .split(/[./-]/)
+    .filter(Boolean);
+
+  if (parts.length !== 3) {
+    return value;
+  }
+
+  const yearFirst =
+    parts[0].length === 4;
+
+  const day = Number(
+    yearFirst
+      ? parts[2]
+      : parts[0],
+  );
+
+  const month = Number(
+    parts[1],
+  );
+
+  let year = Number(
+    yearFirst
+      ? parts[0]
+      : parts[2],
+  );
+
+  if (
+    !Number.isFinite(day) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(year)
+  ) {
+    return value;
+  }
+
+  if (year >= 2400) {
+    year -= 543;
+  }
+
+  return `${day}/${month}/${String(
+    year % 100,
+  ).padStart(2, "0")}`;
 }
 
 function getErrorMessage(

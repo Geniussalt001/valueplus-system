@@ -37,7 +37,7 @@ export interface DailySoGroup {
   code: "Q19" | "Q20";
   po_numbers: string[];
   po_text: string;
-  so_text: string;
+  so_text?: string;
   warehouses: string[];
   po_count: number;
   item_count: number;
