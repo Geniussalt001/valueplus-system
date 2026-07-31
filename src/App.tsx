@@ -63,6 +63,10 @@ import {
   SalesBillingPage,
 } from "./pages/modules/SalesBillingPage";
 
+import {
+  WorldwideRetailPage,
+} from "./pages/modules/WorldwideRetailPage";
+
 import type {
   AppRoute,
   WorkspaceScope,
@@ -266,6 +270,14 @@ function App() {
       case "receivables-freight":
         return (
           <ReceivablesFreightPage
+            onBack={backToDashboard}
+          />
+        );
+
+      case "retail-worldwide-po":
+        return (
+          <WorldwideRetailPage
+            currentUser={currentUser}
             onBack={backToDashboard}
           />
         );

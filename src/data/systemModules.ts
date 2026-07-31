@@ -150,13 +150,13 @@ export const systemModules:
       subtitle:
         "RETAIL WORLDWIDE PO",
       description:
-        "พื้นที่เตรียมระบบสำหรับลงยอดและจัดการข้อมูล PO รีเทลขายเวิร์ลไวด์",
+        "บันทึกเลข IV, PO, SO และไฟล์ PDF เข้าแฟ้ม Google Drive พร้อมติดตามการตอบรับ",
       icon:
         Globe2,
       color:
         "#6551bd",
       status:
-        "offline",
+        "online",
       workspaces: [
         "retail",
       ],

@@ -992,7 +992,7 @@ def _write_group_workbook(
             start=2,
         ):
             sheet.cell(index, 1).value = (
-                group["po_text"]
+                group["code"]
             )
 
             date_cell = sheet.cell(

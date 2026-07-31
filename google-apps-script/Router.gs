@@ -151,6 +151,33 @@ function doPost(event) {
           );
         break;
 
+      case "worldwide.list":
+        data =
+          listWorldwideRetail();
+        break;
+
+      case "worldwide.upload":
+        requireOfficeSession(
+          session,
+        );
+        data =
+          uploadWorldwideRetail(
+            request.data,
+            session.userCode,
+          );
+        break;
+
+      case "worldwide.acknowledge":
+        requireHeadOfficeSession(
+          session,
+        );
+        data =
+          acknowledgeWorldwideRetail(
+            request.data,
+            session.userCode,
+          );
+        break;
+
       case "po.list":
         data = listPoRecords();
         break;
@@ -283,4 +310,40 @@ function createJsonResponse(
     .setMimeType(
       ContentService.MimeType.JSON,
     );
+}
+
+function requireOfficeSession(
+  session,
+) {
+  if (
+    !session ||
+    String(
+      session.userCode || "",
+    )
+      .trim()
+      .toUpperCase() !==
+      "OFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะฝั่ง Retail เท่านั้นที่บันทึกเอกสารได้",
+    );
+  }
+}
+
+function requireHeadOfficeSession(
+  session,
+) {
+  if (
+    !session ||
+    String(
+      session.userCode || "",
+    )
+      .trim()
+      .toUpperCase() !==
+      "HEADOFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะสำนักงานใหญ่เท่านั้นที่ตอบรับเอกสารได้",
+    );
+  }
 }

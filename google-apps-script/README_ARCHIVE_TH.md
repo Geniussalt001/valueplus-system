@@ -15,9 +15,27 @@
 
 ไม่ต้องเปลี่ยน `API_TOKEN`, `SPREADSHEET_ID` หรือ `PDF_FOLDER_ID`
 
+## เปิดใช้แฟ้ม Retail Worldwide
+
+ระบบใช้ Google Drive เดิม และสร้างโครงสร้างนี้ให้อัตโนมัติ:
+
+`ValuePlus System PDFs / Retail Worldwide / ปี พ.ศ. / เดือนภาษาไทย / ไฟล์ PO และ IV`
+
+1. เพิ่ม `WorldwideRetailRepository.gs`
+2. เพิ่ม `SetupWorldwideRetail.gs`
+3. แทนที่ `Router.gs` ด้วยไฟล์ล่าสุดในโฟลเดอร์นี้
+4. รัน `setupWorldwideRetailSystem()` หนึ่งครั้ง
+5. Deploy > Manage deployments > Edit > New version > Deploy
+
+ฝั่ง `OFFICE` สามารถบันทึกรายการและ PDF ได้ ส่วน `HEADOFFICE`
+สามารถกดยืนยันสีเขียวว่าได้รับแล้ว หรือกากบาทสีแดงเพื่อแจ้งว่ายังไม่ได้รับ
+ทั้งสองฝั่งเห็นแฟ้มและสถานะชุดเดียวกัน
+
 ## กฎป้องกันข้อมูลเสีย
 
 - รับเฉพาะ PDF ไม่เกิน 8 MB ต่อไฟล์
 - เลข PO ซ้ำจะไม่อัปโหลดและไม่เขียนทับ
 - ชื่อไฟล์ซ้ำในโฟลเดอร์วันเดียวกันจะไม่เขียนทับ
 - ไฟล์ในเครื่องยังคงอยู่แม้อัปโหลด Drive ไม่สำเร็จ
+- Retail Worldwide รับ PDF ของ PO และ IV ไม่เกิน 8 MB ต่อไฟล์
+- รายการ Retail Worldwide ที่มีเลข IV, PO และ SO ซ้ำกันจะไม่ถูกบันทึกซ้ำ
