@@ -260,7 +260,11 @@ function acknowledgeWorldwideRetail(
   const lock =
     LockService.getScriptLock();
 
-  lock.waitLock(30000);
+  if (!lock.tryLock(5000)) {
+    throw new Error(
+      "ระบบกำลังบันทึกรายการอื่น กรุณากดอีกครั้ง",
+    );
+  }
 
   try {
     const rowNumber =
@@ -293,12 +297,114 @@ function acknowledgeWorldwideRetail(
         ),
       ]]);
 
+    SpreadsheetApp.flush();
+
     return getWorldwideRetailRecordByRow(
       rowNumber,
     );
   } finally {
     lock.releaseLock();
   }
+}
+
+function getWorldwideRetailPdf(
+  input,
+) {
+  if (
+    !input ||
+    !input.id
+  ) {
+    throw new Error(
+      "กรุณาระบุรายการเอกสาร",
+    );
+  }
+
+  const documentType =
+    String(
+      input.documentType || "",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    ["po", "iv"].indexOf(
+      documentType,
+    ) === -1
+  ) {
+    throw new Error(
+      "ประเภทเอกสารไม่ถูกต้อง",
+    );
+  }
+
+  const rowNumber =
+    findWorldwideRetailRowById(
+      input.id,
+    );
+
+  if (!rowNumber) {
+    throw new Error(
+      "ไม่พบรายการรีเทลขายเวิร์ลไวด์",
+    );
+  }
+
+  const row =
+    getWorldwideRetailSheet()
+      .getRange(
+        rowNumber,
+        1,
+        1,
+        WORLDWIDE_RETAIL_HEADERS.length,
+      )
+      .getValues()[0];
+
+  const fileId =
+    String(
+      documentType === "po"
+        ? row[5]
+        : row[9],
+    ).trim();
+
+  const fileName =
+    String(
+      documentType === "po"
+        ? row[6]
+        : row[10],
+    ).trim();
+
+  if (!fileId) {
+    throw new Error(
+      "ไม่พบไฟล์ " +
+        documentType.toUpperCase(),
+    );
+  }
+
+  const file =
+    DriveApp.getFileById(
+      fileId,
+    );
+
+  const bytes =
+    file.getBlob()
+      .getBytes();
+
+  if (
+    bytes.length >
+    MAX_WORLDWIDE_PDF_SIZE_BYTES
+  ) {
+    throw new Error(
+      "ไฟล์มีขนาดใหญ่เกินกว่าที่ระบบ Preview ได้",
+    );
+  }
+
+  return {
+    fileName:
+      fileName ||
+      file.getName(),
+    base64Data:
+      Utilities.base64Encode(
+        bytes,
+      ),
+  };
 }
 
 function getWorldwideRetailSheet() {
@@ -475,9 +581,8 @@ function mapWorldwideRetailRow(row) {
     uploadedBy:
       String(row[14] || ""),
     acknowledgementStatus:
-      String(
-        row[15] ||
-          "pending",
+      normalizeWorldwideAcknowledgementStatus(
+        row[15],
       ),
     acknowledgedAt:
       formatDateValue(
@@ -489,6 +594,22 @@ function mapWorldwideRetailRow(row) {
     acknowledgementNote:
       String(row[18] || ""),
   };
+}
+
+function normalizeWorldwideAcknowledgementStatus(
+  value,
+) {
+  const status =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  return [
+    "received",
+    "rejected",
+  ].indexOf(status) >= 0
+    ? status
+    : "pending";
 }
 
 function decodeWorldwidePdf(

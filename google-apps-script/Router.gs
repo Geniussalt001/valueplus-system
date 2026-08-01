@@ -178,6 +178,13 @@ function doPost(event) {
           );
         break;
 
+      case "worldwide.getPdf":
+        data =
+          getWorldwideRetailPdf(
+            request.data,
+          );
+        break;
+
       case "po.list":
         data = listPoRecords();
         break;

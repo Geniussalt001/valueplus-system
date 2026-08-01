@@ -9,9 +9,11 @@ import {
   ArrowLeft,
   Check,
   CheckCircle2,
+  ChevronRight,
+  Eye,
   ExternalLink,
   FileText,
-  Folder,
+  FolderOpen,
   Globe2,
   LoaderCircle,
   RefreshCw,
@@ -39,6 +41,10 @@ import type {
   WorldwideAcknowledgementStatus,
   WorldwideRetailRecord,
 } from "../../types/worldwideRetail.types";
+
+import {
+  base64ToPdfUrl,
+} from "../../utils/fileEncoding";
 
 interface WorldwideRetailPageProps {
   currentUser: AppUser;
@@ -81,13 +87,23 @@ export function WorldwideRetailPage({
   const [saving, setSaving] =
     useState(false);
   const [
-    respondingId,
-    setRespondingId,
-  ] = useState("");
+    respondingIds,
+    setRespondingIds,
+  ] = useState<string[]>([]);
   const [error, setError] =
     useState("");
   const [success, setSuccess] =
     useState("");
+  const [openingDocument, setOpeningDocument] =
+    useState("");
+  const [previewUrl, setPreviewUrl] =
+    useState("");
+  const [previewName, setPreviewName] =
+    useState("");
+  const [previewDriveUrl, setPreviewDriveUrl] =
+    useState("");
+  const [previewType, setPreviewType] =
+    useState<"po" | "iv">("po");
   const [search, setSearch] =
     useState("");
   const [
@@ -160,6 +176,17 @@ export function WorldwideRetailPage({
   useEffect(() => {
     void loadRecords();
   }, [loadRecords]);
+
+  useEffect(
+    () => () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl,
+        );
+      }
+    },
+    [previewUrl],
+  );
 
   const datedRecords =
     useMemo(
@@ -285,7 +312,7 @@ export function WorldwideRetailPage({
                 ({ record }) =>
                   record,
               )
-          : records;
+          : [];
 
       return source
         .filter((record) => {
@@ -315,7 +342,6 @@ export function WorldwideRetailPage({
         );
     }, [
       datedRecords,
-      records,
       search,
       selectedMonth,
       selectedYear,
@@ -444,16 +470,41 @@ export function WorldwideRetailPage({
   ) => {
     if (
       !canRespond ||
-      respondingId
+      respondingIds.includes(
+        record.id,
+      )
     ) {
       return;
     }
 
-    setRespondingId(
-      record.id,
+    const previousRecord =
+      record;
+
+    const optimisticRecord = {
+      ...record,
+      acknowledgementStatus:
+        status,
+      acknowledgedAt:
+        new Date().toISOString(),
+      acknowledgedBy:
+        currentUser.userCode,
+    };
+
+    setRespondingIds(
+      (current) => [
+        ...current,
+        record.id,
+      ],
     );
     setError("");
     setSuccess("");
+    setRecords((current) =>
+      current.map((item) =>
+        item.id === record.id
+          ? optimisticRecord
+          : item,
+      ),
+    );
 
     try {
       const updated =
@@ -481,14 +532,96 @@ export function WorldwideRetailPage({
           : "แจ้งว่ายังไม่ได้รับหรือเอกสารมีปัญหาแล้ว",
       );
     } catch (reason) {
+      setRecords((current) =>
+        current.map((item) =>
+          item.id === record.id
+            ? previousRecord
+            : item,
+        ),
+      );
       setError(
         getErrorMessage(
           reason,
         ),
       );
     } finally {
-      setRespondingId("");
+      setRespondingIds(
+        (current) =>
+          current.filter(
+            (id) =>
+              id !== record.id,
+          ),
+      );
     }
+  };
+
+  const openPreview = async (
+    record: WorldwideRetailRecord,
+    documentType: "po" | "iv",
+  ) => {
+    const openingKey =
+      `${record.id}:${documentType}`;
+
+    if (openingDocument) {
+      return;
+    }
+
+    setOpeningDocument(
+      openingKey,
+    );
+    setError("");
+
+    try {
+      const pdf =
+        await worldwideRetailService
+          .getPdf(
+            record.id,
+            documentType,
+          );
+
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl,
+        );
+      }
+
+      setPreviewUrl(
+        base64ToPdfUrl(
+          pdf.base64Data,
+        ),
+      );
+      setPreviewName(
+        pdf.fileName,
+      );
+      setPreviewType(
+        documentType,
+      );
+      setPreviewDriveUrl(
+        documentType === "po"
+          ? record.poFileUrl
+          : record.ivFileUrl,
+      );
+    } catch (reason) {
+      setError(
+        getErrorMessage(
+          reason,
+        ),
+      );
+    } finally {
+      setOpeningDocument("");
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(
+        previewUrl,
+      );
+    }
+
+    setPreviewUrl("");
+    setPreviewName("");
+    setPreviewDriveUrl("");
   };
 
   return (
@@ -717,6 +850,10 @@ export function WorldwideRetailPage({
                   );
                 }}
                 placeholder="ค้นหา IV / PO / SO"
+                disabled={
+                  selectedYear === null ||
+                  selectedMonth === null
+                }
                 className="h-11 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-violet-300 focus:bg-white"
               />
             </label>
@@ -742,79 +879,115 @@ export function WorldwideRetailPage({
           </div>
         </div>
 
-        <div className="border-b border-slate-100 p-6">
-          <div className="flex flex-wrap gap-3">
+        <div className="border-b border-slate-100 px-6 py-4">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedYear(null);
+                setSelectedMonth(null);
+                setSearch("");
+              }}
+              className={
+                selectedYear === null
+                  ? "font-semibold text-violet-700"
+                  : "text-slate-500 transition hover:text-violet-700"
+              }
+            >
+              แฟ้มปี
+            </button>
+
+            {selectedYear !== null && (
+              <>
+                <ChevronRight
+                  size={15}
+                  className="text-slate-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMonth(null);
+                    setSearch("");
+                  }}
+                  className={
+                    selectedMonth === null
+                      ? "font-semibold text-violet-700"
+                      : "text-slate-500 transition hover:text-violet-700"
+                  }
+                >
+                  ปี {selectedYear + 543}
+                </button>
+              </>
+            )}
+
+            {selectedMonth !== null && (
+              <>
+                <ChevronRight
+                  size={15}
+                  className="text-slate-300"
+                />
+                <span className="font-semibold text-violet-700">
+                  {thaiMonths[selectedMonth]}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="px-5 py-16 text-center">
+            <LoaderCircle
+              size={28}
+              className="mx-auto animate-spin text-violet-600"
+            />
+            <p className="mt-3 text-sm text-slate-500">
+              กำลังโหลดแฟ้มข้อมูล
+            </p>
+          </div>
+        ) : selectedYear === null ? (
+          <div className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-3">
             {yearFolders.map(
               ([year, items]) => (
-                <FolderButton
+                <FolderNavigationCard
                   key={year}
-                  active={
-                    selectedYear ===
-                    year
-                  }
-                  label={`ปี ${
-                    year + 543
-                  }`}
-                  count={
-                    items.length
-                  }
+                  eyebrow="YEAR ARCHIVE"
+                  label={`แฟ้มปี ${year + 543}`}
+                  count={items.length}
+                  tone="year"
                   onClick={() => {
-                    setSelectedYear(
-                      year,
-                    );
-                    setSelectedMonth(
-                      null,
-                    );
+                    setSelectedYear(year);
+                    setSelectedMonth(null);
                   }}
                 />
               ),
             )}
 
-            {!loading &&
-              yearFolders.length ===
-                0 && (
-                <p className="text-sm text-slate-400">
-                  ยังไม่มีแฟ้มข้อมูล
-                </p>
-              )}
+            {yearFolders.length === 0 && (
+              <p className="col-span-full py-10 text-center text-sm text-slate-400">
+                ยังไม่มีแฟ้มข้อมูล
+              </p>
+            )}
           </div>
-
-          {selectedYear !==
-            null && (
-            <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
-              {monthFolders.map(
-                ([
-                  month,
-                  items,
-                ]) => (
-                  <FolderButton
-                    key={month}
-                    active={
-                      selectedMonth ===
-                      month
-                    }
-                    label={
-                      thaiMonths[
-                        month
-                      ]
-                    }
-                    count={
-                      items.length
-                    }
-                    onClick={() => {
-                      setSelectedMonth(
-                        month,
-                      );
-                    }}
-                  />
-                ),
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-[1180px] w-full">
+        ) : selectedMonth === null ? (
+          <div className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-3">
+            {monthFolders.map(
+              ([month, items]) => (
+                <FolderNavigationCard
+                  key={month}
+                  eyebrow={`ปี ${selectedYear + 543}`}
+                  label={`แฟ้มเดือน ${thaiMonths[month]}`}
+                  count={items.length}
+                  tone="month"
+                  onClick={() => {
+                    setSelectedMonth(month);
+                  }}
+                />
+              ),
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+          <table className="min-w-[1380px] w-full">
             <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               <tr>
                 <th className="px-5 py-4">
@@ -844,23 +1017,7 @@ export function WorldwideRetailPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-5 py-16 text-center"
-                  >
-                    <LoaderCircle
-                      size={28}
-                      className="mx-auto animate-spin text-violet-600"
-                    />
-                    <p className="mt-3 text-sm text-slate-500">
-                      กำลังโหลดแฟ้มข้อมูล
-                    </p>
-                  </td>
-                </tr>
-              ) : visibleRecords
-                  .length === 0 ? (
+              {visibleRecords.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
@@ -891,18 +1048,36 @@ export function WorldwideRetailPage({
                         {record.soNumber}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex gap-2">
-                          <DocumentButton
-                            label="PO"
-                            url={
-                              record.poFileUrl
+                        <div className="grid min-w-[390px] grid-cols-2 gap-3">
+                          <DocumentCard
+                            documentType="po"
+                            fileName={record.poFileName}
+                            driveUrl={record.poFileUrl}
+                            loading={
+                              openingDocument ===
+                              `${record.id}:po`
                             }
+                            onPreview={() => {
+                              void openPreview(
+                                record,
+                                "po",
+                              );
+                            }}
                           />
-                          <DocumentButton
-                            label="IV"
-                            url={
-                              record.ivFileUrl
+                          <DocumentCard
+                            documentType="iv"
+                            fileName={record.ivFileName}
+                            driveUrl={record.ivFileUrl}
+                            loading={
+                              openingDocument ===
+                              `${record.id}:iv`
                             }
+                            onPreview={() => {
+                              void openPreview(
+                                record,
+                                "iv",
+                              );
+                            }}
                           />
                         </div>
                       </td>
@@ -916,11 +1091,17 @@ export function WorldwideRetailPage({
                             record.acknowledgementStatus
                           }
                         />
+                        {record.acknowledgedBy && (
+                          <p className="mt-2 text-[11px] text-slate-400">
+                            โดย {record.acknowledgedBy}
+                          </p>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
                           {canRespond ? (
-                            <>
+                            <div className="text-right">
+                              <div className="flex justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -930,15 +1111,20 @@ export function WorldwideRetailPage({
                                   );
                                 }}
                                 disabled={
-                                  Boolean(
-                                    respondingId,
+                                  respondingIds.includes(
+                                    record.id,
                                   )
                                 }
                                 title="ยืนยันว่าได้รับแล้ว"
-                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-600 hover:text-white disabled:opacity-50"
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl border transition hover:bg-emerald-600 hover:text-white disabled:opacity-50 ${
+                                  record.acknowledgementStatus === "received"
+                                    ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-100"
+                                    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                }`}
                               >
-                                {respondingId ===
-                                record.id ? (
+                                {respondingIds.includes(
+                                  record.id,
+                                ) ? (
                                   <LoaderCircle
                                     size={17}
                                     className="animate-spin"
@@ -959,22 +1145,30 @@ export function WorldwideRetailPage({
                                   );
                                 }}
                                 disabled={
-                                  Boolean(
-                                    respondingId,
+                                  respondingIds.includes(
+                                    record.id,
                                   )
                                 }
                                 title="แจ้งว่ายังไม่ได้รับหรือเอกสารมีปัญหา"
-                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-700 transition hover:bg-red-600 hover:text-white disabled:opacity-50"
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl border transition hover:bg-red-600 hover:text-white disabled:opacity-50 ${
+                                  record.acknowledgementStatus === "rejected"
+                                    ? "border-red-600 bg-red-600 text-white shadow-md shadow-red-100"
+                                    : "border-red-200 bg-red-50 text-red-700"
+                                }`}
                               >
                                 <X
                                   size={18}
                                 />
                               </button>
-                            </>
+                              </div>
+                              <p className="mt-1.5 text-[10px] text-slate-400">
+                                กดเปลี่ยนสถานะได้
+                              </p>
+                            </div>
                           ) : (
-                            <span className="text-xs text-slate-400">
-                              รอสำนักงานใหญ่
-                            </span>
+                            <AcknowledgementSummary
+                              status={record.acknowledgementStatus}
+                            />
                           )}
                         </div>
                       </td>
@@ -985,7 +1179,24 @@ export function WorldwideRetailPage({
             </tbody>
           </table>
         </div>
+        )}
       </section>
+
+      {previewUrl && (
+        <PdfPreviewModal
+          fileName={previewName}
+          fileUrl={previewUrl}
+          documentType={previewType}
+          onDrive={() => {
+            if (previewDriveUrl) {
+              void openUrl(
+                previewDriveUrl,
+              );
+            }
+          }}
+          onClose={closePreview}
+        />
+      )}
     </div>
   );
 }
@@ -1094,90 +1305,281 @@ function PdfUploadCard({
   );
 }
 
-interface FolderButtonProps {
-  active: boolean;
+interface FolderNavigationCardProps {
+  eyebrow: string;
   label: string;
   count: number;
+  tone: "year" | "month";
   onClick: () => void;
 }
 
-function FolderButton({
-  active,
+function FolderNavigationCard({
+  eyebrow,
   label,
   count,
+  tone,
   onClick,
-}: FolderButtonProps) {
+}: FolderNavigationCardProps) {
+  const yearTone =
+    tone === "year";
+
   return (
     <button
       type="button"
       onClick={onClick}
       className={`
-        inline-flex
+        group
+        flex
+        min-h-32
         items-center
-        gap-2
-        rounded-xl
+        justify-between
+        gap-4
+        rounded-2xl
         border
-        px-4
-        py-3
-        text-sm
-        font-semibold
+        p-5
+        text-left
         transition
-        ${
-          active
-            ? "border-violet-500 bg-violet-600 text-white shadow-md shadow-violet-200"
-            : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-violet-700"
-        }
+        hover:-translate-y-0.5
+        hover:shadow-lg
+        ${yearTone
+          ? "border-sky-200 bg-sky-50/70 hover:border-sky-400 hover:shadow-sky-100"
+          : "border-violet-200 bg-violet-50/70 hover:border-violet-400 hover:shadow-violet-100"}
       `}
     >
-      <Folder
-        size={17}
+      <div className="flex items-center gap-4">
+        <span
+          className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+            yearTone
+              ? "bg-sky-600 text-white"
+              : "bg-violet-600 text-white"
+          }`}
+        >
+          <FolderOpen size={23} />
+        </span>
+
+        <span>
+          <span
+            className={`block text-[10px] font-semibold tracking-[0.18em] ${
+              yearTone
+                ? "text-sky-700"
+                : "text-violet-700"
+            }`}
+          >
+            {eyebrow}
+          </span>
+          <span className="mt-1.5 block font-semibold text-slate-900">
+            {label}
+          </span>
+          <span className="mt-1 block text-xs text-slate-500">
+            {count} รายการ
+          </span>
+        </span>
+      </div>
+
+      <ChevronRight
+        size={20}
+        className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-violet-600"
       />
-      {label}
-      <span
-        className={`
-          rounded-md
-          px-1.5
-          py-0.5
-          text-[10px]
-          ${
-            active
-              ? "bg-white/20"
-              : "bg-slate-100 text-slate-500"
-          }
-        `}
-      >
-        {count}
-      </span>
     </button>
   );
 }
 
-function DocumentButton({
-  label,
-  url,
+function DocumentCard({
+  documentType,
+  fileName,
+  driveUrl,
+  loading,
+  onPreview,
 }: {
-  label: string;
-  url: string;
+  documentType: "po" | "iv";
+  fileName: string;
+  driveUrl: string;
+  loading: boolean;
+  onPreview: () => void;
 }) {
+  const isPo =
+    documentType === "po";
+
   return (
-    <button
-      type="button"
-      onClick={() => {
-        if (url) {
-          void openUrl(url);
-        }
-      }}
-      disabled={!url}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-40"
+    <div
+      className={`rounded-xl border p-3 ${
+        isPo
+          ? "border-sky-200 bg-sky-50/70"
+          : "border-violet-200 bg-violet-50/70"
+      }`}
     >
-      <FileText
-        size={14}
-      />
-      {label}
-      <ExternalLink
-        size={12}
-      />
-    </button>
+      <div className="flex items-start gap-2">
+        <FileText
+          size={17}
+          className={
+            isPo
+              ? "text-sky-700"
+              : "text-violet-700"
+          }
+        />
+        <div className="min-w-0">
+          <p
+            className={`text-[11px] font-bold ${
+              isPo
+                ? "text-sky-800"
+                : "text-violet-800"
+            }`}
+          >
+            เอกสาร {documentType.toUpperCase()}
+          </p>
+          <p
+            className="mt-1 max-w-32 truncate text-[10px] text-slate-500"
+            title={fileName}
+          >
+            {fileName || "PDF"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={onPreview}
+          disabled={loading}
+          className={`inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-[11px] font-semibold text-white transition disabled:opacity-60 ${
+            isPo
+              ? "bg-sky-600 hover:bg-sky-700"
+              : "bg-violet-600 hover:bg-violet-700"
+          }`}
+        >
+          {loading ? (
+            <LoaderCircle
+              size={13}
+              className="animate-spin"
+            />
+          ) : (
+            <Eye size={13} />
+          )}
+          View
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (driveUrl) {
+              void openUrl(
+                driveUrl,
+              );
+            }
+          }}
+          disabled={!driveUrl}
+          className="inline-flex items-center justify-center gap-1 rounded-lg border border-white bg-white px-2 py-2 text-[11px] font-semibold text-slate-600 transition hover:text-violet-700 disabled:opacity-40"
+        >
+          <ExternalLink size={13} />
+          Drive
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AcknowledgementSummary({
+  status,
+}: {
+  status:
+    WorldwideAcknowledgementStatus;
+}) {
+  if (status === "received") {
+    return (
+      <span className="text-xs font-semibold text-emerald-700">
+        สำนักงานใหญ่รับแล้ว
+      </span>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <span className="text-xs font-semibold text-red-700">
+        สำนักงานใหญ่แจ้งแก้ไข
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-xs text-amber-600">
+      รอสำนักงานใหญ่
+    </span>
+  );
+}
+
+function PdfPreviewModal({
+  fileName,
+  fileUrl,
+  documentType,
+  onDrive,
+  onClose,
+}: {
+  fileName: string;
+  fileUrl: string;
+  documentType: "po" | "iv";
+  onDrive: () => void;
+  onClose: () => void;
+}) {
+  const isPo =
+    documentType === "po";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-5 backdrop-blur-sm">
+      <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <header
+          className={`flex items-center justify-between gap-4 border-b px-6 py-4 ${
+            isPo
+              ? "border-sky-200 bg-sky-50"
+              : "border-violet-200 bg-violet-50"
+          }`}
+        >
+          <div className="min-w-0">
+            <p
+              className={`text-[10px] font-bold tracking-[0.2em] ${
+                isPo
+                  ? "text-sky-700"
+                  : "text-violet-700"
+              }`}
+            >
+              เอกสาร {documentType.toUpperCase()} · PREVIEW
+            </p>
+            <p className="mt-1 truncate font-semibold text-slate-900">
+              {fileName}
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onDrive}
+              className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition ${
+                isPo
+                  ? "bg-sky-600 hover:bg-sky-700"
+                  : "bg-violet-600 hover:bg-violet-700"
+              }`}
+            >
+              <ExternalLink size={16} />
+              เปิด Drive
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              title="ปิด Preview"
+            >
+              <X size={19} />
+            </button>
+          </div>
+        </header>
+
+        <iframe
+          title={fileName}
+          src={fileUrl}
+          className="min-h-0 flex-1 border-0 bg-slate-100"
+        />
+      </div>
+    </div>
   );
 }
 

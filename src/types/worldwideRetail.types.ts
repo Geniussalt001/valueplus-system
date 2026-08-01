@@ -26,6 +26,11 @@ export interface WorldwideRetailRecord {
   acknowledgementNote: string;
 }
 
+export interface WorldwideRetailPdf {
+  fileName: string;
+  base64Data: string;
+}
+
 export interface WorldwidePdfInput {
   fileName: string;
   base64Data: string;

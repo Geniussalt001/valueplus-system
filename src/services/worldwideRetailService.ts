@@ -18,6 +18,7 @@ import type {
   SelectedWorldwidePdf,
   UploadWorldwideRetailInput,
   WorldwideAcknowledgementStatus,
+  WorldwideRetailPdf,
   WorldwideRetailRecord,
 } from "../types/worldwideRetail.types";
 
@@ -115,6 +116,21 @@ export const worldwideRetailService = {
         id,
         status,
         note,
+      },
+    );
+  },
+
+  getPdf(
+    id: string,
+    documentType: "po" | "iv",
+  ): Promise<WorldwideRetailPdf> {
+    return callAppsScript<
+      WorldwideRetailPdf
+    >(
+      "worldwide.getPdf",
+      {
+        id,
+        documentType,
       },
     );
   },
