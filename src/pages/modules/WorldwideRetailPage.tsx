@@ -182,6 +182,28 @@ export function WorldwideRetailPage({
       .toUpperCase() ===
     "OFFICE";
 
+  const operationActive =
+    saving ||
+    loading ||
+    respondingIds.length > 0 ||
+    deletingIds.length > 0;
+
+  const operationLabel =
+    saving
+      ? "กำลังบันทึกเอกสารไป Google Drive"
+      : respondingIds.length > 0
+        ? "กำลังบันทึกสถานะตอบรับ"
+        : deletingIds.length > 0
+          ? "กำลังลบข้อมูลและย้ายไฟล์"
+          : loading
+            ? "กำลังโหลดแฟ้มข้อมูล"
+            : "ดำเนินการเสร็จสิ้น";
+
+  const operationProgress =
+    useAnimatedProgress(
+      operationActive,
+    );
+
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
@@ -213,6 +235,26 @@ export function WorldwideRetailPage({
   useEffect(() => {
     void loadRecords();
   }, [loadRecords]);
+
+  useEffect(() => {
+    if (!success) {
+      return;
+    }
+
+    const timer =
+      window.setTimeout(
+        () => {
+          setSuccess("");
+        },
+        4000,
+      );
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      );
+    };
+  }, [success]);
 
   useEffect(
     () => () => {
@@ -1043,8 +1085,17 @@ export function WorldwideRetailPage({
         </section>
       )}
 
+      <OperationProgress
+        progress={
+          operationProgress
+        }
+        label={operationLabel}
+      />
+
       {(error || success) && (
         <div
+          role="status"
+          aria-live="polite"
           className={`
             mt-6
             rounded-2xl
@@ -1501,6 +1552,205 @@ export function WorldwideRetailPage({
   );
 }
 
+function useAnimatedProgress(
+  active: boolean,
+) {
+  const [progress, setProgress] =
+    useState(0);
+  const wasActiveRef =
+    useRef(false);
+
+  useEffect(() => {
+    let progressTimer:
+      | number
+      | undefined;
+    let resetTimer:
+      | number
+      | undefined;
+
+    if (active) {
+      wasActiveRef.current =
+        true;
+      setProgress((current) =>
+        current <= 0 ||
+        current >= 100
+          ? 8
+          : current,
+      );
+
+      progressTimer =
+        window.setInterval(
+          () => {
+            setProgress(
+              (current) => {
+                if (
+                  current >= 92
+                ) {
+                  return 92;
+                }
+
+                const step =
+                  Math.max(
+                    1,
+                    Math.ceil(
+                      (92 -
+                        current) *
+                        0.09,
+                    ),
+                  );
+
+                return Math.min(
+                  92,
+                  current + step,
+                );
+              },
+            );
+          },
+          180,
+        );
+    } else if (
+      wasActiveRef.current
+    ) {
+      wasActiveRef.current =
+        false;
+      setProgress(100);
+      resetTimer =
+        window.setTimeout(
+          () => {
+            setProgress(0);
+          },
+          650,
+        );
+    }
+
+    return () => {
+      if (
+        progressTimer !==
+        undefined
+      ) {
+        window.clearInterval(
+          progressTimer,
+        );
+      }
+
+      if (
+        resetTimer !== undefined
+      ) {
+        window.clearTimeout(
+          resetTimer,
+        );
+      }
+    };
+  }, [active]);
+
+  return progress;
+}
+
+function OperationProgress({
+  progress,
+  label,
+}: {
+  progress: number;
+  label: string;
+}) {
+  if (progress <= 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className="mt-6 rounded-2xl border border-cyan-200 bg-white px-5 py-4 shadow-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex items-center gap-3">
+        {progress < 100 ? (
+          <LoaderCircle
+            size={19}
+            className="shrink-0 animate-spin text-cyan-700"
+          />
+        ) : (
+          <CheckCircle2
+            size={19}
+            className="shrink-0 text-emerald-600"
+          />
+        )}
+
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">
+          {label}
+        </p>
+
+        <span className="text-lg font-semibold tabular-nums text-cyan-700">
+          {Math.round(
+            progress,
+          )}
+          %
+        </span>
+      </div>
+
+      <ProgressBar
+        progress={progress}
+        className="mt-3"
+        tone={
+          progress >= 100
+            ? "emerald"
+            : "cyan"
+        }
+      />
+    </div>
+  );
+}
+
+function ProgressBar({
+  progress,
+  className = "",
+  tone,
+}: {
+  progress: number;
+  className?: string;
+  tone:
+    | "cyan"
+    | "emerald"
+    | "sky"
+    | "violet";
+}) {
+  const toneClass = {
+    cyan:
+      "from-cyan-500 to-blue-600",
+    emerald:
+      "from-emerald-400 to-emerald-600",
+    sky:
+      "from-sky-400 to-blue-600",
+    violet:
+      "from-violet-400 to-violet-700",
+  }[tone];
+
+  return (
+    <div
+      className={`h-2 w-full overflow-hidden rounded-full bg-slate-200 ${className}`}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={
+        Math.round(progress)
+      }
+    >
+      <div
+        className={`h-full rounded-full bg-gradient-to-r transition-[width] duration-200 ease-out ${toneClass}`}
+        style={{
+          width: `${Math.max(
+            0,
+            Math.min(
+              100,
+              progress,
+            ),
+          )}%`,
+        }}
+      />
+    </div>
+  );
+}
+
 interface FieldProps {
   label: string;
   value: string;
@@ -1806,6 +2056,10 @@ function PdfPreviewModal({
 }) {
   const isPo =
     documentType === "po";
+  const loadingProgress =
+    useAnimatedProgress(
+      loading,
+    );
 
   useEffect(() => {
     const handleKeyDown = (
@@ -1894,7 +2148,7 @@ function PdfPreviewModal({
         </header>
 
         {loading ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 bg-slate-100 text-slate-600">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center bg-slate-100 px-6 text-slate-600">
             <LoaderCircle
               size={34}
               className={`animate-spin ${
@@ -1903,9 +2157,28 @@ function PdfPreviewModal({
                   : "text-violet-600"
               }`}
             />
-            <p className="text-sm font-semibold">
-              กำลังเตรียมเอกสาร Preview
-            </p>
+            <div className="mt-4 flex w-full max-w-md items-center justify-between gap-4">
+              <p className="text-sm font-semibold">
+                กำลังเตรียมเอกสาร Preview
+              </p>
+              <span className="text-xl font-semibold tabular-nums text-slate-800">
+                {Math.round(
+                  loadingProgress,
+                )}
+                %
+              </span>
+            </div>
+            <ProgressBar
+              progress={
+                loadingProgress
+              }
+              className="mt-3 max-w-md"
+              tone={
+                isPo
+                  ? "sky"
+                  : "violet"
+              }
+            />
           </div>
         ) : error ? (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 bg-red-50 px-6 text-center">
