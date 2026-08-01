@@ -407,6 +407,149 @@ function getWorldwideRetailPdf(
   };
 }
 
+function deleteWorldwideRetail(
+  input,
+) {
+  const id =
+    String(
+      input && input.id
+        ? input.id
+        : "",
+    )
+      .trim()
+      .toUpperCase();
+
+  if (!id) {
+    throw new Error(
+      "กรุณาระบุรายการที่ต้องการลบ",
+    );
+  }
+
+  const lock =
+    LockService.getScriptLock();
+
+  lock.waitLock(30000);
+
+  try {
+    const rowNumber =
+      findWorldwideRetailRowById(
+        id,
+      );
+
+    if (!rowNumber) {
+      throw new Error(
+        "ไม่พบรายการรีเทลขายเวิร์ลไวด์",
+      );
+    }
+
+    const sheet =
+      getWorldwideRetailSheet();
+
+    const row =
+      sheet
+        .getRange(
+          rowNumber,
+          1,
+          1,
+          WORLDWIDE_RETAIL_HEADERS.length,
+        )
+        .getValues()[0];
+
+    const poFileId =
+      String(row[5] || "")
+        .trim();
+    const poFileName =
+      String(row[6] || "")
+        .trim();
+    const ivFileId =
+      String(row[9] || "")
+        .trim();
+    const ivFileName =
+      String(row[10] || "")
+        .trim();
+
+    if (!poFileId || !ivFileId) {
+      throw new Error(
+        "ข้อมูลไฟล์ PO หรือ IV ไม่ครบ จึงยังไม่ลบรายการ",
+      );
+    }
+
+    const poFile =
+      DriveApp.getFileById(
+        poFileId,
+      );
+    const ivFile =
+      DriveApp.getFileById(
+        ivFileId,
+      );
+
+    const trashedFiles = [];
+    let rowDeleted = false;
+
+    try {
+      poFile.setTrashed(true);
+      trashedFiles.push(poFile);
+
+      ivFile.setTrashed(true);
+      trashedFiles.push(ivFile);
+
+      sheet.deleteRow(
+        rowNumber,
+      );
+      rowDeleted = true;
+
+      SpreadsheetApp.flush();
+    } catch (error) {
+      if (rowDeleted) {
+        try {
+          sheet.insertRowBefore(
+            rowNumber,
+          );
+          sheet
+            .getRange(
+              rowNumber,
+              1,
+              1,
+              WORLDWIDE_RETAIL_HEADERS.length,
+            )
+            .setValues([
+              row,
+            ]);
+          SpreadsheetApp.flush();
+        } catch (restoreRowError) {
+          console.error(
+            restoreRowError,
+          );
+        }
+      }
+
+      trashedFiles.forEach(
+        function (file) {
+          try {
+            file.setTrashed(false);
+          } catch (restoreError) {
+            console.error(
+              restoreError,
+            );
+          }
+        },
+      );
+
+      throw error;
+    }
+
+    return {
+      id: id,
+      poFileName: poFileName,
+      ivFileName: ivFileName,
+      trashedFileCount:
+        trashedFiles.length,
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function getWorldwideRetailSheet() {
   const spreadsheet =
     getSystemSpreadsheet();

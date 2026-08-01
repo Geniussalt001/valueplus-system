@@ -188,6 +188,16 @@ function doPost(event) {
           );
         break;
 
+      case "worldwide.delete":
+        requireOfficeSession(
+          session,
+        );
+        data =
+          deleteWorldwideRetail(
+            request.data,
+          );
+        break;
+
       case "worldwide.getPdf":
         data =
           getWorldwideRetailPdf(

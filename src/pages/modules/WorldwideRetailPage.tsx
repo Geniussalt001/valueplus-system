@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Save,
   Search,
+  Trash2,
   Upload,
   X,
   XCircle,
@@ -85,6 +86,8 @@ export function WorldwideRetailPage({
     useState(true);
   const [saving, setSaving] =
     useState(false);
+  const [deletingIds, setDeletingIds] =
+    useState<string[]>([]);
   const [
     respondingIds,
     setRespondingIds,
@@ -143,6 +146,12 @@ export function WorldwideRetailPage({
       .trim()
       .toUpperCase() ===
     "HEADOFFICE";
+
+  const canDelete =
+    currentUser.userCode
+      .trim()
+      .toUpperCase() ===
+    "OFFICE";
 
   const loadRecords =
     useCallback(async () => {
@@ -545,6 +554,81 @@ export function WorldwideRetailPage({
       );
     } finally {
       setRespondingIds(
+        (current) =>
+          current.filter(
+            (id) =>
+              id !== record.id,
+          ),
+      );
+    }
+  };
+
+  const deleteRecord = async (
+    record:
+      WorldwideRetailRecord,
+  ) => {
+    if (
+      !canDelete ||
+      deletingIds.includes(
+        record.id,
+      )
+    ) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        [
+          "ยืนยันลบรายการนี้หรือไม่?",
+          "",
+          `IV: ${record.ivNumber || "-"}`,
+          `PO: ${record.poNumber || "-"}`,
+          `SO: ${record.soNumber || "-"}`,
+          "",
+          "ข้อมูลจะหายจากหน้าระบบ และไฟล์ PO/IV จะถูกย้ายไปถังขยะของ Google Drive",
+        ].join("\n"),
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingIds(
+      (current) => [
+        ...current,
+        record.id,
+      ],
+    );
+    setError("");
+    setSuccess("");
+
+    try {
+      const deleted =
+        await worldwideRetailService
+          .delete(
+            record.id,
+          );
+
+      setRecords(
+        (current) =>
+          current.filter(
+            (item) =>
+              item.id !==
+              deleted.id,
+          ),
+      );
+
+      setSuccess(
+        `ลบรายการ ${record.ivNumber || record.poNumber} และย้ายไฟล์ ${deleted.trashedFileCount.toLocaleString()} ไฟล์ไปถังขยะ Google Drive แล้ว`,
+      );
+    } catch (reason) {
+      setError(
+        getErrorMessage(
+          reason,
+        ),
+      );
+    } finally {
+      setDeletingIds(
         (current) =>
           current.filter(
             (id) =>
@@ -1016,13 +1100,18 @@ export function WorldwideRetailPage({
                 <th className="px-5 py-4 text-right">
                   การตอบรับ
                 </th>
+                {canDelete && (
+                  <th className="px-5 py-4 text-right text-red-700">
+                    จัดการ
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {visibleRecords.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={canDelete ? 10 : 9}
                     className="px-5 py-16 text-center text-sm text-slate-400"
                   >
                     ไม่พบรายการในแฟ้มที่เลือก
@@ -1174,6 +1263,43 @@ export function WorldwideRetailPage({
                           )}
                         </div>
                       </td>
+                      {canDelete && (
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void deleteRecord(
+                                record,
+                              );
+                            }}
+                            disabled={
+                              deletingIds.includes(
+                                record.id,
+                              )
+                            }
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition hover:border-red-600 hover:bg-red-600 hover:text-white disabled:cursor-wait disabled:opacity-50"
+                            title="ลบข้อมูลและไฟล์บน Google Drive"
+                          >
+                            {deletingIds.includes(
+                              record.id,
+                            ) ? (
+                              <LoaderCircle
+                                size={16}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <Trash2
+                                size={16}
+                              />
+                            )}
+                            {deletingIds.includes(
+                              record.id,
+                            )
+                              ? "กำลังลบ"
+                              : "ลบ"}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ),
                 )

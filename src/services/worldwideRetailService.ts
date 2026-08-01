@@ -15,6 +15,7 @@ import {
 } from "./appsScriptClient";
 
 import type {
+  DeleteWorldwideRetailResult,
   SelectedWorldwidePdf,
   UploadWorldwideRetailInput,
   WorldwideAcknowledgementStatus,
@@ -116,6 +117,19 @@ export const worldwideRetailService = {
         id,
         status,
         note,
+      },
+    );
+  },
+
+  delete(
+    id: string,
+  ): Promise<DeleteWorldwideRetailResult> {
+    return callAppsScript<
+      DeleteWorldwideRetailResult
+    >(
+      "worldwide.delete",
+      {
+        id,
       },
     );
   },

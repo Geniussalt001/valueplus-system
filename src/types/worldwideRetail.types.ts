@@ -31,6 +31,13 @@ export interface WorldwideRetailPdf {
   base64Data: string;
 }
 
+export interface DeleteWorldwideRetailResult {
+  id: string;
+  poFileName: string;
+  ivFileName: string;
+  trashedFileCount: number;
+}
+
 export interface WorldwidePdfInput {
   fileName: string;
   base64Data: string;
