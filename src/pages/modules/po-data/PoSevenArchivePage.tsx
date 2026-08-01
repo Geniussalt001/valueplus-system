@@ -7,6 +7,10 @@ import {
 } from "react";
 
 import {
+  createPortal,
+} from "react-dom";
+
+import {
   Archive,
   ArrowLeft,
   ChevronRight,
@@ -968,72 +972,92 @@ export function PoSevenArchivePage({
       </section>
 
       {previewUrl && (
-        <div
-          className="
-            fixed
-            inset-0
-            z-[120]
-            flex
-            items-center
-            justify-center
-            bg-slate-950/65
-            p-5
-            backdrop-blur-sm
-          "
-        >
-          <div
-            className="
-              flex
-              h-[90vh]
-              w-full
-              max-w-6xl
-              flex-col
-              overflow-hidden
-              rounded-2xl
-              bg-white
-              shadow-2xl
-            "
-          >
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                border-b
-                border-slate-200
-                px-5
-                py-4
-              "
-            >
-              <p className="font-semibold text-slate-900">
-                {previewName}
-              </p>
-
-              <button
-                type="button"
-                onClick={closePreview}
-                className="
-                  rounded-lg
-                  border
-                  border-slate-200
-                  p-2
-                  text-slate-500
-                  hover:bg-slate-100
-                "
-              >
-                <X size={19} />
-              </button>
-            </div>
-
-            <iframe
-              title={previewName}
-              src={previewUrl}
-              className="min-h-0 flex-1"
-            />
-          </div>
-        </div>
+        <ArchivePdfPreview
+          fileName={previewName}
+          fileUrl={previewUrl}
+          onClose={closePreview}
+        />
       )}
     </div>
+  );
+}
+
+function ArchivePdfPreview({
+  fileName,
+  fileUrl,
+  onClose,
+}: {
+  fileName: string;
+  fileUrl: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/65 p-5 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Preview ${fileName}`}
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div className="flex h-[calc(100vh-2.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <header className="relative z-10 flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-3 shadow-sm">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold tracking-[0.18em] text-cyan-700">
+              PDF PREVIEW
+            </p>
+            <p className="mt-1 truncate font-semibold text-slate-900">
+              {fileName}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+            aria-label="ปิด Preview"
+          >
+            <X size={18} />
+            ปิด
+          </button>
+        </header>
+
+        <iframe
+          title={fileName}
+          src={fileUrl}
+          className="min-h-0 flex-1 border-0 bg-slate-100"
+        />
+      </div>
+    </div>,
+    document.body,
   );
 }
 
