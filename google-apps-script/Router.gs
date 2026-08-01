@@ -133,7 +133,7 @@ function doPost(event) {
         break;
 
       case "receivables.saveCreditNotes":
-        requireOfficeSession(
+        requireOfficeOrHeadOfficeSession(
           session,
         );
         data =
@@ -343,6 +343,29 @@ function requireOfficeSession(
   ) {
     throw new Error(
       "เฉพาะฝั่ง Retail เท่านั้นที่บันทึกเอกสารได้",
+    );
+  }
+}
+
+function requireOfficeOrHeadOfficeSession(
+  session,
+) {
+  const userCode =
+    String(
+      session &&
+        session.userCode
+        ? session.userCode
+        : "",
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    userCode !== "OFFICE" &&
+    userCode !== "HEADOFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะฝั่ง Retail หรือสำนักงานใหญ่เท่านั้นที่บันทึกลดหนี้ได้",
     );
   }
 }
