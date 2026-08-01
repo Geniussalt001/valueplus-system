@@ -30,6 +30,10 @@ import {
   openUrl,
 } from "@tauri-apps/plugin-opener";
 
+import {
+  ProcessStatusOverlay,
+} from "../../../components/common/ProcessStatusOverlay";
+
 import type {
   AppUser,
 } from "../../../auth/auth.types";
@@ -565,6 +569,28 @@ export function PoSevenArchivePage({
         lg:px-10
       "
     >
+      <ProcessStatusOverlay
+        open={
+          loading ||
+          downloading ||
+          Boolean(openingId)
+        }
+        title={
+          downloading
+            ? `กำลังดาวน์โหลดเอกสาร ${downloadProgress.current}/${downloadProgress.total}`
+            : openingId
+              ? "กำลังเตรียมเอกสาร PDF Preview..."
+              : "กำลังโหลดแฟ้มข้อมูล PO Seven..."
+        }
+        progress={
+          downloading &&
+          downloadProgress.total > 0
+            ? (downloadProgress.current /
+                downloadProgress.total) *
+              100
+            : undefined
+        }
+      />
       <header
         className="
           flex

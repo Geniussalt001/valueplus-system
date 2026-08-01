@@ -24,6 +24,10 @@ import {
   receivablesTemplateUrl,
 } from "../../services/receivablesFreightService";
 
+import {
+  ProcessStatusOverlay,
+} from "../../components/common/ProcessStatusOverlay";
+
 import type {
   CreditNoteResult,
   ReceivablesFreightResult,
@@ -234,6 +238,16 @@ export function ReceivablesFreightPage({
 
   return (
     <div className="vp-work-page receivables-freight-workspace mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
+      <ProcessStatusOverlay
+        open={Boolean(busy)}
+        title={
+          busy === "selecting"
+            ? "กำลังเปิดหน้าต่างเลือกไฟล์ CSV..."
+            : busy === "previewing"
+              ? "กำลังอ่านและตรวจสอบข้อมูล CSV..."
+              : "กำลังบันทึกข้อมูลลง Google Sheets..."
+        }
+      />
       <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button

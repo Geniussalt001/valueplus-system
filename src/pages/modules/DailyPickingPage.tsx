@@ -29,6 +29,10 @@ import {
 } from "../../services/pdfSplitterService";
 
 import {
+  ProcessStatusOverlay,
+} from "../../components/common/ProcessStatusOverlay";
+
+import {
   poArchiveService,
 } from "../../services/poArchiveService";
 
@@ -612,6 +616,10 @@ export function DailyPickingPage({
         lg:px-10
       "
     >
+      <ProcessStatusOverlay
+        open={processing}
+        title="กำลังประมวลผลและแยกไฟล์ PO..."
+      />
       <header
         className="
           vp-page-header

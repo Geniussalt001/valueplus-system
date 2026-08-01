@@ -23,6 +23,10 @@ import {
   expressSummaryService,
 } from "../../../services/expressSummaryService";
 
+import {
+  ProcessStatusOverlay,
+} from "../../../components/common/ProcessStatusOverlay";
+
 import type {
   ExpressInvoice,
   ExpressSummaryResult,
@@ -156,6 +160,10 @@ export function ExpressSummaryPage({
         lg:px-10
       "
     >
+      <ProcessStatusOverlay
+        open={processing}
+        title="กำลังประมวลผลสรุปยอด Express..."
+      />
       <header
         className="
           vp-page-header

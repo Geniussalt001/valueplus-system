@@ -27,6 +27,10 @@ import {
   productCatalogService,
 } from "../../../services/productCatalogService";
 
+import {
+  ProcessStatusOverlay,
+} from "../../../components/common/ProcessStatusOverlay";
+
 import type {
   ProductCatalogItem,
 } from "../../../types/productCatalog.types";
@@ -63,6 +67,7 @@ export function ProductCatalogPage({
     useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [mutating, setMutating] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -197,6 +202,9 @@ export function ProductCatalogPage({
   };
 
   const toggleActive = async (product: ProductCatalogItem) => {
+    setMutating(
+      `${product.active ? "ปิด" : "เปิด"}ใช้งาน ${product.product_code}`,
+    );
     setError("");
     setSuccess("");
 
@@ -211,6 +219,8 @@ export function ProductCatalogPage({
       await loadProducts();
     } catch (reason) {
       setError(getErrorMessage(reason));
+    } finally {
+      setMutating("");
     }
   };
 
@@ -225,6 +235,9 @@ export function ProductCatalogPage({
 
     setError("");
     setSuccess("");
+    setMutating(
+      `ลบสินค้า ${product.product_code}`,
+    );
 
     try {
       await productCatalogService.delete(product.product_code);
@@ -232,11 +245,27 @@ export function ProductCatalogPage({
       await loadProducts();
     } catch (reason) {
       setError(getErrorMessage(reason));
+    } finally {
+      setMutating("");
     }
   };
 
   return (
     <div className="vp-work-page product-catalog-workspace mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+      <ProcessStatusOverlay
+        open={
+          loading ||
+          saving ||
+          Boolean(mutating)
+        }
+        title={
+          saving
+            ? "กำลังบันทึกข้อมูลสินค้า..."
+            : mutating
+              ? `กำลัง${mutating}...`
+            : "กำลังโหลดข้อมูลสินค้า..."
+        }
+      />
       <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button

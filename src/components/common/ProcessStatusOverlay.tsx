@@ -6,17 +6,40 @@ import {
   createPortal,
 } from "react-dom";
 
+import {
+  useAnimatedProgress,
+} from "../../hooks/useAnimatedProgress";
+
+import {
+  AnimatedProgressBar,
+} from "./AnimatedProgressBar";
+
 interface ProcessStatusOverlayProps {
   open: boolean;
   title: string;
   description?: string;
+  progress?: number;
 }
 
 export function ProcessStatusOverlay({
   open,
   title,
   description = "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล",
+  progress,
 }: ProcessStatusOverlayProps) {
+  const animatedProgress =
+    useAnimatedProgress(open);
+  const visibleProgress =
+    progress === undefined
+      ? animatedProgress
+      : Math.max(
+          0,
+          Math.min(
+            100,
+            progress,
+          ),
+        );
+
   if (
     !open ||
     typeof document === "undefined"
@@ -87,27 +110,17 @@ export function ProcessStatusOverlay({
           {title}
         </p>
 
-        <div
-          className="
-            mt-5
-            h-1.5
-            overflow-hidden
-            rounded-full
-            bg-slate-100
-          "
-        >
-          <div
-            className="
-              h-full
-              w-2/3
-              animate-pulse
-              rounded-full
-              bg-gradient-to-r
-              from-cyan-400
-              to-blue-600
-            "
-          />
-        </div>
+        <p className="mt-3 text-3xl font-semibold tabular-nums text-cyan-700">
+          {Math.round(
+            visibleProgress,
+          )}
+          %
+        </p>
+
+        <AnimatedProgressBar
+          progress={visibleProgress}
+          className="mt-4"
+        />
 
         <p
           className="

@@ -30,6 +30,14 @@ import {
   openUrl,
 } from "@tauri-apps/plugin-opener";
 
+import {
+  AnimatedProgressBar,
+} from "../../components/common/AnimatedProgressBar";
+
+import {
+  useAnimatedProgress,
+} from "../../hooks/useAnimatedProgress";
+
 import type {
   AppUser,
 } from "../../auth/auth.types";
@@ -798,30 +806,6 @@ export function WorldwideRetailPage({
     return request;
   };
 
-  const prefetchPreview = (
-    record: WorldwideRetailRecord,
-    documentType: "po" | "iv",
-  ) => {
-    const cacheKey =
-      `${record.id}:${documentType}`;
-
-    if (
-      previewCacheRef.current
-        .has(cacheKey) ||
-      previewRequestsRef.current
-        .has(cacheKey)
-    ) {
-      return;
-    }
-
-    void loadPreview(
-      record,
-      documentType,
-    ).catch(() => {
-      // Prefetch is best-effort; a click will retry and show the error.
-    });
-  };
-
   const openPreview = async (
     record: WorldwideRetailRecord,
     documentType: "po" | "iv",
@@ -1362,12 +1346,6 @@ export function WorldwideRetailPage({
                               "po",
                             );
                           }}
-                          onPrefetch={() => {
-                            prefetchPreview(
-                              record,
-                              "po",
-                            );
-                          }}
                         />
                       </td>
                       <td className="bg-violet-50/30 px-4 py-3">
@@ -1381,12 +1359,6 @@ export function WorldwideRetailPage({
                           }
                           onPreview={() => {
                             void openPreview(
-                              record,
-                              "iv",
-                            );
-                          }}
-                          onPrefetch={() => {
-                            prefetchPreview(
                               record,
                               "iv",
                             );
@@ -1552,100 +1524,6 @@ export function WorldwideRetailPage({
   );
 }
 
-function useAnimatedProgress(
-  active: boolean,
-) {
-  const [progress, setProgress] =
-    useState(0);
-  const wasActiveRef =
-    useRef(false);
-
-  useEffect(() => {
-    let progressTimer:
-      | number
-      | undefined;
-    let resetTimer:
-      | number
-      | undefined;
-
-    if (active) {
-      wasActiveRef.current =
-        true;
-      setProgress((current) =>
-        current <= 0 ||
-        current >= 100
-          ? 8
-          : current,
-      );
-
-      progressTimer =
-        window.setInterval(
-          () => {
-            setProgress(
-              (current) => {
-                if (
-                  current >= 92
-                ) {
-                  return 92;
-                }
-
-                const step =
-                  Math.max(
-                    1,
-                    Math.ceil(
-                      (92 -
-                        current) *
-                        0.09,
-                    ),
-                  );
-
-                return Math.min(
-                  92,
-                  current + step,
-                );
-              },
-            );
-          },
-          180,
-        );
-    } else if (
-      wasActiveRef.current
-    ) {
-      wasActiveRef.current =
-        false;
-      setProgress(100);
-      resetTimer =
-        window.setTimeout(
-          () => {
-            setProgress(0);
-          },
-          650,
-        );
-    }
-
-    return () => {
-      if (
-        progressTimer !==
-        undefined
-      ) {
-        window.clearInterval(
-          progressTimer,
-        );
-      }
-
-      if (
-        resetTimer !== undefined
-      ) {
-        window.clearTimeout(
-          resetTimer,
-        );
-      }
-    };
-  }, [active]);
-
-  return progress;
-}
-
 function OperationProgress({
   progress,
   label,
@@ -1688,7 +1566,7 @@ function OperationProgress({
         </span>
       </div>
 
-      <ProgressBar
+      <AnimatedProgressBar
         progress={progress}
         className="mt-3"
         tone={
@@ -1696,56 +1574,6 @@ function OperationProgress({
             ? "emerald"
             : "cyan"
         }
-      />
-    </div>
-  );
-}
-
-function ProgressBar({
-  progress,
-  className = "",
-  tone,
-}: {
-  progress: number;
-  className?: string;
-  tone:
-    | "cyan"
-    | "emerald"
-    | "sky"
-    | "violet";
-}) {
-  const toneClass = {
-    cyan:
-      "from-cyan-500 to-blue-600",
-    emerald:
-      "from-emerald-400 to-emerald-600",
-    sky:
-      "from-sky-400 to-blue-600",
-    violet:
-      "from-violet-400 to-violet-700",
-  }[tone];
-
-  return (
-    <div
-      className={`h-2 w-full overflow-hidden rounded-full bg-slate-200 ${className}`}
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={
-        Math.round(progress)
-      }
-    >
-      <div
-        className={`h-full rounded-full bg-gradient-to-r transition-[width] duration-200 ease-out ${toneClass}`}
-        style={{
-          width: `${Math.max(
-            0,
-            Math.min(
-              100,
-              progress,
-            ),
-          )}%`,
-        }}
       />
     </div>
   );
@@ -1943,14 +1771,12 @@ function DocumentActions({
   driveUrl,
   loading,
   onPreview,
-  onPrefetch,
 }: {
   documentType: "po" | "iv";
   fileName: string;
   driveUrl: string;
   loading: boolean;
   onPreview: () => void;
-  onPrefetch: () => void;
 }) {
   const isPo =
     documentType === "po";
@@ -1968,8 +1794,6 @@ function DocumentActions({
         <button
           type="button"
           onClick={onPreview}
-          onMouseEnter={onPrefetch}
-          onFocus={onPrefetch}
           disabled={loading}
           className={`inline-flex h-8 items-center justify-center gap-1 rounded-lg px-2.5 text-[11px] font-semibold text-white transition disabled:opacity-60 ${
             isPo
@@ -2168,7 +1992,7 @@ function PdfPreviewModal({
                 %
               </span>
             </div>
-            <ProgressBar
+            <AnimatedProgressBar
               progress={
                 loadingProgress
               }
