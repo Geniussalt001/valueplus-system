@@ -195,6 +195,43 @@ export function ReceivablesFreightPage({
     }
   }
 
+  function updateAppliedInvoice(
+    sourceRow: number,
+    value: string,
+  ) {
+    setResult((currentResult) => {
+      if (
+        !currentResult ||
+        !isCreditNoteResult(
+          currentResult,
+        )
+      ) {
+        return currentResult;
+      }
+
+      return {
+        ...currentResult,
+        records:
+          currentResult.records.map(
+            (record) =>
+              record.source_row ===
+              sourceRow
+                ? {
+                    ...record,
+                    applied_invoice:
+                      normalizeManualInvoice(
+                        value,
+                      ),
+                  }
+                : record,
+          ),
+      };
+    });
+
+    setMonthlySheet(null);
+    setSuccess("");
+  }
+
   return (
     <div className="vp-work-page receivables-freight-workspace mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
       <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -439,7 +476,10 @@ export function ReceivablesFreightPage({
           <div className="vp-data-card mt-5 overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <div className="max-h-[590px] overflow-auto">
               {isCreditNoteResult(result) ? (
-                <CreditNoteTable result={result} />
+                <CreditNoteTable
+                  result={result}
+                  onAppliedInvoiceChange={updateAppliedInvoice}
+                />
               ) : (
                 <ReceivablesTable result={result} />
               )}
@@ -493,8 +533,13 @@ function ModeButton({
 
 function CreditNoteTable({
   result,
+  onAppliedInvoiceChange,
 }: {
   result: CreditNoteResult;
+  onAppliedInvoiceChange: (
+    sourceRow: number,
+    value: string,
+  ) => void;
 }) {
   return (
     <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
@@ -526,8 +571,20 @@ function CreditNoteTable({
               {formatMoney(record.amount)}
             </td>
             <td className="whitespace-nowrap px-4 py-3">{record.reference_invoice || "-"}</td>
-            <td className="whitespace-nowrap px-4 py-3 font-medium text-blue-700">
-              {record.applied_invoice || "-"}
+            <td className="min-w-[190px] px-4 py-3">
+              <input
+                type="text"
+                value={record.applied_invoice}
+                onChange={(event) => {
+                  onAppliedInvoiceChange(
+                    record.source_row,
+                    event.target.value,
+                  );
+                }}
+                placeholder="คีย์เลข VPR ด้วยตนเอง"
+                aria-label={`Inv. ที่ใช้ลดหนี้ ${record.credit_note_number}`}
+                className="h-10 w-full rounded-lg border border-blue-200 bg-white px-3 font-medium uppercase text-blue-700 outline-none transition placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </td>
             <td className="px-4 py-3">
               <StatusBadge status={record.status} message={record.message} />
@@ -606,6 +663,16 @@ function isCreditNoteResult(
     "mode" in result &&
     result.mode === "credit-notes"
   );
+}
+
+function normalizeManualInvoice(
+  value: string,
+) {
+  return value
+    .trimStart()
+    .toUpperCase()
+    .replace(/^IV(?=VPR)/, "")
+    .replace(/\s+/g, "");
 }
 
 function Stat({
