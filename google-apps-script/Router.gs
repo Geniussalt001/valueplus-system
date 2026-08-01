@@ -132,6 +132,16 @@ function doPost(event) {
           );
         break;
 
+      case "receivables.saveCreditNotes":
+        requireOfficeSession(
+          session,
+        );
+        data =
+          saveCreditNotesMonthly(
+            request.data,
+          );
+        break;
+
       case "receivables.archiveList":
         data =
           listReceivablesArchives();

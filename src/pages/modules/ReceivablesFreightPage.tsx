@@ -2,6 +2,10 @@ import {
   useState,
 } from "react";
 
+import type {
+  ReactNode,
+} from "react";
+
 import {
   ArrowLeft,
   CheckCircle2,
@@ -9,6 +13,7 @@ import {
   FileDown,
   FileSpreadsheet,
   LoaderCircle,
+  ReceiptText,
   ScanSearch,
   Sheet,
   Upload,
@@ -20,6 +25,7 @@ import {
 } from "../../services/receivablesFreightService";
 
 import type {
+  CreditNoteResult,
   ReceivablesFreightResult,
   ReceivablesMonthlySheetResult,
 } from "../../types/receivablesFreight.types";
@@ -28,13 +34,25 @@ interface ReceivablesFreightPageProps {
   onBack: () => void;
 }
 
+type ReceivablesMode =
+  | "receivables"
+  | "credit-notes";
+
 export function ReceivablesFreightPage({
   onBack,
 }: ReceivablesFreightPageProps) {
+  const [mode, setMode] =
+    useState<ReceivablesMode>(
+      "receivables",
+    );
   const [csvPath, setCsvPath] =
     useState("");
   const [result, setResult] =
-    useState<ReceivablesFreightResult | null>(null);
+    useState<
+      | ReceivablesFreightResult
+      | CreditNoteResult
+      | null
+    >(null);
   const [monthlySheet, setMonthlySheet] =
     useState<ReceivablesMonthlySheetResult | null>(null);
   const [busy, setBusy] =
@@ -50,6 +68,27 @@ export function ReceivablesFreightPage({
       result.review_count === 0 &&
       result.error_count === 0,
   );
+
+  const isCreditNoteMode =
+    mode === "credit-notes";
+
+  function switchMode(
+    nextMode: ReceivablesMode,
+  ) {
+    if (
+      nextMode === mode ||
+      busy
+    ) {
+      return;
+    }
+
+    setMode(nextMode);
+    setCsvPath("");
+    setResult(null);
+    setMonthlySheet(null);
+    setError("");
+    setSuccess("");
+  }
 
   async function chooseCsv() {
     setBusy("selecting");
@@ -83,9 +122,17 @@ export function ReceivablesFreightPage({
 
     try {
       const preview =
-        await receivablesFreightService.preview({
-          csvPath,
-        });
+        isCreditNoteMode
+          ? await receivablesFreightService
+              .previewCreditNotes(
+                csvPath,
+              )
+          : await receivablesFreightService
+              .preview({
+                csvPath,
+                mode:
+                  "receivables",
+              });
 
       setResult(preview);
     } catch (requestError) {
@@ -107,19 +154,39 @@ export function ReceivablesFreightPage({
 
     try {
       const saved =
-        await receivablesFreightService.saveMonthlySheet(
-          result.records,
-        );
+        isCreditNoteResult(
+          result,
+        )
+          ? await receivablesFreightService
+              .saveCreditNotes(
+                result.records,
+              )
+          : await receivablesFreightService
+              .saveMonthlySheet(
+                result.records,
+              );
 
       setMonthlySheet(saved);
 
       const duplicateNote =
         saved.duplicateCount > 0
-          ? ` · พบ IV เดิม ${saved.duplicateCount.toLocaleString()} รายการ (ไม่บันทึกซ้ำ)`
+          ? ` · พบ${
+              isCreditNoteMode
+                ? "ใบลดหนี้"
+                : " IV"
+            }เดิม ${saved.duplicateCount.toLocaleString()} รายการ (ไม่บันทึกซ้ำ)`
           : "";
 
       setSuccess(
-        `${saved.created ? "สร้าง" : "อัปเดต"} ${saved.spreadsheetName} เรียบร้อย · เพิ่ม ${saved.insertedCount.toLocaleString()} IV · เว้น IV ที่ยังไม่มี ${saved.missingCount.toLocaleString()} ตำแหน่ง${duplicateNote}`,
+        `${saved.created ? "สร้าง" : "อัปเดต"} ${saved.spreadsheetName} เรียบร้อย · เพิ่ม ${saved.insertedCount.toLocaleString()} ${
+          isCreditNoteMode
+            ? "ใบลดหนี้"
+            : "IV"
+        }${
+          isCreditNoteMode
+            ? ""
+            : ` · เว้น IV ที่ยังไม่มี ${saved.missingCount.toLocaleString()} ตำแหน่ง`
+        }${duplicateNote}`,
       );
     } catch (requestError) {
       setError(getErrorMessage(requestError));
@@ -146,11 +213,15 @@ export function ReceivablesFreightPage({
           </p>
 
           <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-            ลงยอดลูกหนี้–ค่าขนส่ง
+            {isCreditNoteMode
+              ? "ลงข้อมูลลดหนี้"
+              : "ลงยอดลูกหนี้–ค่าขนส่ง"}
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-            อ่านข้อมูล IV จาก CSV ตรวจสอบผลลัพธ์ และสะสมข้อมูลลง Google Sheet รายเดือน
+            {isCreditNoteMode
+              ? "อ่านใบลดหนี้จาก CSV ตรวจสอบการอ้างอิง IV และบันทึกลงชีต “ลดหนี้” ในแฟ้มรายเดือน"
+              : "อ่านข้อมูล IV จาก CSV ตรวจสอบผลลัพธ์ และสะสมข้อมูลลง Google Sheet รายเดือน"}
           </p>
         </div>
 
@@ -158,6 +229,42 @@ export function ReceivablesFreightPage({
           <FileSpreadsheet size={23} />
         </div>
       </header>
+
+      <section className="mt-6 rounded-2xl border border-cyan-200 bg-white p-2 shadow-sm">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <ModeButton
+            active={!isCreditNoteMode}
+            title="ลูกหนี้"
+            description="นำเข้ายอดลูกหนี้และค่าขนส่งตามระบบเดิม"
+            icon={
+              <FileSpreadsheet
+                size={18}
+              />
+            }
+            onClick={() => {
+              switchMode(
+                "receivables",
+              );
+            }}
+          />
+
+          <ModeButton
+            active={isCreditNoteMode}
+            title="ลดหนี้"
+            description="อ่านใบลดหนี้และ IV อ้างอิงจาก CSV"
+            icon={
+              <ReceiptText
+                size={18}
+              />
+            }
+            onClick={() => {
+              switchMode(
+                "credit-notes",
+              );
+            }}
+          />
+        </div>
+      </section>
 
       <section className="vp-setup-grid mt-8 grid gap-4 lg:grid-cols-2">
         <button
@@ -175,7 +282,9 @@ export function ReceivablesFreightPage({
                 อัปโหลดไฟล์ CSV
               </span>
               <span className="mt-1 block text-xs text-slate-500">
-                ระบบอ่าน IV จากคอลัมน์ G เริ่มต้นที่ G10
+                {isCreditNoteMode
+                  ? "อ่านเลข SR จาก F, วันที่ G, IV จาก I/O และยอดจาก N"
+                  : "ระบบอ่าน IV จากคอลัมน์ G เริ่มต้นที่ G10"}
               </span>
               <span className="mt-3 block truncate text-sm font-medium text-cyan-700">
                 {csvPath || "คลิกเพื่อเลือกไฟล์ CSV"}
@@ -197,7 +306,9 @@ export function ReceivablesFreightPage({
                 </span>
               </span>
               <span className="mt-1 block text-xs text-slate-500">
-                เขียนข้อมูลลงชีต “ลูกหนี้” เริ่มแถว 4 และคงสูตรคอลัมน์ G–L
+                {isCreditNoteMode
+                  ? "เขียนข้อมูลลงชีต “ลดหนี้” คอลัมน์ A–F เริ่มแถว 3"
+                  : "เขียนข้อมูลลงชีต “ลูกหนี้” เริ่มแถว 4 และคงสูตรคอลัมน์ G–L"}
               </span>
               <a
                 href={receivablesTemplateUrl.replace("/export?format=xlsx", "/edit")}
@@ -264,7 +375,9 @@ export function ReceivablesFreightPage({
           ) : (
             <FileDown size={18} />
           )}
-          บันทึก Google Sheet รายเดือน
+          {isCreditNoteMode
+            ? "บันทึกลงชีต ลดหนี้"
+            : "บันทึก Google Sheet รายเดือน"}
         </button>
       </div>
 
@@ -280,65 +393,218 @@ export function ReceivablesFreightPage({
               </h3>
             </div>
             <p className="text-sm text-slate-600">
-              {result.record_count.toLocaleString()} IV · {result.warehouses.length} คลัง
+              {isCreditNoteResult(result)
+                ? `${result.record_count.toLocaleString()} ใบลดหนี้`
+                : `${result.record_count.toLocaleString()} IV · ${result.warehouses.length} คลัง`}
             </p>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Stat label="IV ทั้งหมด" value={result.record_count.toLocaleString()} />
-            <Stat label="จำนวนลังรวม" value={formatNumber(result.total_quantity)} />
-            <Stat label="Exc-vat รวม" value={formatMoney(result.total_exc_vat)} />
-            <Stat
-              label="ต้องตรวจสอบ"
-              value={String(result.review_count + result.error_count)}
-              warning={result.review_count + result.error_count > 0}
-            />
+            {isCreditNoteResult(result) ? (
+              <>
+                <Stat
+                  label="ใบลดหนี้ทั้งหมด"
+                  value={result.record_count.toLocaleString()}
+                />
+                <Stat
+                  label="ยอดลดหนี้รวม"
+                  value={formatMoney(result.total_amount)}
+                />
+                <Stat
+                  label="มี Inv. ที่ใช้ลดหนี้"
+                  value={result.records
+                    .filter((record) => Boolean(record.applied_invoice))
+                    .length.toLocaleString()}
+                />
+                <Stat
+                  label="ต้องตรวจสอบ"
+                  value={String(result.review_count + result.error_count)}
+                  warning={result.review_count + result.error_count > 0}
+                />
+              </>
+            ) : (
+              <>
+                <Stat label="IV ทั้งหมด" value={result.record_count.toLocaleString()} />
+                <Stat label="จำนวนลังรวม" value={formatNumber(result.total_quantity)} />
+                <Stat label="Exc-vat รวม" value={formatMoney(result.total_exc_vat)} />
+                <Stat
+                  label="ต้องตรวจสอบ"
+                  value={String(result.review_count + result.error_count)}
+                  warning={result.review_count + result.error_count > 0}
+                />
+              </>
+            )}
           </div>
 
           <div className="vp-data-card mt-5 overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <div className="max-h-[590px] overflow-auto">
-              <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
-                <thead className="sticky top-0 z-10 bg-[#eaf8fc] text-xs text-slate-600">
-                  <tr>
-                    <th className="px-4 py-3">วันที่</th>
-                    <th className="px-4 py-3">เลข Invoice</th>
-                    <th className="px-4 py-3">ลูกค้า</th>
-                    <th className="px-4 py-3">จัดส่งปลายทาง</th>
-                    <th className="px-4 py-3 text-right">จำนวนลัง</th>
-                    <th className="px-4 py-3 text-right">Exc-vat</th>
-                    <th className="px-4 py-3">สถานะ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.records.map((record) => (
-                    <tr
-                      key={`${record.invoice}-${record.source_row}`}
-                      className="border-t border-slate-100 text-slate-700 hover:bg-cyan-50/50"
-                    >
-                      <td className="whitespace-nowrap px-4 py-3">{record.date}</td>
-                      <td className="whitespace-nowrap px-4 py-3 font-semibold text-blue-700">{record.invoice}</td>
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-slate-900">{record.customer || "-"}</p>
-                        <p className="mt-1 text-xs text-slate-400">{record.warehouse || "ไม่พบคลัง"}</p>
-                      </td>
-                      <td className="px-4 py-3">{record.destination || "-"}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-emerald-700">{formatNumber(record.quantity)}</td>
-                      <td className="px-4 py-3 text-right">{formatMoney(record.exc_vat)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(record.status)}`}>
-                          <CheckCircle2 size={13} />
-                          {record.status === "ready" ? "พร้อม" : record.message || "ตรวจสอบ"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {isCreditNoteResult(result) ? (
+                <CreditNoteTable result={result} />
+              ) : (
+                <ReceivablesTable result={result} />
+              )}
             </div>
           </div>
         </section>
       )}
     </div>
+  );
+}
+
+function ModeButton({
+  active,
+  title,
+  description,
+  icon,
+  onClick,
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+  icon: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex min-h-[82px] items-center gap-4 rounded-xl border px-5 py-4 text-left transition ${
+        active
+          ? "border-cyan-400 bg-cyan-50 text-cyan-950 shadow-sm"
+          : "border-transparent bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+          active
+            ? "bg-[#063b59] text-white"
+            : "bg-slate-100 text-slate-500"
+        }`}
+      >
+        {icon}
+      </span>
+      <span>
+        <span className="block font-semibold">{title}</span>
+        <span className="mt-1 block text-xs opacity-75">{description}</span>
+      </span>
+    </button>
+  );
+}
+
+function CreditNoteTable({
+  result,
+}: {
+  result: CreditNoteResult;
+}) {
+  return (
+    <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
+      <thead className="sticky top-0 z-10 bg-violet-50 text-xs text-slate-600">
+        <tr>
+          <th className="px-4 py-3">วันที่</th>
+          <th className="px-4 py-3">ใบลดหนี้</th>
+          <th className="px-4 py-3">ชื่อลูกค้า</th>
+          <th className="px-4 py-3 text-right">ยอดลดหนี้</th>
+          <th className="px-4 py-3">Inv. อ้างอิง</th>
+          <th className="px-4 py-3">Inv. ที่ใช้ลดหนี้</th>
+          <th className="px-4 py-3">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {result.records.map((record) => (
+          <tr
+            key={`${record.credit_note_number}-${record.source_row}`}
+            className="border-t border-slate-100 text-slate-700 hover:bg-violet-50/50"
+          >
+            <td className="whitespace-nowrap px-4 py-3">{record.date}</td>
+            <td className="whitespace-nowrap px-4 py-3 font-semibold text-violet-700">
+              {record.credit_note_number}
+            </td>
+            <td className="px-4 py-3 font-medium text-slate-900">
+              {record.customer || "-"}
+            </td>
+            <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-rose-700">
+              {formatMoney(record.amount)}
+            </td>
+            <td className="whitespace-nowrap px-4 py-3">{record.reference_invoice || "-"}</td>
+            <td className="whitespace-nowrap px-4 py-3 font-medium text-blue-700">
+              {record.applied_invoice || "-"}
+            </td>
+            <td className="px-4 py-3">
+              <StatusBadge status={record.status} message={record.message} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function ReceivablesTable({
+  result,
+}: {
+  result: ReceivablesFreightResult;
+}) {
+  return (
+    <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
+      <thead className="sticky top-0 z-10 bg-[#eaf8fc] text-xs text-slate-600">
+        <tr>
+          <th className="px-4 py-3">วันที่</th>
+          <th className="px-4 py-3">เลข Invoice</th>
+          <th className="px-4 py-3">ลูกค้า</th>
+          <th className="px-4 py-3">จัดส่งปลายทาง</th>
+          <th className="px-4 py-3 text-right">จำนวนลัง</th>
+          <th className="px-4 py-3 text-right">Exc-vat</th>
+          <th className="px-4 py-3">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {result.records.map((record) => (
+          <tr
+            key={`${record.invoice}-${record.source_row}`}
+            className="border-t border-slate-100 text-slate-700 hover:bg-cyan-50/50"
+          >
+            <td className="whitespace-nowrap px-4 py-3">{record.date}</td>
+            <td className="whitespace-nowrap px-4 py-3 font-semibold text-blue-700">{record.invoice}</td>
+            <td className="px-4 py-3">
+              <p className="font-medium text-slate-900">{record.customer || "-"}</p>
+              <p className="mt-1 text-xs text-slate-400">{record.warehouse || "ไม่พบคลัง"}</p>
+            </td>
+            <td className="px-4 py-3">{record.destination || "-"}</td>
+            <td className="px-4 py-3 text-right font-semibold text-emerald-700">{formatNumber(record.quantity)}</td>
+            <td className="px-4 py-3 text-right">{formatMoney(record.exc_vat)}</td>
+            <td className="px-4 py-3">
+              <StatusBadge status={record.status} message={record.message} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function StatusBadge({
+  status,
+  message,
+}: {
+  status: string;
+  message: string;
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(status)}`}>
+      <CheckCircle2 size={13} />
+      {status === "ready" ? "พร้อม" : message || "ตรวจสอบ"}
+    </span>
+  );
+}
+
+function isCreditNoteResult(
+  result:
+    | ReceivablesFreightResult
+    | CreditNoteResult,
+): result is CreditNoteResult {
+  return (
+    "mode" in result &&
+    result.mode === "credit-notes"
   );
 }
 

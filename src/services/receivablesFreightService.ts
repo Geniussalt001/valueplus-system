@@ -21,6 +21,8 @@ import {
 } from "@tauri-apps/plugin-opener";
 
 import type {
+  CreditNoteRecord,
+  CreditNoteResult,
   ReceivablesFreightInput,
   ReceivablesFreightRecord,
   ReceivablesFreightResult,
@@ -91,6 +93,20 @@ export const receivablesFreightService = {
     );
   },
 
+  async previewCreditNotes(
+    csvPath: string,
+  ): Promise<CreditNoteResult> {
+    return invoke<CreditNoteResult>(
+      "preview_receivables_freight",
+      {
+        input: {
+          csvPath,
+          mode: "credit-notes",
+        },
+      },
+    );
+  },
+
   async process(
     input: ReceivablesFreightInput,
   ): Promise<ReceivablesFreightResult> {
@@ -107,6 +123,19 @@ export const receivablesFreightService = {
       ReceivablesMonthlySheetResult
     >(
       "receivables.saveMonthly",
+      {
+        records,
+      },
+    );
+  },
+
+  async saveCreditNotes(
+    records: CreditNoteRecord[],
+  ): Promise<ReceivablesMonthlySheetResult> {
+    return callAppsScript<
+      ReceivablesMonthlySheetResult
+    >(
+      "receivables.saveCreditNotes",
       {
         records,
       },

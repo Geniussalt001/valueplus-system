@@ -18,6 +18,7 @@ const TEMPLATE_URL: &str =
 pub struct ReceivablesFreightInput {
     csv_path: String,
     output_path: Option<String>,
+    mode: Option<String>,
 }
 
 #[derive(
@@ -96,6 +97,21 @@ fn validate_input(
         );
     }
 
+    let mode = input
+        .mode
+        .as_deref()
+        .unwrap_or("receivables");
+
+    if !matches!(
+        mode,
+        "receivables" | "credit-notes"
+    ) {
+        return Err(
+            "โหมดประมวลผล CSV ไม่ถูกต้อง"
+                .to_string(),
+        );
+    }
+
     if require_output {
         let output_path = input
             .output_path
@@ -127,7 +143,16 @@ fn run_python(
         .arg("--csv")
         .arg(&input.csv_path)
         .arg("--template-url")
-        .arg(TEMPLATE_URL);
+        .arg(TEMPLATE_URL)
+        .arg("--mode")
+        .arg(
+            input
+                .mode
+                .as_deref()
+                .unwrap_or(
+                    "receivables",
+                ),
+        );
 
     if preview_only {
         command.arg("--preview");
