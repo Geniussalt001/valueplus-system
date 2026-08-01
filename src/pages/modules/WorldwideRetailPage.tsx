@@ -2,8 +2,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import {
   ArrowLeft,
@@ -57,6 +59,11 @@ interface ArchiveDate {
   month: number;
 }
 
+interface CachedPdfPreview {
+  fileName: string;
+  fileUrl: string;
+}
+
 const thaiMonths = [
   "",
   "มกราคม",
@@ -98,6 +105,12 @@ export function WorldwideRetailPage({
     useState("");
   const [openingDocument, setOpeningDocument] =
     useState("");
+  const [previewOpen, setPreviewOpen] =
+    useState(false);
+  const [previewLoading, setPreviewLoading] =
+    useState(false);
+  const [previewError, setPreviewError] =
+    useState("");
   const [previewUrl, setPreviewUrl] =
     useState("");
   const [previewName, setPreviewName] =
@@ -106,6 +119,22 @@ export function WorldwideRetailPage({
     useState("");
   const [previewType, setPreviewType] =
     useState<"po" | "iv">("po");
+  const previewCacheRef =
+    useRef(
+      new Map<
+        string,
+        CachedPdfPreview
+      >(),
+    );
+  const previewRequestsRef =
+    useRef(
+      new Map<
+        string,
+        Promise<CachedPdfPreview>
+      >(),
+    );
+  const activePreviewKeyRef =
+    useRef("");
   const [search, setSearch] =
     useState("");
   const [
@@ -187,13 +216,18 @@ export function WorldwideRetailPage({
 
   useEffect(
     () => () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(
-          previewUrl,
-        );
-      }
+      previewCacheRef.current
+        .forEach((preview) => {
+          URL.revokeObjectURL(
+            preview.fileUrl,
+          );
+        });
+      previewCacheRef.current
+        .clear();
+      previewRequestsRef.current
+        .clear();
     },
-    [previewUrl],
+    [],
   );
 
   const datedRecords =
@@ -618,6 +652,25 @@ export function WorldwideRetailPage({
           ),
       );
 
+      (["po", "iv"] as const)
+        .forEach(
+          (documentType) => {
+            const cacheKey =
+              `${record.id}:${documentType}`;
+            const cached =
+              previewCacheRef.current
+                .get(cacheKey);
+
+            if (cached) {
+              URL.revokeObjectURL(
+                cached.fileUrl,
+              );
+              previewCacheRef.current
+                .delete(cacheKey);
+            }
+          },
+        );
+
       setSuccess(
         `ลบรายการ ${record.ivNumber || record.poNumber} และย้ายไฟล์ ${deleted.trashedFileCount.toLocaleString()} ไฟล์ไปถังขยะ Google Drive แล้ว`,
       );
@@ -638,6 +691,95 @@ export function WorldwideRetailPage({
     }
   };
 
+  const loadPreview = (
+    record: WorldwideRetailRecord,
+    documentType: "po" | "iv",
+  ): Promise<CachedPdfPreview> => {
+    const cacheKey =
+      `${record.id}:${documentType}`;
+    const cached =
+      previewCacheRef.current
+        .get(cacheKey);
+
+    if (cached) {
+      return Promise.resolve(
+        cached,
+      );
+    }
+
+    const pending =
+      previewRequestsRef.current
+        .get(cacheKey);
+
+    if (pending) {
+      return pending;
+    }
+
+    const request =
+      worldwideRetailService
+        .getPdf(
+          record.id,
+          documentType,
+        )
+        .then((pdf) => {
+          const loaded = {
+            fileName:
+              pdf.fileName,
+            fileUrl:
+              base64ToPdfUrl(
+                pdf.base64Data,
+              ),
+          };
+
+          previewCacheRef.current
+            .set(
+              cacheKey,
+              loaded,
+            );
+          previewRequestsRef.current
+            .delete(cacheKey);
+
+          return loaded;
+        })
+        .catch((reason) => {
+          previewRequestsRef.current
+            .delete(cacheKey);
+          throw reason;
+        });
+
+    previewRequestsRef.current
+      .set(
+        cacheKey,
+        request,
+      );
+
+    return request;
+  };
+
+  const prefetchPreview = (
+    record: WorldwideRetailRecord,
+    documentType: "po" | "iv",
+  ) => {
+    const cacheKey =
+      `${record.id}:${documentType}`;
+
+    if (
+      previewCacheRef.current
+        .has(cacheKey) ||
+      previewRequestsRef.current
+        .has(cacheKey)
+    ) {
+      return;
+    }
+
+    void loadPreview(
+      record,
+      documentType,
+    ).catch(() => {
+      // Prefetch is best-effort; a click will retry and show the error.
+    });
+  };
+
   const openPreview = async (
     record: WorldwideRetailRecord,
     documentType: "po" | "iv",
@@ -645,63 +787,79 @@ export function WorldwideRetailPage({
     const openingKey =
       `${record.id}:${documentType}`;
 
-    if (openingDocument) {
-      return;
-    }
-
+    activePreviewKeyRef.current =
+      openingKey;
     setOpeningDocument(
       openingKey,
     );
+    setPreviewType(
+      documentType,
+    );
+    setPreviewDriveUrl(
+      documentType === "po"
+        ? record.poFileUrl
+        : record.ivFileUrl,
+    );
+    setPreviewName(
+      documentType === "po"
+        ? record.poFileName
+        : record.ivFileName,
+    );
+    setPreviewUrl("");
+    setPreviewError("");
+    setPreviewLoading(true);
+    setPreviewOpen(true);
     setError("");
 
     try {
-      const pdf =
-        await worldwideRetailService
-          .getPdf(
-            record.id,
-            documentType,
-          );
-
-      if (previewUrl) {
-        URL.revokeObjectURL(
-          previewUrl,
+      const preview =
+        await loadPreview(
+          record,
+          documentType,
         );
+
+      if (
+        activePreviewKeyRef.current !==
+        openingKey
+      ) {
+        return;
       }
 
       setPreviewUrl(
-        base64ToPdfUrl(
-          pdf.base64Data,
-        ),
+        preview.fileUrl,
       );
       setPreviewName(
-        pdf.fileName,
-      );
-      setPreviewType(
-        documentType,
-      );
-      setPreviewDriveUrl(
-        documentType === "po"
-          ? record.poFileUrl
-          : record.ivFileUrl,
+        preview.fileName,
       );
     } catch (reason) {
-      setError(
-        getErrorMessage(
-          reason,
-        ),
-      );
+      if (
+        activePreviewKeyRef.current ===
+        openingKey
+      ) {
+        setPreviewError(
+          getErrorMessage(
+            reason,
+          ),
+        );
+      }
     } finally {
-      setOpeningDocument("");
+      if (
+        activePreviewKeyRef.current ===
+        openingKey
+      ) {
+        setPreviewLoading(false);
+        setOpeningDocument("");
+      }
     }
   };
 
   const closePreview = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(
-        previewUrl,
-      );
-    }
-
+    activePreviewKeyRef.current =
+      "";
+    setPreviewOpen(false);
+    setPreviewLoading(false);
+    setPreviewError("");
+    setOpeningDocument("");
     setPreviewUrl("");
     setPreviewName("");
     setPreviewDriveUrl("");
@@ -1153,6 +1311,12 @@ export function WorldwideRetailPage({
                               "po",
                             );
                           }}
+                          onPrefetch={() => {
+                            prefetchPreview(
+                              record,
+                              "po",
+                            );
+                          }}
                         />
                       </td>
                       <td className="bg-violet-50/30 px-4 py-3">
@@ -1166,6 +1330,12 @@ export function WorldwideRetailPage({
                           }
                           onPreview={() => {
                             void openPreview(
+                              record,
+                              "iv",
+                            );
+                          }}
+                          onPrefetch={() => {
+                            prefetchPreview(
                               record,
                               "iv",
                             );
@@ -1310,10 +1480,12 @@ export function WorldwideRetailPage({
         )}
       </section>
 
-      {previewUrl && (
+      {previewOpen && (
         <PdfPreviewModal
           fileName={previewName}
           fileUrl={previewUrl}
+          loading={previewLoading}
+          error={previewError}
           documentType={previewType}
           onDrive={() => {
             if (previewDriveUrl) {
@@ -1521,12 +1693,14 @@ function DocumentActions({
   driveUrl,
   loading,
   onPreview,
+  onPrefetch,
 }: {
   documentType: "po" | "iv";
   fileName: string;
   driveUrl: string;
   loading: boolean;
   onPreview: () => void;
+  onPrefetch: () => void;
 }) {
   const isPo =
     documentType === "po";
@@ -1544,6 +1718,8 @@ function DocumentActions({
         <button
           type="button"
           onClick={onPreview}
+          onMouseEnter={onPrefetch}
+          onFocus={onPrefetch}
           disabled={loading}
           className={`inline-flex h-8 items-center justify-center gap-1 rounded-lg px-2.5 text-[11px] font-semibold text-white transition disabled:opacity-60 ${
             isPo
@@ -1614,12 +1790,16 @@ function AcknowledgementSummary({
 function PdfPreviewModal({
   fileName,
   fileUrl,
+  loading,
+  error,
   documentType,
   onDrive,
   onClose,
 }: {
   fileName: string;
   fileUrl: string;
+  loading: boolean;
+  error: string;
   documentType: "po" | "iv";
   onDrive: () => void;
   onClose: () => void;
@@ -1627,11 +1807,46 @@ function PdfPreviewModal({
   const isPo =
     documentType === "po";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-5 backdrop-blur-sm">
-      <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+  useEffect(() => {
+    const handleKeyDown = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-5"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Preview เอกสาร ${documentType.toUpperCase()}`}
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div className="flex h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:h-[calc(100vh-2.5rem)] sm:rounded-3xl">
         <header
-          className={`flex items-center justify-between gap-4 border-b px-6 py-4 ${
+          className={`relative z-10 flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 sm:py-4 ${
             isPo
               ? "border-sky-200 bg-sky-50"
               : "border-violet-200 bg-violet-50"
@@ -1652,11 +1867,11 @@ function PdfPreviewModal({
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex shrink-0 gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onDrive}
-              className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition ${
+              className={`hidden h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition sm:inline-flex ${
                 isPo
                   ? "bg-sky-600 hover:bg-sky-700"
                   : "bg-violet-600 hover:bg-violet-700"
@@ -1669,21 +1884,62 @@ function PdfPreviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-3 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50 sm:px-4"
               title="ปิด Preview"
             >
               <X size={19} />
+              <span>ปิด</span>
             </button>
           </div>
         </header>
 
-        <iframe
-          title={fileName}
-          src={fileUrl}
-          className="min-h-0 flex-1 border-0 bg-slate-100"
-        />
+        {loading ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 bg-slate-100 text-slate-600">
+            <LoaderCircle
+              size={34}
+              className={`animate-spin ${
+                isPo
+                  ? "text-sky-600"
+                  : "text-violet-600"
+              }`}
+            />
+            <p className="text-sm font-semibold">
+              กำลังเตรียมเอกสาร Preview
+            </p>
+          </div>
+        ) : error ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 bg-red-50 px-6 text-center">
+            <XCircle
+              size={36}
+              className="text-red-500"
+            />
+            <div>
+              <p className="font-semibold text-red-800">
+                เปิด Preview ไม่สำเร็จ
+              </p>
+              <p className="mt-1 text-sm text-red-600">
+                {error}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onDrive}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-red-700 shadow-sm ring-1 ring-red-200"
+            >
+              <ExternalLink size={16} />
+              เปิดจาก Drive
+            </button>
+          </div>
+        ) : (
+          <iframe
+            title={fileName}
+            src={fileUrl}
+            className="min-h-0 flex-1 border-0 bg-slate-100"
+          />
+        )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
