@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Eye,
   ExternalLink,
-  FileText,
   FolderOpen,
   Globe2,
   LoaderCircle,
@@ -987,7 +986,7 @@ export function WorldwideRetailPage({
           </div>
         ) : (
           <div className="overflow-x-auto">
-          <table className="min-w-[1380px] w-full">
+          <table className="min-w-[1280px] w-full">
             <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               <tr>
                 <th className="px-5 py-4">
@@ -1002,8 +1001,11 @@ export function WorldwideRetailPage({
                 <th className="px-5 py-4">
                   SO
                 </th>
-                <th className="px-5 py-4">
-                  เอกสาร
+                <th className="bg-sky-50/70 px-4 py-4 text-sky-800">
+                  เอกสาร PO
+                </th>
+                <th className="bg-violet-50/70 px-4 py-4 text-violet-800">
+                  เอกสาร IV
                 </th>
                 <th className="px-5 py-4">
                   ผู้บันทึก
@@ -1020,7 +1022,7 @@ export function WorldwideRetailPage({
               {visibleRecords.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-16 text-center text-sm text-slate-400"
                   >
                     ไม่พบรายการในแฟ้มที่เลือก
@@ -1047,39 +1049,39 @@ export function WorldwideRetailPage({
                       <td className="px-5 py-4">
                         {record.soNumber}
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="grid min-w-[390px] grid-cols-2 gap-3">
-                          <DocumentCard
-                            documentType="po"
-                            fileName={record.poFileName}
-                            driveUrl={record.poFileUrl}
-                            loading={
-                              openingDocument ===
-                              `${record.id}:po`
-                            }
-                            onPreview={() => {
-                              void openPreview(
-                                record,
-                                "po",
-                              );
-                            }}
-                          />
-                          <DocumentCard
-                            documentType="iv"
-                            fileName={record.ivFileName}
-                            driveUrl={record.ivFileUrl}
-                            loading={
-                              openingDocument ===
-                              `${record.id}:iv`
-                            }
-                            onPreview={() => {
-                              void openPreview(
-                                record,
-                                "iv",
-                              );
-                            }}
-                          />
-                        </div>
+                      <td className="bg-sky-50/30 px-4 py-3">
+                        <DocumentActions
+                          documentType="po"
+                          fileName={record.poFileName}
+                          driveUrl={record.poFileUrl}
+                          loading={
+                            openingDocument ===
+                            `${record.id}:po`
+                          }
+                          onPreview={() => {
+                            void openPreview(
+                              record,
+                              "po",
+                            );
+                          }}
+                        />
+                      </td>
+                      <td className="bg-violet-50/30 px-4 py-3">
+                        <DocumentActions
+                          documentType="iv"
+                          fileName={record.ivFileName}
+                          driveUrl={record.ivFileUrl}
+                          loading={
+                            openingDocument ===
+                            `${record.id}:iv`
+                          }
+                          onPreview={() => {
+                            void openPreview(
+                              record,
+                              "iv",
+                            );
+                          }}
+                        />
                       </td>
                       <td className="px-5 py-4">
                         {record.uploadedBy ||
@@ -1328,22 +1330,25 @@ function FolderNavigationCard({
       type="button"
       onClick={onClick}
       className={`
+        vp-archive-folder
         group
         flex
-        min-h-32
+        min-h-24
         items-center
         justify-between
         gap-4
         rounded-2xl
         border
-        p-5
+        p-4
         text-left
         transition
         hover:-translate-y-0.5
-        hover:shadow-lg
+        bg-white
+        shadow-sm
+        hover:shadow-md
         ${yearTone
-          ? "border-sky-200 bg-sky-50/70 hover:border-sky-400 hover:shadow-sky-100"
-          : "border-violet-200 bg-violet-50/70 hover:border-violet-400 hover:shadow-violet-100"}
+          ? "border-sky-200 hover:border-sky-400 hover:shadow-sky-100"
+          : "border-violet-200 hover:border-violet-400 hover:shadow-violet-100"}
       `}
     >
       <div className="flex items-center gap-4">
@@ -1384,7 +1389,7 @@ function FolderNavigationCard({
   );
 }
 
-function DocumentCard({
+function DocumentActions({
   documentType,
   fileName,
   driveUrl,
@@ -1401,47 +1406,20 @@ function DocumentCard({
     documentType === "po";
 
   return (
-    <div
-      className={`rounded-xl border p-3 ${
-        isPo
-          ? "border-sky-200 bg-sky-50/70"
-          : "border-violet-200 bg-violet-50/70"
-      }`}
-    >
-      <div className="flex items-start gap-2">
-        <FileText
-          size={17}
-          className={
-            isPo
-              ? "text-sky-700"
-              : "text-violet-700"
-          }
-        />
-        <div className="min-w-0">
-          <p
-            className={`text-[11px] font-bold ${
-              isPo
-                ? "text-sky-800"
-                : "text-violet-800"
-            }`}
-          >
-            เอกสาร {documentType.toUpperCase()}
-          </p>
-          <p
-            className="mt-1 max-w-32 truncate text-[10px] text-slate-500"
-            title={fileName}
-          >
-            {fileName || "PDF"}
-          </p>
-        </div>
-      </div>
+    <div className="vp-document-actions min-w-[150px]">
+      <p
+        className="max-w-[170px] truncate text-[10px] text-slate-500"
+        title={fileName}
+      >
+        {fileName || "PDF"}
+      </p>
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-2 flex gap-2">
         <button
           type="button"
           onClick={onPreview}
           disabled={loading}
-          className={`inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-[11px] font-semibold text-white transition disabled:opacity-60 ${
+          className={`inline-flex h-8 items-center justify-center gap-1 rounded-lg px-2.5 text-[11px] font-semibold text-white transition disabled:opacity-60 ${
             isPo
               ? "bg-sky-600 hover:bg-sky-700"
               : "bg-violet-600 hover:bg-violet-700"
@@ -1468,7 +1446,7 @@ function DocumentCard({
             }
           }}
           disabled={!driveUrl}
-          className="inline-flex items-center justify-center gap-1 rounded-lg border border-white bg-white px-2 py-2 text-[11px] font-semibold text-slate-600 transition hover:text-violet-700 disabled:opacity-40"
+          className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-600 transition hover:border-violet-300 hover:text-violet-700 disabled:opacity-40"
         >
           <ExternalLink size={13} />
           Drive
