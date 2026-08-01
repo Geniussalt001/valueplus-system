@@ -10,6 +10,14 @@ import type {
   ProcessorActivity,
 } from "../../hooks/usePoProcessor";
 
+import {
+  useAnimatedProgress,
+} from "../../hooks/useAnimatedProgress";
+
+import {
+  AnimatedProgressBar,
+} from "../common/AnimatedProgressBar";
+
 interface ProcessingOverlayProps {
   activity:
     ProcessorActivity;
@@ -38,6 +46,11 @@ const activityMessages: Record<
 export function ProcessingOverlay({
   activity,
 }: ProcessingOverlayProps) {
+  const progress =
+    useAnimatedProgress(
+      activity !== "idle",
+    );
+
   if (
     activity === "idle"
   ) {
@@ -130,29 +143,15 @@ export function ProcessingOverlay({
           }
         </p>
 
-        <div
-          className="
-            mt-4
-            h-1.5
-            w-full
-            overflow-hidden
-            rounded-full
-            bg-slate-100
-          "
-        >
-          <div
-            className="
-              h-full
-              w-1/2
-              animate-pulse
-              rounded-full
-              bg-gradient-to-r
-              from-cyan-500
-              to-blue-500
-              shadow-[0_0_12px_rgba(14,165,233,0.45)]
-            "
-          />
-        </div>
+        <p className="mt-3 text-3xl font-semibold tabular-nums text-sky-700">
+          {Math.round(progress)}%
+        </p>
+
+        <AnimatedProgressBar
+          progress={progress}
+          className="mt-4"
+          tone="sky"
+        />
 
         <p
           className="

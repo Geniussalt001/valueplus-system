@@ -788,12 +788,19 @@ def _build_group(
         for document in documents
     ]
 
+    so_text = _build_so_text(
+        group_code,
+        len(po_numbers),
+        parsed_date,
+    )
+
     return {
         "code": group_code,
         "po_numbers": po_numbers,
         "po_text": (
-            f"รวม {len(po_numbers)} คลัง"
+            f"รวม {len(po_numbers)} PO"
         ),
+        "so_text": so_text,
         "warehouses": list(
             OrderedDict.fromkeys(
                 document.warehouse
@@ -992,7 +999,12 @@ def _write_group_workbook(
             start=2,
         ):
             sheet.cell(index, 1).value = (
-                group["po_text"]
+                group.get("so_text")
+                or _build_so_text(
+                    group["code"],
+                    int(group["po_count"]),
+                    due_date,
+                )
             )
 
             date_cell = sheet.cell(
@@ -1243,6 +1255,19 @@ def _parse_document_date(
         raise DailySoError(
             f"วันที่เอกสารไม่ถูกต้อง: {value}",
         ) from error
+
+
+def _build_so_text(
+    group_code: str,
+    po_count: int,
+    document_date: datetime,
+) -> str:
+    return (
+        f"{group_code} รวม {po_count} PO "
+        f"{document_date.day}/"
+        f"{document_date.month}/"
+        f"{document_date.year % 100:02d}"
+    )
 
 
 def _parse_number(

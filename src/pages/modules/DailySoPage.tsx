@@ -1415,13 +1415,11 @@ function GroupPreview({
             text-slate-400
           "
         >
-          {group.code}{" "}
-          {group.po_text}{" "}
-          {
-            formatCompactDocumentDate(
+          {group.so_text ||
+            buildSoText(
+              group,
               documentDate,
-            )
-          }
+            )}
         </p>
       </div>
 
@@ -2390,6 +2388,15 @@ function formatNumber(
   );
 }
 
+function buildSoText(
+  group: DailySoGroup,
+  documentDate: string,
+): string {
+  return `${group.code} รวม ${group.po_count} PO ${formatCompactDocumentDate(
+    documentDate,
+  )}`;
+}
+
 function formatCompactDocumentDate(
   value: string,
 ): string {
@@ -2435,11 +2442,9 @@ function formatCompactDocumentDate(
     year -= 543;
   }
 
-  const shortYear = String(
+  return `${day}/${month}/${String(
     year % 100,
-  ).padStart(2, "0");
-
-  return `${day}/${month}/${shortYear}`;
+  ).padStart(2, "0")}`;
 }
 
 function getErrorMessage(

@@ -132,6 +132,16 @@ function doPost(event) {
           );
         break;
 
+      case "receivables.saveCreditNotes":
+        requireOfficeOrHeadOfficeSession(
+          session,
+        );
+        data =
+          saveCreditNotesMonthly(
+            request.data,
+          );
+        break;
+
       case "receivables.archiveList":
         data =
           listReceivablesArchives();
@@ -147,6 +157,50 @@ function doPost(event) {
       case "receivables.archiveUpdate":
         data =
           updateReceivablesArchive(
+            request.data,
+          );
+        break;
+
+      case "worldwide.list":
+        data =
+          listWorldwideRetail();
+        break;
+
+      case "worldwide.upload":
+        requireOfficeSession(
+          session,
+        );
+        data =
+          uploadWorldwideRetail(
+            request.data,
+            session.userCode,
+          );
+        break;
+
+      case "worldwide.acknowledge":
+        requireHeadOfficeSession(
+          session,
+        );
+        data =
+          acknowledgeWorldwideRetail(
+            request.data,
+            session.userCode,
+          );
+        break;
+
+      case "worldwide.delete":
+        requireOfficeSession(
+          session,
+        );
+        data =
+          deleteWorldwideRetail(
+            request.data,
+          );
+        break;
+
+      case "worldwide.getPdf":
+        data =
+          getWorldwideRetailPdf(
             request.data,
           );
         break;
@@ -283,4 +337,63 @@ function createJsonResponse(
     .setMimeType(
       ContentService.MimeType.JSON,
     );
+}
+
+function requireOfficeSession(
+  session,
+) {
+  if (
+    !session ||
+    String(
+      session.userCode || "",
+    )
+      .trim()
+      .toUpperCase() !==
+      "OFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะฝั่ง Retail เท่านั้นที่บันทึกเอกสารได้",
+    );
+  }
+}
+
+function requireOfficeOrHeadOfficeSession(
+  session,
+) {
+  const userCode =
+    String(
+      session &&
+        session.userCode
+        ? session.userCode
+        : "",
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    userCode !== "OFFICE" &&
+    userCode !== "HEADOFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะฝั่ง Retail หรือสำนักงานใหญ่เท่านั้นที่บันทึกลดหนี้ได้",
+    );
+  }
+}
+
+function requireHeadOfficeSession(
+  session,
+) {
+  if (
+    !session ||
+    String(
+      session.userCode || "",
+    )
+      .trim()
+      .toUpperCase() !==
+      "HEADOFFICE"
+  ) {
+    throw new Error(
+      "เฉพาะสำนักงานใหญ่เท่านั้นที่ตอบรับเอกสารได้",
+    );
+  }
 }

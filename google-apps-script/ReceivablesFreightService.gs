@@ -3,6 +3,9 @@ const RECEIVABLES_CONFIG = {
     "1zU-ALqCOMM2QjehlkKyNj1BPzdCPS-8rBm9iiIdhc9A",
   SHEET_NAME: "ลูกหนี้",
   START_ROW: 4,
+  CREDIT_NOTE_SHEET_NAME:
+    "ลดหนี้",
+  CREDIT_NOTE_START_ROW: 3,
   FOLDER_NAME: "ValuePlus ลูกหนี้-ค่าขนส่ง",
   TITLE_PREFIX:
     "ลูกหนี้ แวลู่พลัส รีเทล ประจำเดือน ",
@@ -21,6 +24,433 @@ const RECEIVABLES_CONFIG = {
     "ธันวาคม",
   ],
 };
+
+function saveCreditNotesMonthly(input) {
+  const records =
+    input && Array.isArray(input.records)
+      ? input.records
+      : [];
+
+  if (records.length === 0) {
+    throw new Error(
+      "ไม่พบข้อมูลลดหนี้สำหรับบันทึก",
+    );
+  }
+
+  const normalized =
+    records.map(
+      normalizeCreditNoteRecord,
+    );
+
+  const period =
+    resolveReceivablesPeriod(
+      normalized,
+    );
+
+  const title =
+    RECEIVABLES_CONFIG
+      .TITLE_PREFIX +
+    RECEIVABLES_CONFIG
+      .THAI_MONTHS[
+        period.month - 1
+      ] +
+    " " +
+    period.buddhistYear;
+
+  const lock =
+    LockService.getScriptLock();
+
+  lock.waitLock(30000);
+
+  try {
+    const folder =
+      getReceivablesFolder();
+
+    const monthlyFile =
+      getOrCreateMonthlyReceivablesFile(
+        folder,
+        title,
+      );
+
+    const spreadsheet =
+      SpreadsheetApp.openById(
+        monthlyFile.file.getId(),
+      );
+
+    const sheet =
+      spreadsheet.getSheetByName(
+        RECEIVABLES_CONFIG
+          .CREDIT_NOTE_SHEET_NAME,
+      );
+
+    if (!sheet) {
+      throw new Error(
+        "ไม่พบชีต 'ลดหนี้' ใน Template",
+      );
+    }
+
+    const existing =
+      readExistingCreditNotes(
+        sheet,
+      );
+
+    const existingByNumber = {};
+
+    existing.forEach(
+      function (record) {
+        existingByNumber[
+          record.creditNoteNumber
+        ] = record;
+      },
+    );
+
+    const inserted = [];
+    const duplicates = [];
+
+    normalized.forEach(
+      function (record) {
+        if (
+          existingByNumber[
+            record.creditNoteNumber
+          ]
+        ) {
+          duplicates.push(
+            record.creditNoteNumber,
+          );
+          return;
+        }
+
+        existingByNumber[
+          record.creditNoteNumber
+        ] = record;
+
+        inserted.push(
+          record.creditNoteNumber,
+        );
+      },
+    );
+
+    const merged =
+      Object.keys(
+        existingByNumber,
+      )
+        .map(function (number) {
+          return existingByNumber[
+            number
+          ];
+        })
+        .sort(
+          compareCreditNoteRecords,
+        );
+
+    writeCreditNoteRows(
+      sheet,
+      merged,
+    );
+
+    SpreadsheetApp.flush();
+
+    return {
+      spreadsheetId:
+        spreadsheet.getId(),
+      spreadsheetUrl:
+        spreadsheet.getUrl(),
+      spreadsheetName:
+        title,
+      created:
+        monthlyFile.created,
+      sourceCount:
+        normalized.length,
+      insertedCount:
+        inserted.length,
+      duplicateCount:
+        duplicates.length,
+      duplicates: duplicates,
+      missingCount: 0,
+      firstInvoice:
+        merged.length
+          ? merged[0]
+              .creditNoteNumber
+          : "",
+      lastInvoice:
+        merged.length
+          ? merged[
+              merged.length - 1
+            ].creditNoteNumber
+          : "",
+      month: period.month,
+      buddhistYear:
+        period.buddhistYear,
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function normalizeCreditNoteRecord(
+  record,
+) {
+  const creditNoteNumber =
+    String(
+      record &&
+        record.credit_note_number
+        ? record.credit_note_number
+        : "",
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    !/^SR\d+$/.test(
+      creditNoteNumber,
+    )
+  ) {
+    throw new Error(
+      "รูปแบบใบลดหนี้ไม่ถูกต้อง: " +
+        (creditNoteNumber || "-"),
+    );
+  }
+
+  const date =
+    String(
+      record.date || "",
+    ).trim();
+
+  const parsedDate =
+    parseReceivablesDate(
+      date,
+    );
+
+  const customer =
+    String(
+      record.customer || "",
+    ).trim();
+
+  if (!customer) {
+    throw new Error(
+      "ไม่พบชื่อลูกค้าของ " +
+        creditNoteNumber,
+    );
+  }
+
+  const amount =
+    Number(
+      record.amount,
+    );
+
+  if (
+    !Number.isFinite(amount)
+  ) {
+    throw new Error(
+      "ยอดลดหนี้ไม่ถูกต้อง: " +
+        creditNoteNumber,
+    );
+  }
+
+  return {
+    date: date,
+    creditNoteNumber:
+      creditNoteNumber,
+    customer: customer,
+    amount: amount,
+    referenceInvoice:
+      String(
+        record.reference_invoice ||
+          "",
+      )
+        .trim()
+        .toUpperCase(),
+    appliedInvoice:
+      String(
+        record.applied_invoice ||
+          "",
+      )
+        .trim()
+        .toUpperCase()
+        .replace(/^IV(?=VPR)/, ""),
+    month: parsedDate.month,
+    buddhistYear:
+      parsedDate.buddhistYear,
+  };
+}
+
+function readExistingCreditNotes(
+  sheet,
+) {
+  const startRow =
+    RECEIVABLES_CONFIG
+      .CREDIT_NOTE_START_ROW;
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (lastRow < startRow) {
+    return [];
+  }
+
+  return sheet
+    .getRange(
+      startRow,
+      1,
+      lastRow - startRow + 1,
+      6,
+    )
+    .getDisplayValues()
+    .filter(function (row) {
+      return Boolean(
+        String(
+          row[1] || "",
+        ).trim(),
+      );
+    })
+    .map(function (row) {
+      return {
+        date: row[0],
+        creditNoteNumber:
+          String(row[1] || "")
+            .trim()
+            .toUpperCase(),
+        customer: row[2],
+        amount:
+          parseSheetNumber(
+            row[3],
+          ),
+        referenceInvoice:
+          String(row[4] || "")
+            .trim()
+            .toUpperCase(),
+        appliedInvoice:
+          String(row[5] || "")
+            .trim()
+            .toUpperCase()
+            .replace(
+              /^IV(?=VPR)/,
+              "",
+            ),
+      };
+    });
+}
+
+function compareCreditNoteRecords(
+  first,
+  second,
+) {
+  const firstNumber =
+    Number(
+      String(
+        first.creditNoteNumber,
+      ).replace(/\D/g, ""),
+    );
+
+  const secondNumber =
+    Number(
+      String(
+        second.creditNoteNumber,
+      ).replace(/\D/g, ""),
+    );
+
+  return (
+    firstNumber - secondNumber
+  );
+}
+
+function writeCreditNoteRows(
+  sheet,
+  records,
+) {
+  if (records.length === 0) {
+    return;
+  }
+
+  const startRow =
+    RECEIVABLES_CONFIG
+      .CREDIT_NOTE_START_ROW;
+
+  const requiredLastRow =
+    startRow +
+    records.length -
+    1;
+
+  if (
+    sheet.getMaxRows() <
+    requiredLastRow
+  ) {
+    sheet.insertRowsAfter(
+      sheet.getMaxRows(),
+      requiredLastRow -
+        sheet.getMaxRows(),
+    );
+  }
+
+  const clearRowCount =
+    Math.max(
+      sheet.getLastRow() -
+        startRow +
+        1,
+      records.length,
+      1,
+    );
+
+  sheet
+    .getRange(
+      startRow,
+      1,
+      clearRowCount,
+      6,
+    )
+    .clearContent();
+
+  sheet
+    .getRange(
+      startRow,
+      1,
+      records.length,
+      6,
+    )
+    .setValues(
+      records.map(
+        function (record) {
+          return [
+            record.date,
+            record.creditNoteNumber,
+            record.customer,
+            record.amount,
+            record.referenceInvoice,
+            record.appliedInvoice,
+          ];
+        },
+      ),
+    );
+
+  sheet
+    .getRange(
+      startRow,
+      1,
+      records.length,
+      3,
+    )
+    .setNumberFormat("@");
+
+  sheet
+    .getRange(
+      startRow,
+      4,
+      records.length,
+      1,
+    )
+    .setNumberFormat(
+      "#,##0.00",
+    );
+
+  sheet
+    .getRange(
+      startRow,
+      5,
+      records.length,
+      2,
+    )
+    .setNumberFormat("@");
+}
 
 function saveReceivablesMonthly(input) {
   const records =

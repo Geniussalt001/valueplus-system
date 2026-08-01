@@ -22,6 +22,10 @@ import {
   productCatalogService,
 } from "../../../services/productCatalogService";
 
+import {
+  ProcessStatusOverlay,
+} from "../../../components/common/ProcessStatusOverlay";
+
 import type {
   ProductCatalogItem,
 } from "../../../types/productCatalog.types";
@@ -288,6 +292,10 @@ export function DollSummaryPage({
 
   return (
     <div className="vp-work-page doll-summary mx-auto max-w-[1720px] px-6 py-8 lg:px-10">
+      <ProcessStatusOverlay
+        open={loading}
+        title="กำลังโหลดข้อมูลสินค้าสำหรับสรุปยอดตุ๊กตา..."
+      />
       <header className="vp-page-header flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <button

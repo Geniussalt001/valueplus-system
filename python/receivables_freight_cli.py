@@ -9,7 +9,13 @@ from pathlib import Path
 
 
 IV_PATTERN = re.compile(r"^IV(VPR\d+)$", re.IGNORECASE)
+CREDIT_NOTE_PATTERN = re.compile(r"^SR\d+$", re.IGNORECASE)
+APPLIED_INVOICE_PATTERN = re.compile(r"IV(VPR\d+)", re.IGNORECASE)
 DATE_PATTERN = re.compile(r"^\d{1,2}/\d{1,2}/\d{4}$")
+
+CPALL_CREDIT_NOTE_CUSTOMER = (
+    "บริษัท ซีพี ออลล์ จำกัด(มหาชน)สำนักงานใหญ่"
+)
 
 WAREHOUSE_RULES = {
     "มหาชัย": ("ซีพี ออลล์ (BDC.มหาชัย)", "สมุทรสาคร"),
@@ -197,6 +203,143 @@ def parse_records(csv_path, template_url):
     }
 
 
+def normalize_credit_note_customer(value):
+    compact = re.sub(r"\s+", "", str(value or ""))
+    if "ซีพีออลล์จำกัด(มหาชน)" in compact:
+        return CPALL_CREDIT_NOTE_CUSTOMER
+    return ""
+
+
+def build_credit_note_customer_contexts(rows):
+    customer = ""
+    source_customer = ""
+    contexts = {}
+
+    for index, row in enumerate(rows):
+        candidate = cell(row, 1)
+        normalized = normalize_credit_note_customer(candidate)
+
+        if normalized:
+            customer = normalized
+            source_customer = candidate
+
+        contexts[index] = (source_customer, customer)
+
+    return contexts
+
+
+def parse_credit_note_records(csv_path, template_url):
+    rows = read_csv_rows(csv_path)
+    contexts = build_credit_note_customer_contexts(rows)
+    anchors = []
+
+    for index, row in enumerate(rows):
+        credit_note_number = cell(row, 5).upper()
+        if CREDIT_NOTE_PATTERN.fullmatch(credit_note_number):
+            anchors.append((index, credit_note_number))
+
+    records = []
+
+    for position, (index, credit_note_number) in enumerate(anchors):
+        next_anchor = (
+            anchors[position + 1][0]
+            if position + 1 < len(anchors)
+            else len(rows)
+        )
+        row = rows[index]
+        source_customer, customer = contexts[index]
+        date = cell(row, 6)
+        reference_invoice = cell(row, 8).upper()
+        amount = parse_number(cell(row, 13))
+        applied_invoices = []
+
+        for detail_index in range(index + 1, next_anchor):
+            applied_value = cell(rows[detail_index], 14)
+            match = APPLIED_INVOICE_PATTERN.search(applied_value)
+
+            if not match:
+                continue
+
+            applied_invoice = match.group(1).upper()
+            if applied_invoice not in applied_invoices:
+                applied_invoices.append(applied_invoice)
+
+        issues = []
+        status = "ready"
+
+        if not DATE_PATTERN.fullmatch(date):
+            issues.append("วันที่ไม่ถูกต้อง")
+        if amount is None:
+            issues.append("ไม่พบยอดลดหนี้ในคอลัมน์ N")
+        if not customer:
+            issues.append(
+                f"ไม่รู้จักลูกค้า: {source_customer or '-'}"
+            )
+        if not reference_invoice:
+            issues.append("ไม่พบ Inv. อ้างอิงในคอลัมน์ I")
+        if len(applied_invoices) > 1:
+            status = "review"
+            issues.append("พบ Inv. ที่ใช้ลดหนี้มากกว่า 1 เลข")
+        if issues and status != "review":
+            status = "error"
+
+        records.append({
+            "source_row": index + 1,
+            "date": date,
+            "credit_note_number": credit_note_number,
+            "source_customer": source_customer,
+            "customer": customer,
+            "amount": amount or 0,
+            "reference_invoice": reference_invoice,
+            "applied_invoice": (
+                applied_invoices[0]
+                if applied_invoices
+                else ""
+            ),
+            "status": status,
+            "message": ", ".join(issues),
+        })
+
+    if not records:
+        raise ValueError("ไม่พบเลขใบลดหนี้รูปแบบ SR ในคอลัมน์ F")
+
+    records.sort(
+        key=lambda record: (
+            int(
+                "".join(
+                    re.findall(
+                        r"\d+",
+                        record["credit_note_number"],
+                    )
+                )
+                or 0
+            ),
+            record["credit_note_number"],
+        ),
+    )
+
+    return {
+        "mode": "credit-notes",
+        "csv_path": str(Path(csv_path)),
+        "template_url": template_url,
+        "record_count": len(records),
+        "total_amount": round(
+            sum(record["amount"] for record in records),
+            2,
+        ),
+        "review_count": sum(
+            record["status"] == "review"
+            for record in records
+        ),
+        "error_count": sum(
+            record["status"] == "error"
+            for record in records
+        ),
+        "records": records,
+        "output_path": "",
+    }
+
+
 def download_template(template_url, destination):
     request = urllib.request.Request(template_url, headers={"User-Agent": "ValuePlus-System/1.0"})
     with urllib.request.urlopen(request, timeout=60) as response:
@@ -235,18 +378,92 @@ def export_workbook(result, template_url, output_path):
     return result
 
 
+def export_credit_note_workbook(result, template_url, output_path):
+    from openpyxl import load_workbook
+
+    if result["review_count"] or result["error_count"]:
+        raise ValueError(
+            "ยังมีรายการลดหนี้ที่ต้องตรวจสอบ กรุณาแก้ไขข้อมูลก่อนบันทึก"
+        )
+
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(
+        prefix="valueplus-credit-notes-"
+    ) as folder:
+        template_path = Path(folder) / "template.xlsx"
+        download_template(template_url, template_path)
+        workbook = load_workbook(template_path)
+
+        if "ลดหนี้" not in workbook.sheetnames:
+            raise ValueError("ไม่พบชีต 'ลดหนี้' ใน Google Sheet Template")
+
+        sheet = workbook["ลดหนี้"]
+
+        for offset, record in enumerate(result["records"]):
+            row_number = 3 + offset
+            values = (
+                record["date"],
+                record["credit_note_number"],
+                record["customer"],
+                record["amount"],
+                record["reference_invoice"],
+                record["applied_invoice"],
+            )
+
+            for column, value in enumerate(values, start=1):
+                sheet.cell(
+                    row=row_number,
+                    column=column,
+                    value=value,
+                )
+
+        workbook.save(output)
+
+    result["output_path"] = str(output)
+    return result
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", required=True)
     parser.add_argument("--template-url", required=True)
+    parser.add_argument(
+        "--mode",
+        choices=("receivables", "credit-notes"),
+        default="receivables",
+    )
     parser.add_argument("--output")
     parser.add_argument("--preview", action="store_true")
     args = parser.parse_args(argv)
-    result = parse_records(args.csv, args.template_url)
+    result = (
+        parse_credit_note_records(
+            args.csv,
+            args.template_url,
+        )
+        if args.mode == "credit-notes"
+        else parse_records(
+            args.csv,
+            args.template_url,
+        )
+    )
     if not args.preview:
         if not args.output:
             raise ValueError("กรุณาระบุไฟล์ Excel ผลลัพธ์")
-        result = export_workbook(result, args.template_url, args.output)
+        result = (
+            export_credit_note_workbook(
+                result,
+                args.template_url,
+                args.output,
+            )
+            if args.mode == "credit-notes"
+            else export_workbook(
+                result,
+                args.template_url,
+                args.output,
+            )
+        )
     print(json.dumps({"success": True, "data": result}, ensure_ascii=True))
     return 0
 

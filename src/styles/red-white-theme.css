@@ -1042,6 +1042,19 @@ button {
   box-shadow: 0 9px 22px rgb(77 60 161 / 16%);
 }
 
+/* Worldwide archive folders stay bright and document actions stay compact. */
+.dashboard button.vp-archive-folder,
+.dashboard button.vp-archive-folder:hover {
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgb(7 26 43 / 7%) !important;
+}
+
+.dashboard .vp-document-actions button {
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+}
+
 .dashboard button[class*="bg-amber-"] {
   border-color: #e58a00 !important;
   color: #ffffff !important;

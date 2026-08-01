@@ -26,6 +26,10 @@ import {
   ReceivablesArchivePage,
 } from "./ReceivablesArchivePage";
 
+import {
+  WorldwideRetailPage,
+} from "../WorldwideRetailPage";
+
 interface PoDataPageProps {
   currentUser: AppUser;
   onBack: () => void;
@@ -34,6 +38,7 @@ interface PoDataPageProps {
 type ArchiveSection =
   | "po-seven"
   | "receivables"
+  | "worldwide"
   | null;
 
 export function PoDataPage({
@@ -69,6 +74,23 @@ export function PoDataPage({
   ) {
     return (
       <ReceivablesArchivePage
+        onBack={() => {
+          setSelectedSection(
+            null,
+          );
+        }}
+      />
+    );
+  }
+
+  if (
+    selectedSection ===
+    "worldwide"
+  ) {
+    return (
+      <WorldwideRetailPage
+        currentUser={currentUser}
+        archiveOnly
         onBack={() => {
           setSelectedSection(
             null,
@@ -217,16 +239,20 @@ export function PoDataPage({
         <ArchiveFolderCard
           title="แฟ้มข้อมูล รีเทลขายเวิร์ลไวด์"
           subtitle="RETAIL WORLDWIDE ARCHIVE"
-          description="พื้นที่เตรียมแฟ้มข้อมูลสำหรับงานรีเทลขายเวิร์ลไวด์"
+          description="แฟ้ม IV, PO และ SO พร้อมสถานะตอบรับจากสำนักงานใหญ่"
           icon={
             <Globe2
               size={25}
             />
           }
           accent="violet"
-          status="OFFLINE"
+          status="พร้อมใช้งาน"
           features={[]}
-          locked
+          onClick={() => {
+            setSelectedSection(
+              "worldwide",
+            );
+          }}
         />
       </section>
 
@@ -280,17 +306,17 @@ const accentStyles = {
   },
   violet: {
     border:
-      "border-violet-200",
+      "border-violet-200 hover:border-violet-400",
     icon:
       "border-violet-200 bg-violet-50 text-violet-700",
     badge:
-      "border-slate-200 bg-slate-100 text-slate-500",
+      "border-emerald-200 bg-emerald-50 text-emerald-700",
     glow:
       "from-violet-300/10 via-indigo-200/5 to-transparent",
     button:
-      "bg-slate-200 text-slate-500",
+      "bg-violet-600 text-white group-hover:bg-violet-700",
     dot:
-      "bg-slate-400 shadow-slate-300/50",
+      "bg-emerald-500 shadow-emerald-400/60",
   },
 };
 

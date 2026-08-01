@@ -1,6 +1,34 @@
 export interface ReceivablesFreightInput {
   csvPath: string;
   outputPath?: string;
+  mode?:
+    | "receivables"
+    | "credit-notes";
+}
+
+export interface CreditNoteRecord {
+  source_row: number;
+  date: string;
+  credit_note_number: string;
+  source_customer: string;
+  customer: string;
+  amount: number;
+  reference_invoice: string;
+  applied_invoice: string;
+  status: "ready" | "review" | "error";
+  message: string;
+}
+
+export interface CreditNoteResult {
+  mode: "credit-notes";
+  csv_path: string;
+  template_url: string;
+  record_count: number;
+  total_amount: number;
+  review_count: number;
+  error_count: number;
+  records: CreditNoteRecord[];
+  output_path: string;
 }
 
 export interface ReceivablesFreightRecord {
