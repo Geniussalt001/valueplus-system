@@ -60,10 +60,24 @@
   box-shadow: 10px 0 32px rgb(11 43 79 / 20%);
 }
 
+/* Retail has more menu rows than HQ. Keep identity blocks from being
+   compressed by the sidebar flex column and let the sidebar scroll. */
+.dashboard-sidebar > button,
+.dashboard-sidebar > .sidebar-user-card,
+.dashboard-sidebar > .workspace-switcher,
+.dashboard-sidebar > p,
+.dashboard-sidebar > div.h-px,
+.dashboard-sidebar > div:last-child {
+  flex-shrink: 0;
+}
+
 .sidebar-brand-button {
   display: flex;
   width: 100%;
-  min-height: 90px;
+  height: 94px !important;
+  min-height: 94px !important;
+  max-height: 94px !important;
+  flex: 0 0 94px !important;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -75,11 +89,15 @@
 }
 
 .sidebar-brand-button .brand-logo {
-  width: 170px !important;
-  max-width: 100%;
-  height: auto !important;
+  width: 176px !important;
+  min-width: 176px !important;
+  max-width: 176px !important;
+  height: 65px !important;
+  min-height: 65px !important;
+  max-height: 65px !important;
   aspect-ratio: 650 / 239 !important;
   flex: 0 0 auto;
+  background-size: contain !important;
   background: linear-gradient(105deg, #0b315e 0%, #087fae 48%, #2684d5 100%) !important;
   filter: none !important;
 }
