@@ -115,7 +115,7 @@ export function AppLayout({
     <main className="dashboard min-h-screen bg-[#f4faff] text-[#10243a]">
       <div className="tron-grid pointer-events-none fixed inset-0 opacity-[0.08]" />
 
-      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col overflow-y-auto border-r border-cyan-600/15 bg-white/95 p-5 backdrop-blur-xl lg:flex">
+      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-64 flex-col overflow-y-auto border-r border-cyan-600/15 bg-white/95 p-5 backdrop-blur-xl lg:flex">
         <button
           type="button"
           onClick={() =>
@@ -343,7 +343,7 @@ export function AppLayout({
         </div>
       </aside>
 
-      <section className="relative z-10 min-h-screen lg:ml-72">
+      <section className="relative z-10 min-h-screen lg:ml-64">
         <header className="app-red-header sticky top-0 z-20 flex min-h-20 items-center justify-between gap-6 border-b border-cyan-600/15 bg-white/90 px-6 backdrop-blur-xl lg:px-10">
           <div>
             <p className="text-[10px] tracking-[0.22em] text-cyan-300">
