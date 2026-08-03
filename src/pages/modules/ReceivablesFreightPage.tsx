@@ -28,6 +28,10 @@ import {
   ProcessStatusOverlay,
 } from "../../components/common/ProcessStatusOverlay";
 
+import {
+  isAppsScriptQueuedError,
+} from "../../services/appsScriptClient";
+
 import type {
   CreditNoteResult,
   ReceivablesFreightResult,
@@ -109,7 +113,11 @@ export function ReceivablesFreightPage({
         setSuccess("");
       }
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      setError(
+        getErrorMessage(
+          requestError,
+        ),
+      );
     } finally {
       setBusy("");
     }
@@ -193,7 +201,21 @@ export function ReceivablesFreightPage({
         }${duplicateNote}`,
       );
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      if (
+        isAppsScriptQueuedError(
+          requestError,
+        )
+      ) {
+        setSuccess(
+          "รับข้อมูลไว้ในเครื่องแล้ว ระบบจะบันทึกลง Google Sheet อัตโนมัติเมื่อเชื่อมต่อได้",
+        );
+      } else {
+        setError(
+          getErrorMessage(
+            requestError,
+          ),
+        );
+      }
     } finally {
       setBusy("");
     }

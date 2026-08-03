@@ -17,10 +17,40 @@ ITEM_PATTERN = re.compile(
     r"^\s*(\d+)\s+(\d{13})\s+(.+?)\s+1\s+([\d,]+\.\d{2})\s+0\s+",
     re.MULTILINE,
 )
+WRAPPED_DECIMAL_PATTERN = re.compile(
+    r"(?<![\d,])(\d[\d,]*)\.(?!\d)",
+)
 
 
 class PdfParseError(ValueError):
     pass
+
+
+def _normalize_wrapped_decimal_values(text: str) -> str:
+    """Join decimal digits that JasperReports wraps onto the next line."""
+    lines = text.splitlines()
+
+    for index in range(1, len(lines)):
+        decimal_digits = lines[index].strip()
+        if not re.fullmatch(r"\d{2}", decimal_digits):
+            continue
+
+        previous_line = lines[index - 1]
+        matches = list(
+            WRAPPED_DECIMAL_PATTERN.finditer(previous_line),
+        )
+        if not matches:
+            continue
+
+        wrapped_number = matches[-1]
+        lines[index - 1] = (
+            previous_line[:wrapped_number.end()]
+            + decimal_digits
+            + previous_line[wrapped_number.end():]
+        )
+        lines[index] = ""
+
+    return "\n".join(lines)
 
 
 def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
@@ -32,7 +62,9 @@ def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
 
     with pdfplumber.open(path) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
-            text = page.extract_text(layout=True) or ""
+            text = _normalize_wrapped_decimal_values(
+                page.extract_text(layout=True) or "",
+            )
             po_match = PO_PATTERN.search(text)
 
             if not po_match:
@@ -77,4 +109,3 @@ def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
         raise PdfParseError("ไม่พบเลข PO ในไฟล์ PDF")
 
     return documents
-

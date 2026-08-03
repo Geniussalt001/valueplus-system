@@ -37,7 +37,7 @@ const pdfFilter = [
 ];
 
 export const worldwideRetailService = {
-  list(): Promise<
+  async list(): Promise<
     WorldwideRetailRecord[]
   > {
     return callAppsScript<
@@ -138,80 +138,17 @@ export const worldwideRetailService = {
     id: string,
     documentType: "po" | "iv",
   ): Promise<WorldwideRetailPdf> {
-    let lastError: unknown;
-
-    for (
-      let attempt = 1;
-      attempt <= 3;
-      attempt += 1
-    ) {
-      try {
-        return await callAppsScript<
-          WorldwideRetailPdf
-        >(
-          "worldwide.getPdf",
-          {
-            id,
-            documentType,
-          },
-        );
-      } catch (reason) {
-        lastError = reason;
-
-        if (
-          attempt >= 3 ||
-          !isRetryablePreviewError(
-            reason,
-          )
-        ) {
-          throw reason;
-        }
-
-        await wait(
-          attempt === 1
-            ? 400
-            : 900,
-        );
-      }
-    }
-
-    throw lastError;
+    return callAppsScript<
+      WorldwideRetailPdf
+    >(
+      "worldwide.getPdf",
+      {
+        id,
+        documentType,
+      },
+    );
   },
 };
-
-function isRetryablePreviewError(
-  reason: unknown,
-) {
-  const message =
-    reason instanceof Error
-      ? reason.message
-      : String(reason);
-
-  return [
-    "ไม่ได้ส่งข้อมูลกลับมา",
-    "เชื่อมต่อ Apps Script ไม่สำเร็จ",
-    "network",
-    "fetch",
-    "timeout",
-  ].some((keyword) =>
-    message
-      .toLowerCase()
-      .includes(
-        keyword.toLowerCase(),
-      ),
-  );
-}
-
-function wait(milliseconds: number) {
-  return new Promise<void>(
-    (resolve) => {
-      window.setTimeout(
-        resolve,
-        milliseconds,
-      );
-    },
-  );
-}
 
 function getFileName(
   path: string,

@@ -22,6 +22,10 @@ import {
 } from "../components/BrandLogo";
 
 import {
+  AppsScriptSyncStatus,
+} from "../components/AppsScriptSyncStatus";
+
+import {
   LiveClock,
 } from "../components/LiveClock";
 
@@ -337,6 +341,8 @@ export function AppLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            <AppsScriptSyncStatus />
+
             <div className="user-context-chip hidden min-h-10 items-center gap-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.04] px-4 py-2 sm:flex">
               <span
                 className="status-light status-online"

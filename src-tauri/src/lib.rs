@@ -7,6 +7,15 @@ use commands::daily_so::{
     process_daily_so,
 };
 
+use commands::apps_script_outbox::{
+    enqueue_apps_script_outbox,
+    list_apps_script_outbox,
+    read_apps_script_outbox,
+    read_apps_script_cache,
+    remove_apps_script_outbox,
+    write_apps_script_cache,
+};
+
 use commands::connection_credentials::{
     clear_connection_token,
     get_connection_token,
@@ -114,6 +123,12 @@ pub fn run() {
         .invoke_handler(
             tauri::generate_handler![
                 greet,
+                enqueue_apps_script_outbox,
+                list_apps_script_outbox,
+                read_apps_script_outbox,
+                read_apps_script_cache,
+                remove_apps_script_outbox,
+                write_apps_script_cache,
                 get_connection_token,
                 save_connection_token,
                 clear_connection_token,

@@ -46,6 +46,11 @@ import {
   worldwideRetailService,
 } from "../../services/worldwideRetailService";
 
+import {
+  APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+  isAppsScriptQueuedError,
+} from "../../services/appsScriptClient";
+
 import type {
   SelectedWorldwidePdf,
   WorldwideAcknowledgementStatus,
@@ -242,6 +247,40 @@ export function WorldwideRetailPage({
 
   useEffect(() => {
     void loadRecords();
+  }, [loadRecords]);
+
+  useEffect(() => {
+    const handleCompletedSync = (
+      event: Event,
+    ) => {
+      const action = String(
+        (
+          event as CustomEvent<{
+            action?: string;
+          }>
+        ).detail?.action || "",
+      );
+
+      if (
+        action.startsWith(
+          "worldwide.",
+        )
+      ) {
+        void loadRecords();
+      }
+    };
+
+    window.addEventListener(
+      APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+      handleCompletedSync,
+    );
+
+    return () => {
+      window.removeEventListener(
+        APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+        handleCompletedSync,
+      );
+    };
   }, [loadRecords]);
 
   useEffect(() => {
@@ -543,11 +582,26 @@ export function WorldwideRetailPage({
 
         await loadRecords();
       } catch (reason) {
-        setError(
-          getErrorMessage(
+        if (
+          isAppsScriptQueuedError(
             reason,
-          ),
-        );
+          )
+        ) {
+          setIvNumber("");
+          setPoNumber("");
+          setSoNumber("");
+          setPoFile(null);
+          setIvFile(null);
+          setSuccess(
+            "รับข้อมูลและ PDF ไว้ในเครื่องแล้ว ระบบจะซิงก์ Google Drive อัตโนมัติ",
+          );
+        } else {
+          setError(
+            getErrorMessage(
+              reason,
+            ),
+          );
+        }
       } finally {
         setSaving(false);
       }
@@ -624,18 +678,28 @@ export function WorldwideRetailPage({
           : "แจ้งว่ายังไม่ได้รับหรือเอกสารมีปัญหาแล้ว",
       );
     } catch (reason) {
-      setRecords((current) =>
-        current.map((item) =>
-          item.id === record.id
-            ? previousRecord
-            : item,
-        ),
-      );
-      setError(
-        getErrorMessage(
+      if (
+        isAppsScriptQueuedError(
           reason,
-        ),
-      );
+        )
+      ) {
+        setSuccess(
+          "บันทึกสถานะไว้ในเครื่องแล้ว ระบบจะซิงก์ให้อัตโนมัติ",
+        );
+      } else {
+        setRecords((current) =>
+          current.map((item) =>
+            item.id === record.id
+              ? previousRecord
+              : item,
+          ),
+        );
+        setError(
+          getErrorMessage(
+            reason,
+          ),
+        );
+      }
     } finally {
       setRespondingIds(
         (current) =>
@@ -725,11 +789,29 @@ export function WorldwideRetailPage({
         `ลบรายการ ${record.ivNumber || record.poNumber} และย้ายไฟล์ ${deleted.trashedFileCount.toLocaleString()} ไฟล์ไปถังขยะ Google Drive แล้ว`,
       );
     } catch (reason) {
-      setError(
-        getErrorMessage(
+      if (
+        isAppsScriptQueuedError(
           reason,
-        ),
-      );
+        )
+      ) {
+        setRecords(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.id !==
+                record.id,
+            ),
+        );
+        setSuccess(
+          "รับคำสั่งลบไว้ในเครื่องแล้ว ระบบจะซิงก์ Google Drive อัตโนมัติ",
+        );
+      } else {
+        setError(
+          getErrorMessage(
+            reason,
+          ),
+        );
+      }
     } finally {
       setDeletingIds(
         (current) =>

@@ -36,6 +36,10 @@ import {
   poArchiveService,
 } from "../../services/poArchiveService";
 
+import {
+  isAppsScriptQueuedError,
+} from "../../services/appsScriptClient";
+
 import type {
   PdfSplitLogEvent,
   PdfSplitLogLevel,
@@ -306,6 +310,7 @@ export function DailyPickingPage({
 
     let uploadedCount = 0;
     let duplicateCount = 0;
+    let queuedCount = 0;
     let failedCount = 0;
     let completedCount = 0;
     let nextIndex = 0;
@@ -372,12 +377,25 @@ export function DailyPickingPage({
             uploadedCount += 1;
           }
         } catch (reason) {
-          failedCount += 1;
+          if (
+            isAppsScriptQueuedError(
+              reason,
+            )
+          ) {
+            queuedCount += 1;
 
-          addLocalLog(
-            "error",
-            `${record.po_number}: บันทึก Google Drive ไม่สำเร็จ — ${getErrorMessage(reason)}`,
-          );
+            addLocalLog(
+              "warning",
+              `${record.po_number}: รับงานไว้ในเครื่องแล้ว ระบบจะซิงก์ Google Drive อัตโนมัติ`,
+            );
+          } else {
+            failedCount += 1;
+
+            addLocalLog(
+              "error",
+              `${record.po_number}: บันทึก Google Drive ไม่สำเร็จ — ${getErrorMessage(reason)}`,
+            );
+          }
         } finally {
           completedCount += 1;
 
@@ -416,6 +434,13 @@ export function DailyPickingPage({
       addLocalLog(
         "warning",
         `ข้ามเอกสารซ้ำบน Drive ${duplicateCount} ไฟล์`,
+      );
+    }
+
+    if (queuedCount > 0) {
+      addLocalLog(
+        "warning",
+        `เก็บไว้ในคิวซิงก์ ${queuedCount} ไฟล์ สามารถทำงานต่อได้ ระบบจะส่งขึ้น Drive เบื้องหลัง`,
       );
     }
 

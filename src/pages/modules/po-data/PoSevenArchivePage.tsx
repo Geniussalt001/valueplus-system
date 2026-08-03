@@ -42,6 +42,10 @@ import {
   poArchiveService,
 } from "../../../services/poArchiveService";
 
+import {
+  APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+} from "../../../services/appsScriptClient";
+
 import type {
   PoArchiveRecord,
 } from "../../../types/poArchive.types";
@@ -144,6 +148,39 @@ export function PoSevenArchivePage({
 
   useEffect(() => {
     void loadRecords();
+  }, [loadRecords]);
+
+  useEffect(() => {
+    const handleCompletedSync = (
+      event: Event,
+    ) => {
+      const action = String(
+        (
+          event as CustomEvent<{
+            action?: string;
+          }>
+        ).detail?.action || "",
+      );
+
+      if (
+        action ===
+        "archive.uploadPdf"
+      ) {
+        void loadRecords();
+      }
+    };
+
+    window.addEventListener(
+      APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+      handleCompletedSync,
+    );
+
+    return () => {
+      window.removeEventListener(
+        APPS_SCRIPT_SYNC_COMPLETED_EVENT,
+        handleCompletedSync,
+      );
+    };
   }, [loadRecords]);
 
   useEffect(() => {

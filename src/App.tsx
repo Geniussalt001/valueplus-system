@@ -67,6 +67,10 @@ import {
   WorldwideRetailPage,
 } from "./pages/modules/WorldwideRetailPage";
 
+import {
+  startAppsScriptOutboxSync,
+} from "./services/appsScriptClient";
+
 import type {
   AppRoute,
   WorkspaceScope,
@@ -116,6 +120,10 @@ function App() {
 
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
+
+  useEffect(() => {
+    return startAppsScriptOutboxSync();
+  }, []);
 
   useEffect(() => {
     if (route !== "splash") {
