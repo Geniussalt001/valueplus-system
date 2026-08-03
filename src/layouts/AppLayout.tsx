@@ -115,21 +115,36 @@ export function AppLayout({
     <main className="dashboard min-h-screen bg-[#f4faff] text-[#10243a]">
       <div className="tron-grid pointer-events-none fixed inset-0 opacity-[0.08]" />
 
-      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col overflow-y-auto border-r border-cyan-600/15 bg-white/95 p-6 backdrop-blur-xl lg:flex">
+      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-72 flex-col overflow-y-auto border-r border-cyan-600/15 bg-white/95 p-5 backdrop-blur-xl lg:flex">
         <button
           type="button"
           onClick={() =>
             onNavigate("dashboard")
           }
-          className="text-left"
+          className="sidebar-brand-button text-left"
           aria-label="กลับหน้าแดชบอร์ด"
         >
           <BrandLogo size="medium" />
         </button>
 
-        <div className="my-7 h-px bg-gradient-to-r from-cyan-300/40 to-transparent" />
+        <div className="my-5 h-px bg-gradient-to-r from-cyan-300/40 to-transparent" />
 
-        <p className="px-3 text-[10px] tracking-[0.22em] text-slate-600">
+        <div className="sidebar-user-card flex items-center gap-3 rounded-2xl p-3">
+          <span className="sidebar-user-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+            <UserRound size={18} />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">
+              {workspaceName}
+            </span>
+            <span className="mt-0.5 block text-[10px] tracking-[0.12em]">
+              VALUEPLUS USER
+            </span>
+          </span>
+          <span className="status-light status-online ml-auto" aria-hidden="true" />
+        </div>
+
+        <p className="mt-5 px-3 text-[10px] tracking-[0.22em] text-slate-600">
           WORKSPACE
         </p>
 

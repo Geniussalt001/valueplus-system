@@ -5,6 +5,7 @@ import "./styles.css";
 import "./styles/base.css";
 import "./styles/effects.css";
 import "./styles/red-white-theme.css";
+import "./styles/blue-dashboard-theme.css";
 
 import App from "./App";
 

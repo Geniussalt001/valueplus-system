@@ -1,0 +1,309 @@
+:root {
+  --vp-shell-navy: #103b70;
+  --vp-shell-blue: #2678c8;
+  --vp-shell-canvas: #eaf1f8;
+  --vp-shell-card: #ffffff;
+  --vp-shell-line: #d9e3ee;
+}
+
+/* Login artwork and card share the same blue enterprise identity. */
+.login-hybrid {
+  background-color: #dceaf7;
+  background-position: center;
+}
+
+.login-hybrid-vignette {
+  background:
+    linear-gradient(90deg, rgb(2 25 55 / 4%) 0%, transparent 47%, rgb(234 244 253 / 48%) 68%, rgb(242 248 254 / 86%) 100%),
+    linear-gradient(180deg, rgb(5 30 62 / 8%), transparent 45%, rgb(6 35 70 / 10%));
+}
+
+.login-hybrid-card {
+  border-color: rgb(45 117 183 / 25%);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0, rgb(48 139 221 / 12%), transparent 34%),
+    linear-gradient(145deg, rgb(255 255 255 / 97%), rgb(239 247 254 / 94%));
+  box-shadow: 0 34px 90px rgb(6 38 75 / 24%), inset 0 1px 0 #ffffff;
+}
+
+.login-hybrid-card::before {
+  right: 0;
+  left: 0;
+  height: 5px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(90deg, #123f76, #2684d5, #2dc6e9);
+}
+
+.login-account-card:nth-child(1) .login-account-arrow {
+  background: linear-gradient(135deg, #0a9d98, #18bea8);
+}
+
+.login-account-card:nth-child(2) .login-account-arrow {
+  background: linear-gradient(135deg, #7651dc, #925ee9);
+}
+
+/* App shell */
+.dashboard {
+  background: var(--vp-shell-canvas) !important;
+}
+
+.dashboard > .tron-grid {
+  opacity: 0.035 !important;
+}
+
+.dashboard-sidebar {
+  border-right: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #0d3767 0%, #164f8b 56%, #2c86d3 100%) !important;
+  box-shadow: 12px 0 35px rgb(14 52 94 / 22%);
+}
+
+.sidebar-brand-button {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 18px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 12px 28px rgb(3 28 58 / 18%);
+}
+
+.sidebar-user-card {
+  border: 1px solid rgb(255 255 255 / 14%);
+  color: #ffffff;
+  background: rgb(5 31 63 / 22%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+.sidebar-user-card span,
+.sidebar-user-card [class*="text-"] {
+  color: #ffffff !important;
+}
+
+.sidebar-user-card > span:nth-child(2) > span:last-child {
+  color: rgb(220 239 255 / 70%) !important;
+}
+
+.sidebar-user-icon {
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 12%);
+}
+
+.dashboard-sidebar > p,
+.dashboard-sidebar nav > p,
+.dashboard-sidebar > div:last-child > p {
+  color: rgb(213 235 255 / 64%) !important;
+}
+
+.dashboard-sidebar > div.h-px {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 34%), transparent) !important;
+}
+
+.workspace-switcher {
+  border-color: rgb(255 255 255 / 14%) !important;
+  background: rgb(2 27 58 / 24%) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%) !important;
+}
+
+.dashboard .workspace-retail-button:not(.workspace-retail-active),
+.dashboard .workspace-head-office-button:not(.workspace-head-office-active) {
+  border-color: transparent !important;
+  color: rgb(226 241 255 / 80%) !important;
+  background: transparent !important;
+}
+
+.dashboard .workspace-retail-active {
+  border-color: rgb(255 255 255 / 22%) !important;
+  background: linear-gradient(135deg, #0fa7bf, #187ac7) !important;
+}
+
+.dashboard .workspace-head-office-active {
+  border-color: rgb(255 255 255 / 22%) !important;
+  background: linear-gradient(135deg, #7656d8, #5645b6) !important;
+}
+
+.sidebar-item {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: rgb(231 243 255 / 78%) !important;
+  background: transparent;
+}
+
+.sidebar-item:hover {
+  border-color: rgb(255 255 255 / 12%);
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 10%);
+}
+
+.sidebar-item-active {
+  border-color: rgb(255 255 255 / 20%) !important;
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 19%) !important;
+  box-shadow: inset 3px 0 0 #79ddff, 0 8px 20px rgb(2 25 51 / 16%) !important;
+}
+
+.sidebar-item *,
+.sidebar-item-active * {
+  color: inherit !important;
+}
+
+.dashboard-sidebar .update-center-card,
+.dashboard-sidebar [class*="update-center"] {
+  border-color: rgb(255 255 255 / 17%) !important;
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 10%) !important;
+}
+
+.app-red-header,
+.dashboard > section > header,
+.dashboard main > header {
+  border-bottom: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(90deg, #123c70, #216db5 58%, #2c86d1) !important;
+  box-shadow: 0 8px 24px rgb(14 49 87 / 18%) !important;
+}
+
+.app-red-header h1,
+.app-red-header p,
+.app-red-header span,
+.app-red-header svg,
+.app-red-header [class*="text-"] {
+  color: #ffffff !important;
+}
+
+.app-red-header > div:first-child p {
+  color: rgb(217 239 255 / 70%) !important;
+}
+
+.app-red-header .user-context-chip {
+  border-color: rgb(255 255 255 / 18%) !important;
+  background: rgb(255 255 255 / 12%) !important;
+  box-shadow: none;
+}
+
+.app-red-header .logout-button {
+  border-color: rgb(255 255 255 / 22%) !important;
+  color: #ffffff !important;
+  background: rgb(220 51 70 / 92%) !important;
+}
+
+/* Dashboard inspired by the supplied enterprise reference. */
+.dashboard-home {
+  color: #14283e;
+}
+
+.dashboard-metric {
+  min-height: 168px;
+  box-shadow: 0 14px 30px rgb(34 68 105 / 14%), inset 0 1px 0 rgb(255 255 255 / 16%);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.dashboard-metric:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 19px 38px rgb(34 68 105 / 20%);
+}
+
+.dashboard-metric-violet { background: linear-gradient(135deg, #7656f5, #9b43ed); }
+.dashboard-metric-teal { background: linear-gradient(135deg, #0fa69f, #1bc1aa); }
+.dashboard-metric-pink { background: linear-gradient(135deg, #df4e9e, #f04476); }
+.dashboard-metric-cyan { background: linear-gradient(135deg, #22a7da, #25cae2); }
+
+.dashboard-metric-icon {
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 18%);
+}
+
+.dashboard-metric p,
+.dashboard-metric svg,
+.dashboard-metric [class*="text-"] {
+  color: #ffffff !important;
+}
+
+.dashboard-metric-orb,
+.dashboard-metric-orb::after {
+  position: absolute;
+  width: 118px;
+  height: 118px;
+  border-radius: 999px;
+  content: "";
+  pointer-events: none;
+  background: rgb(255 255 255 / 9%);
+}
+
+.dashboard-metric-orb {
+  right: -28px;
+  bottom: -48px;
+}
+
+.dashboard-metric-orb::after {
+  right: 46px;
+  bottom: -38px;
+}
+
+.dashboard-module-panel {
+  box-shadow: 0 12px 34px rgb(40 72 108 / 10%);
+}
+
+.dashboard-module-header {
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+}
+
+.dashboard-readiness {
+  border: 1px solid #cce5dd;
+  color: #08765c;
+  background: #edf9f5;
+}
+
+.module-card {
+  border: 1px solid #dce6f0 !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 7px 20px rgb(38 68 103 / 8%), inset 0 4px 0 color-mix(in srgb, var(--accent-color) 76%, #ffffff) !important;
+}
+
+.module-card:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 45%, #d8e4ef) !important;
+  box-shadow: 0 16px 32px rgb(36 67 103 / 14%), inset 0 4px 0 var(--accent-color) !important;
+  transform: translateY(-2px);
+}
+
+.module-icon {
+  border-radius: 14px !important;
+}
+
+/* Consistent buttons and spacing across work modules. */
+.dashboard button:not(.sidebar-item):not(.module-card):not(.workspace-retail-button):not(.workspace-head-office-button):not(.logout-button) {
+  min-height: 42px;
+}
+
+.dashboard .vp-header-actions,
+.dashboard .vp-modal-actions,
+.dashboard .vp-icon-button-group,
+.dashboard [class*="gap-2"] {
+  column-gap: 0.75rem;
+}
+
+@media (max-width: 1023px) {
+  .app-red-header {
+    min-height: 72px;
+  }
+}
+
+@media (max-width: 639px) {
+  .login-hybrid {
+    justify-content: center;
+    background-position: 30% center;
+  }
+
+  .login-hybrid-vignette {
+    background: rgb(232 243 252 / 72%);
+    backdrop-filter: blur(3px);
+  }
+
+  .dashboard-metric {
+    min-height: 150px;
+  }
+}

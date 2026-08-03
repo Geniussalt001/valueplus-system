@@ -207,7 +207,7 @@ export function LoginPage({
       className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-16 xl:px-20"
       style={{
         backgroundImage:
-          "url('/images/login-background-white-blue-v2.webp')",
+          "url('/images/login-background-blue-command-v3.webp')",
       }}
     >
       <div
