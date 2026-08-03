@@ -1,6 +1,7 @@
 :root {
-  --vp-shell-navy: #103b70;
-  --vp-shell-blue: #2678c8;
+  --vp-shell-navy: #0d3a6b;
+  --vp-shell-blue: #176aa9;
+  --vp-shell-gradient: linear-gradient(135deg, #0d3a6b 0%, #15578f 58%, #176aa9 100%);
   --vp-shell-canvas: #eaf1f8;
   --vp-shell-card: #ffffff;
   --vp-shell-line: #d9e3ee;
@@ -55,9 +56,7 @@
 .dashboard-sidebar {
   border-right: 0 !important;
   color: #ffffff !important;
-  background:
-    radial-gradient(circle at 18% 8%, rgb(53 151 230 / 22%), transparent 28%),
-    linear-gradient(180deg, #0b315e 0%, #10477f 52%, #1765a7 100%) !important;
+  background: var(--vp-shell-gradient) !important;
   box-shadow: 10px 0 32px rgb(11 43 79 / 20%);
 }
 
@@ -76,10 +75,10 @@
 }
 
 .sidebar-brand-button .brand-logo {
-  width: 100% !important;
-  max-width: 182px;
-  height: 58px;
-  aspect-ratio: auto !important;
+  width: 170px !important;
+  max-width: 100%;
+  height: auto !important;
+  aspect-ratio: 650 / 239 !important;
   flex: 0 0 auto;
   background: linear-gradient(105deg, #0b315e 0%, #087fae 48%, #2684d5 100%) !important;
   filter: none !important;
@@ -121,7 +120,7 @@
   border-color: rgb(255 255 255 / 14%) !important;
   border-radius: 18px !important;
   padding: 0.45rem !important;
-  background: rgb(3 28 58 / 28%) !important;
+  background: rgb(255 255 255 / 8%) !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 9px 22px rgb(2 24 49 / 12%) !important;
 }
 
@@ -136,17 +135,17 @@
 }
 
 .dashboard .workspace-retail-button:not(.workspace-retail-active) {
-  border-color: rgb(81 213 238 / 24%) !important;
-  color: rgb(229 250 255 / 82%) !important;
-  background: rgb(4 135 173 / 23%) !important;
-  opacity: 0.78;
+  border-color: rgb(92 213 239 / 26%) !important;
+  color: #bfeefa !important;
+  background: rgb(21 135 169 / 24%) !important;
+  opacity: 1;
 }
 
 .dashboard .workspace-head-office-button:not(.workspace-head-office-active) {
-  border-color: rgb(180 157 255 / 22%) !important;
-  color: rgb(241 235 255 / 82%) !important;
-  background: rgb(104 79 183 / 24%) !important;
-  opacity: 0.78;
+  border-color: rgb(204 191 255 / 24%) !important;
+  color: #ddd4ff !important;
+  background: rgb(111 86 190 / 30%) !important;
+  opacity: 1;
 }
 
 .dashboard .workspace-retail-active {
@@ -199,12 +198,41 @@
   background: rgb(255 255 255 / 10%) !important;
 }
 
+.dashboard-sidebar .update-center-panel {
+  border-color: rgb(255 255 255 / 16%) !important;
+  color: #ffffff !important;
+  background: rgb(255 255 255 / 10%) !important;
+  box-shadow: 0 9px 22px rgb(2 25 51 / 14%) !important;
+}
+
+.dashboard-sidebar .update-center-panel p,
+.dashboard-sidebar .update-center-panel span,
+.dashboard-sidebar .update-center-panel svg,
+.dashboard-sidebar .update-center-panel [class*="text-"] {
+  color: #eaf6ff !important;
+}
+
+.dashboard-sidebar .update-center-panel > div:first-child p:first-child {
+  color: #9edfff !important;
+}
+
+.dashboard-sidebar .update-center-panel button {
+  border-color: rgb(109 218 246 / 58%) !important;
+  color: #ffffff !important;
+  background: rgb(4 46 83 / 78%) !important;
+  box-shadow: 0 7px 16px rgb(2 25 51 / 18%) !important;
+}
+
+.dashboard-sidebar .update-center-panel button * {
+  color: #ffffff !important;
+}
+
 .app-red-header,
 .dashboard > section > header,
 .dashboard main > header {
   border-bottom: 0 !important;
   color: #ffffff !important;
-  background: linear-gradient(90deg, #123d70, #1a5f9e 58%, #237fc1) !important;
+  background: var(--vp-shell-gradient) !important;
   box-shadow: 0 7px 22px rgb(14 49 87 / 16%) !important;
 }
 
@@ -242,31 +270,60 @@
 }
 
 .dashboard-metric {
+  --metric-accent: #5268d8;
   min-height: 158px;
-  border: 1px solid rgb(255 255 255 / 24%);
-  box-shadow: 0 11px 25px rgb(34 68 105 / 12%), inset 0 1px 0 rgb(255 255 255 / 18%);
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 20%, #dfe8f1);
+  color: #1a3048 !important;
+  background: #ffffff;
+  box-shadow: 0 9px 22px rgb(34 68 105 / 9%), inset 0 3px 0 color-mix(in srgb, var(--metric-accent) 70%, #ffffff);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .dashboard-metric:hover {
   transform: translateY(-3px);
-  box-shadow: 0 19px 38px rgb(34 68 105 / 20%);
+  box-shadow: 0 15px 30px rgb(34 68 105 / 14%), inset 0 3px 0 var(--metric-accent);
 }
 
-.dashboard-metric-violet { background: linear-gradient(135deg, #6257d4, #8064df); }
-.dashboard-metric-teal { background: linear-gradient(135deg, #0b8985, #22a99c); }
-.dashboard-metric-pink { background: linear-gradient(135deg, #bf4f83, #dc648c); }
-.dashboard-metric-cyan { background: linear-gradient(135deg, #1485b7, #29a9c9); }
+.dashboard-metric-violet {
+  --metric-accent: #6558cf;
+  background: linear-gradient(145deg, #ffffff, #f5f3ff);
+}
+
+.dashboard-metric-teal {
+  --metric-accent: #0a9187;
+  background: linear-gradient(145deg, #ffffff, #eefaf7);
+}
+
+.dashboard-metric-pink {
+  --metric-accent: #c44f82;
+  background: linear-gradient(145deg, #ffffff, #fff2f7);
+}
+
+.dashboard-metric-cyan {
+  --metric-accent: #168bb7;
+  background: linear-gradient(145deg, #ffffff, #eff9fd);
+}
 
 .dashboard-metric-icon {
-  color: #ffffff !important;
-  background: rgb(255 255 255 / 18%);
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 20%, transparent);
+  color: var(--metric-accent) !important;
+  background: color-mix(in srgb, var(--metric-accent) 9%, #ffffff);
 }
 
 .dashboard-metric p,
 .dashboard-metric svg,
 .dashboard-metric [class*="text-"] {
-  color: #ffffff !important;
+  color: #1a3048 !important;
+}
+
+.dashboard-metric svg,
+.dashboard-metric p:nth-of-type(2) {
+  color: var(--metric-accent) !important;
+}
+
+.dashboard-metric p:nth-of-type(1),
+.dashboard-metric p:nth-of-type(3) {
+  color: #61758a !important;
 }
 
 .dashboard-metric-orb,
@@ -277,7 +334,7 @@
   border-radius: 999px;
   content: "";
   pointer-events: none;
-  background: rgb(255 255 255 / 7%);
+  background: color-mix(in srgb, var(--metric-accent) 7%, transparent);
 }
 
 .dashboard-metric-orb {
