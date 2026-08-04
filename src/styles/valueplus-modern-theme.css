@@ -43,7 +43,7 @@ body {
 .splash-hybrid {
   color: var(--vp-modern-ink) !important;
   background-color: #f4f5fa !important;
-  background-image: url("/images/login-background-valueplus-mascot-red-v2.webp") !important;
+  background-image: url("/images/login-background-valueplus-modern-mascot-v3.webp") !important;
   background-position: center !important;
 }
 
@@ -65,8 +65,8 @@ body {
 .login-hybrid-vignette,
 .splash-hybrid-vignette {
   background:
-    linear-gradient(90deg, transparent 0%, rgb(246 247 251 / 4%) 43%, rgb(246 247 251 / 68%) 67%, rgb(246 247 251 / 94%) 100%),
-    linear-gradient(180deg, rgb(36 41 60 / 3%), transparent 55%, rgb(255 255 255 / 8%)) !important;
+    linear-gradient(90deg, transparent 0%, rgb(246 247 251 / 2%) 44%, rgb(246 247 251 / 54%) 67%, rgb(246 247 251 / 90%) 100%),
+    linear-gradient(180deg, rgb(83 109 254 / 2%), transparent 52%, rgb(239 91 174 / 3%)) !important;
 }
 
 .login-hybrid-card,
