@@ -252,26 +252,42 @@ body {
 .sidebar-item {
   --menu-accent: #ff9aad;
   position: relative;
-  border-left: 3px solid transparent !important;
+  min-height: 46px;
+  border: 1px solid rgb(255 255 255 / 14%) !important;
+  border-left: 4px solid transparent !important;
+  border-radius: 12px !important;
   color: rgb(255 239 242 / 76%) !important;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease !important;
 }
 
 .sidebar-item[style] {
-  border-left-color: color-mix(in srgb, var(--menu-accent) 62%, transparent) !important;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 9%, transparent), transparent 68%) !important;
+  border-color: rgb(255 255 255 / 76%) !important;
+  border-left-color: var(--menu-accent) !important;
+  color: #462b33 !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 8%, #ffffff), rgb(255 255 255 / 96%)) !important;
+  box-shadow: 0 5px 14px rgb(55 6 20 / 15%), inset 0 1px 0 #ffffff !important;
 }
 
 .sidebar-item:hover {
   border-color: color-mix(in srgb, var(--menu-accent) 72%, white) !important;
-  color: #ffffff !important;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 22%, transparent), rgb(255 255 255 / 7%)) !important;
+  transform: translateX(3px);
+  color: #301d23 !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 15%, #ffffff), #ffffff) !important;
+  box-shadow: 0 9px 20px rgb(55 6 20 / 20%), 0 0 0 2px color-mix(in srgb, var(--menu-accent) 12%, transparent) !important;
 }
 
 .sidebar-item-active {
   border-color: var(--menu-accent) !important;
-  color: #ffffff !important;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 30%, transparent), rgb(255 255 255 / 10%)) !important;
-  box-shadow: 0 8px 18px rgb(53 6 18 / 18%), 0 0 0 1px color-mix(in srgb, var(--menu-accent) 32%, transparent) inset !important;
+  color: #2c1b20 !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 20%, #ffffff), #ffffff 82%) !important;
+  box-shadow: 0 10px 22px rgb(53 6 18 / 22%), 0 0 0 3px color-mix(in srgb, var(--menu-accent) 18%, transparent) !important;
+}
+
+.sidebar-item-active:not([style]) {
+  --menu-accent: #e33a58;
+  color: #78142c !important;
+  background: linear-gradient(90deg, #fff0f3, #ffffff) !important;
 }
 
 .dashboard-sidebar .update-center-card,
