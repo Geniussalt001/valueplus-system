@@ -5,6 +5,30 @@
   --vp-shell-canvas: #eaf1f8;
   --vp-shell-card: #ffffff;
   --vp-shell-line: #d9e3ee;
+  --vp-brand-red-deep: #7f1023;
+  --vp-brand-red: #d5223f;
+  --vp-brand-red-bright: #ff5268;
+}
+
+/* Preserve the original ValuePlus silhouette and render it as a dimensional
+   red brand mark everywhere (login, splash and application shell). */
+.brand-logo {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      112deg,
+      var(--vp-brand-red-deep) 0%,
+      var(--vp-brand-red) 42%,
+      var(--vp-brand-red-bright) 58%,
+      #a3132c 100%
+    ) !important;
+  background-size: 180% 100% !important;
+  filter:
+    drop-shadow(0 2px 0 rgb(92 8 25 / 32%))
+    drop-shadow(0 8px 12px rgb(117 12 34 / 24%))
+    drop-shadow(0 0 15px rgb(238 40 72 / 14%)) !important;
+  animation: vp-brand-sheen 7s ease-in-out infinite;
 }
 
 /* Login artwork and card share the same blue enterprise identity. */
@@ -26,6 +50,7 @@
     radial-gradient(circle at 100% 0, rgb(48 139 221 / 12%), transparent 34%),
     linear-gradient(145deg, rgb(255 255 255 / 97%), rgb(239 247 254 / 94%));
   box-shadow: 0 34px 90px rgb(6 38 75 / 24%), inset 0 1px 0 #ffffff;
+  animation: vp-login-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .login-hybrid-card::before {
@@ -33,7 +58,25 @@
   left: 0;
   height: 5px;
   border-radius: 24px 24px 0 0;
-  background: linear-gradient(90deg, #123f76, #2684d5, #2dc6e9);
+  background: linear-gradient(90deg, #8e1428, #dc2644 48%, #ff5b70 72%, #176aa9);
+}
+
+.login-hybrid-logo {
+  animation:
+    vp-brand-sheen 7s ease-in-out infinite,
+    vp-login-logo-enter 560ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.login-account-card {
+  transform-origin: center right;
+}
+
+.login-account-card:nth-child(1) {
+  animation: vp-control-enter 420ms 180ms ease-out both;
+}
+
+.login-account-card:nth-child(2) {
+  animation: vp-control-enter 420ms 240ms ease-out both;
 }
 
 .login-account-card:nth-child(1) .login-account-arrow {
@@ -72,6 +115,7 @@
 }
 
 .sidebar-brand-button {
+  position: relative;
   display: flex;
   width: 100%;
   height: 94px !important;
@@ -86,9 +130,33 @@
   padding: 13px 18px;
   background: linear-gradient(145deg, #ffffff, #eff7fd);
   box-shadow: 0 12px 28px rgb(3 28 58 / 16%), inset 0 1px 0 #ffffff;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.sidebar-brand-button::after {
+  position: absolute;
+  inset: -40% -25%;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 38%, rgb(255 255 255 / 72%) 49%, transparent 60%);
+  transform: translateX(-70%) rotate(4deg);
+  opacity: 0;
+}
+
+.sidebar-brand-button:hover {
+  border-color: rgb(255 115 135 / 46%);
+  box-shadow: 0 16px 34px rgb(3 28 58 / 20%), 0 0 0 3px rgb(215 34 64 / 8%), inset 0 1px 0 #ffffff;
+  transform: translateY(-2px);
+}
+
+.sidebar-brand-button:hover::after {
+  opacity: 1;
+  animation: vp-brand-sweep 800ms ease-out both;
 }
 
 .sidebar-brand-button .brand-logo {
+  position: relative;
+  z-index: 1;
   width: 176px !important;
   min-width: 176px !important;
   max-width: 176px !important;
@@ -98,8 +166,11 @@
   aspect-ratio: 650 / 239 !important;
   flex: 0 0 auto;
   background-size: contain !important;
-  background: linear-gradient(105deg, #0b315e 0%, #087fae 48%, #2684d5 100%) !important;
-  filter: none !important;
+  background: linear-gradient(112deg, #7f1023 0%, #d5223f 44%, #ff5268 60%, #9e142b 100%) !important;
+  background-size: 180% 100% !important;
+  filter:
+    drop-shadow(0 2px 0 rgb(92 8 25 / 26%))
+    drop-shadow(0 7px 10px rgb(117 12 34 / 20%)) !important;
 }
 
 .sidebar-user-card {
@@ -189,12 +260,14 @@
   border-radius: 11px;
   color: rgb(231 243 255 / 78%) !important;
   background: transparent;
+  transition: transform 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
 }
 
 .sidebar-item:hover {
   border-color: rgb(255 255 255 / 12%);
   color: #ffffff !important;
   background: rgb(255 255 255 / 10%);
+  transform: translateX(3px);
 }
 
 .sidebar-item-active {
@@ -281,6 +354,7 @@
 /* Dashboard inspired by the supplied enterprise reference. */
 .dashboard-home {
   color: #14283e;
+  animation: vp-page-content-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .dashboard-heading h2 {
@@ -294,8 +368,15 @@
   color: #1a3048 !important;
   background: #ffffff;
   box-shadow: 0 9px 22px rgb(34 68 105 / 9%), inset 0 3px 0 color-mix(in srgb, var(--metric-accent) 70%, #ffffff);
+  transform-origin: center bottom;
   transition: transform 180ms ease, box-shadow 180ms ease;
+  animation: vp-card-enter 430ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.dashboard-metric:nth-child(1) { animation-delay: 45ms; }
+.dashboard-metric:nth-child(2) { animation-delay: 90ms; }
+.dashboard-metric:nth-child(3) { animation-delay: 135ms; }
+.dashboard-metric:nth-child(4) { animation-delay: 180ms; }
 
 .dashboard-metric:hover {
   transform: translateY(-3px);
@@ -358,6 +439,7 @@
 .dashboard-metric-orb {
   right: -28px;
   bottom: -48px;
+  transition: transform 420ms ease, opacity 420ms ease;
 }
 
 .dashboard-metric-orb::after {
@@ -365,10 +447,16 @@
   bottom: -38px;
 }
 
+.dashboard-metric:hover .dashboard-metric-orb {
+  opacity: 0.88;
+  transform: translate(-8px, -8px) scale(1.12);
+}
+
 .dashboard-module-panel {
   border-color: #d6e1ec !important;
   border-radius: 20px !important;
   box-shadow: 0 10px 28px rgb(40 72 108 / 9%);
+  animation: vp-panel-enter 460ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .dashboard-module-header {
@@ -382,16 +470,39 @@
 }
 
 .module-card {
+  position: relative;
   border: 1px solid #dce6f0 !important;
   border-radius: 18px !important;
   background: linear-gradient(145deg, #ffffff, #fbfdff) !important;
   box-shadow: 0 6px 18px rgb(38 68 103 / 7%), inset 0 3px 0 color-mix(in srgb, var(--accent-color) 68%, #ffffff) !important;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease !important;
+  animation: vp-card-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.module-card:nth-child(3n + 1) { animation-delay: 190ms; }
+.module-card:nth-child(3n + 2) { animation-delay: 240ms; }
+.module-card:nth-child(3n + 3) { animation-delay: 290ms; }
+
+.module-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, color-mix(in srgb, var(--accent-color) 8%, transparent) 50%, transparent 70%);
+  transform: translateX(-110%);
+  transition: transform 560ms ease;
 }
 
 .module-card:hover {
   border-color: color-mix(in srgb, var(--accent-color) 45%, #d8e4ef) !important;
   box-shadow: 0 15px 30px rgb(36 67 103 / 13%), inset 0 3px 0 var(--accent-color) !important;
   transform: translateY(-2px);
+}
+
+.module-card:hover::after {
+  transform: translateX(110%);
 }
 
 .module-icon {
@@ -403,6 +514,69 @@
   color: #ffffff !important;
   background: var(--accent-color) !important;
   box-shadow: 0 7px 15px color-mix(in srgb, var(--accent-color) 22%, transparent) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease !important;
+}
+
+.module-card:hover .module-open-button {
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) 30%, transparent) !important;
+  transform: translate(2px, -2px) rotate(3deg);
+}
+
+.dashboard button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.vp-work-page {
+  animation: vp-page-content-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.status-online {
+  animation: vp-modern-status-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes vp-brand-sheen {
+  0%, 70%, 100% { background-position: 0% 50%; }
+  84% { background-position: 100% 50%; }
+}
+
+@keyframes vp-brand-sweep {
+  from { transform: translateX(-70%) rotate(4deg); }
+  to { transform: translateX(70%) rotate(4deg); }
+}
+
+@keyframes vp-login-card-enter {
+  from { opacity: 0; transform: translateX(28px) scale(0.985); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes vp-login-logo-enter {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vp-control-enter {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes vp-page-content-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vp-card-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vp-panel-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vp-modern-status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(16 185 129 / 28%), 0 0 8px rgb(16 185 129 / 44%); }
+  50% { box-shadow: 0 0 0 5px rgb(16 185 129 / 0%), 0 0 13px rgb(16 185 129 / 60%); }
 }
 
 .module-open-button svg {
@@ -439,5 +613,30 @@
 
   .dashboard-metric {
     min-height: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo,
+  .login-hybrid-card,
+  .login-hybrid-logo,
+  .login-account-card,
+  .dashboard-home,
+  .dashboard-metric,
+  .dashboard-module-panel,
+  .module-card,
+  .vp-work-page,
+  .status-online {
+    animation: none !important;
+  }
+
+  .sidebar-brand-button::after,
+  .module-card::after {
+    display: none;
+  }
+
+  .sidebar-item:hover,
+  .dashboard button:active:not(:disabled) {
+    transform: none;
   }
 }
