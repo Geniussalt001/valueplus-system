@@ -1,6 +1,13 @@
 import {
+  CheckCircle2,
   LoaderCircle,
 } from "lucide-react";
+
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   createPortal,
@@ -9,14 +16,6 @@ import {
 import type {
   ProcessorActivity,
 } from "../../hooks/usePoProcessor";
-
-import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
-
-import {
-  AnimatedProgressBar,
-} from "../common/AnimatedProgressBar";
 
 interface ProcessingOverlayProps {
   activity:
@@ -46,13 +45,46 @@ const activityMessages: Record<
 export function ProcessingOverlay({
   activity,
 }: ProcessingOverlayProps) {
-  const progress =
-    useAnimatedProgress(
-      activity !== "idle",
-    );
+  const active =
+    activity !== "idle" &&
+    activity !== "selecting";
+  const [visible, setVisible] =
+    useState(active);
+  const [completed, setCompleted] =
+    useState(false);
+  const [lastActivity, setLastActivity] =
+    useState<ProcessorActivity>(activity);
+  const wasActiveRef = useRef(active);
+
+  useEffect(() => {
+    let hideTimer:
+      | ReturnType<typeof setTimeout>
+      | undefined;
+
+    if (active) {
+      setLastActivity(activity);
+      setVisible(true);
+      setCompleted(false);
+    } else if (wasActiveRef.current) {
+      setVisible(true);
+      setCompleted(true);
+      hideTimer = setTimeout(() => {
+        setVisible(false);
+        setCompleted(false);
+      }, 4000);
+    }
+
+    wasActiveRef.current = active;
+
+    return () => {
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [active, activity]);
 
   if (
-    activity === "idle"
+    !visible ||
+    lastActivity === "idle" ||
+    lastActivity === "selecting"
   ) {
     return null;
   }
@@ -60,112 +92,73 @@ export function ProcessingOverlay({
   return createPortal(
     <div
       className="
+        vp-process-toast
         fixed
-        inset-0
+        right-5
+        top-[208px]
         z-[10000]
-        flex
-        items-center
-        justify-center
-        bg-slate-900/30
-        p-4
-        backdrop-blur-[3px]
+        w-[min(390px,calc(100vw-2rem))]
       "
       role="status"
       aria-live="polite"
       aria-label={
-        activityMessages[
-          activity
-        ]
+        completed
+          ? "ดำเนินการเรียบร้อยแล้ว"
+          : activityMessages[lastActivity]
       }
     >
       <div
         className="
           flex
-          w-full
-          max-w-sm
-          flex-col
-          items-center
-          rounded-3xl
+          items-start
+          gap-4
+          rounded-2xl
           border
-          border-sky-200
-          bg-white/95
-          p-7
-          text-center
-          shadow-[0_24px_80px_rgba(15,23,42,0.24)]
+          border-slate-200
+          bg-white
+          px-5
+          py-4
+          text-left
+          shadow-[0_20px_55px_rgba(30,41,59,0.18)]
         "
       >
         <div
-          className="
-            relative
+          className={`
             flex
-            h-16
-            w-16
+            h-11
+            w-11
+            shrink-0
             items-center
             justify-center
-            rounded-2xl
+            rounded-xl
             border
-            border-cyan-200
-            bg-cyan-50
-          "
+            ${completed ? "border-emerald-200 bg-emerald-50" : "border-cyan-200 bg-cyan-50"}
+          `}
         >
-          <span
-            className="
-              absolute
-              inset-2
-              animate-ping
-              rounded-full
-              bg-cyan-400/15
-            "
-          />
-
-          <LoaderCircle
-            size={36}
-            className="
-              relative
-              animate-spin
-              text-sky-600
-            "
-          />
+          {completed ? (
+            <CheckCircle2 size={23} className="text-emerald-600" />
+          ) : (
+            <LoaderCircle size={23} className="animate-spin text-sky-600" />
+          )}
         </div>
 
-        <p
-          className="
-            mt-5
-            text-base
-            font-semibold
-            text-slate-900
-          "
-        >
-          {
-            activityMessages[
-              activity
-            ]
-          }
-        </p>
-
-        <p className="mt-3 text-3xl font-semibold tabular-nums text-sky-700">
-          {Math.round(progress)}%
-        </p>
-
-        <AnimatedProgressBar
-          progress={progress}
-          className="mt-4"
-          tone="sky"
-        />
-
-        <p
-          className="
-            mt-4
-            text-xs
-            leading-5
-            text-slate-500
-          "
-        >
-          {activity ===
-          "printing"
-            ? "กรุณารอหน้าต่างเลือกเครื่องพิมพ์"
-            : "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล"}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-900">
+            {completed ? "ดำเนินการเรียบร้อยแล้ว" : activityMessages[lastActivity]}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            {completed
+              ? "ระบบบันทึกผลลัพธ์และพร้อมใช้งานต่อแล้ว"
+              : lastActivity === "printing"
+                ? "กรุณารอหน้าต่างเลือกเครื่องพิมพ์"
+                : "สามารถติดตามรายละเอียดได้จาก Processing Log"}
+          </p>
+          {completed ? (
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-emerald-100">
+              <span className="vp-process-toast-timer block h-full rounded-full bg-emerald-500" />
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>,
     document.body,

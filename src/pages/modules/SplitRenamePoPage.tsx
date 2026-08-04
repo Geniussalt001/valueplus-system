@@ -1,11 +1,9 @@
 import {
   useEffect,
-  useState,
 } from "react";
 
 import {
   ArrowLeft,
-  CheckCircle2,
   ClipboardList,
   FileCheck2,
   FolderOpen,
@@ -50,6 +48,10 @@ import {
   usePoProcessor,
 } from "../../hooks/usePoProcessor";
 
+import {
+  showAppToast,
+} from "../../services/appToast";
+
 interface SplitRenamePoPageProps {
   onBack: () => void;
   onNextProcess: (pdfPath: string) => void;
@@ -62,11 +64,6 @@ export function SplitRenamePoPage({
   const processor =
     usePoProcessor();
 
-  const [
-    successToast,
-    setSuccessToast,
-  ] = useState("");
-
   const busy =
     processor.activity !==
     "idle";
@@ -76,21 +73,16 @@ export function SplitRenamePoPage({
       return;
     }
 
-    setSuccessToast(
-      processor.success,
-    );
-
-    const timer =
-      window.setTimeout(() => {
-        setSuccessToast("");
-      }, 4500);
-
-    return () => {
-      window.clearTimeout(
-        timer,
-      );
-    };
-  }, [processor.success]);
+    showAppToast({
+      tone: "success",
+      title: processor.success,
+      message:
+        processor.savedOutputPath || undefined,
+    });
+  }, [
+    processor.savedOutputPath,
+    processor.success,
+  ]);
 
   return (
     <div
@@ -109,74 +101,6 @@ export function SplitRenamePoPage({
           processor.activity
         }
       />
-
-      {successToast && (
-        <div
-          role="status"
-          className="
-            fixed
-            right-6
-            top-24
-            z-[100]
-            flex
-            w-[min(420px,calc(100vw-3rem))]
-            items-start
-            gap-3
-            rounded-2xl
-            border
-            border-emerald-200
-            bg-white
-            px-5
-            py-4
-            text-emerald-800
-            shadow-2xl
-            shadow-emerald-900/15
-          "
-        >
-          <span
-            className="
-              flex
-              h-9
-              w-9
-              shrink-0
-              items-center
-              justify-center
-              rounded-full
-              bg-emerald-50
-              text-emerald-600
-            "
-          >
-            <CheckCircle2 size={20} />
-          </span>
-
-          <div className="min-w-0">
-            <p className="font-semibold">
-              {successToast}
-            </p>
-
-            {processor
-              .savedOutputPath && (
-              <p
-                className="
-                  mt-1
-                  truncate
-                  text-xs
-                  text-slate-500
-                "
-                title={
-                  processor
-                    .savedOutputPath
-                }
-              >
-                {
-                  processor
-                    .savedOutputPath
-                }
-              </p>
-            )}
-          </div>
-        </div>
-      )}
 
       <PickingAdjustmentModal
         open={

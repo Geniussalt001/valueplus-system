@@ -91,8 +91,6 @@ export const APPS_SCRIPT_SYNC_COMPLETED_EVENT =
   "valueplus-apps-script-sync-completed";
 
 const appsScriptApiUrl =
-  import.meta.env
-    .VITE_APPS_SCRIPT_URL ||
   "https://script.google.com/macros/s/AKfycbxhx-ypQHUXIqSI0U5zCaoc91M7Vcy2t6lwVwkTknUOOEBXsDeB8LlK4R-aPzrsq-ZH/exec";
 
 const developmentApiToken =

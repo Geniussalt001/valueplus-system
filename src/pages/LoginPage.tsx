@@ -26,6 +26,10 @@ import {
 } from "../components/BrandLogo";
 
 import {
+  IndeterminateProgressBar,
+} from "../components/common/IndeterminateProgressBar";
+
+import {
   activateAppsScript,
   hasAppsScriptConnection,
 } from "../services/appsScriptClient";
@@ -207,7 +211,7 @@ export function LoginPage({
       className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-16 xl:px-20"
       style={{
         backgroundImage:
-          "url('/images/login-background-white-blue-v2.webp')",
+          "url('/images/login-background-valueplus-modern-mascot-v3.webp')",
       }}
     >
       <div
@@ -395,6 +399,35 @@ export function LoginPage({
               );
             })}
           </div>
+          )}
+
+          {loadingCode && (
+            <div
+              className="login-hybrid-surface mt-5 rounded-2xl px-5 py-4"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div className="flex items-center gap-3">
+                <LoaderCircle
+                  size={19}
+                  className="shrink-0 animate-spin text-cyan-700"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">
+                    กำลังเข้าสู่ระบบ
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    กำลังเปิดพื้นที่ทำงาน{
+                      accounts.find(
+                        (account) => account.code === loadingCode,
+                      )?.label
+                    }
+                  </p>
+                </div>
+              </div>
+              <IndeterminateProgressBar className="mt-3" />
+            </div>
           )}
 
           {error && (

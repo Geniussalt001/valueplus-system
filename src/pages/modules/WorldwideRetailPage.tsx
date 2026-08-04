@@ -31,12 +31,8 @@ import {
 } from "@tauri-apps/plugin-opener";
 
 import {
-  AnimatedProgressBar,
-} from "../../components/common/AnimatedProgressBar";
-
-import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
+  IndeterminateProgressBar,
+} from "../../components/common/IndeterminateProgressBar";
 
 import type {
   AppUser,
@@ -211,11 +207,6 @@ export function WorldwideRetailPage({
           : loading
             ? "กำลังโหลดแฟ้มข้อมูล"
             : "ดำเนินการเสร็จสิ้น";
-
-  const operationProgress =
-    useAnimatedProgress(
-      operationActive,
-    );
 
   const loadRecords =
     useCallback(async () => {
@@ -1076,6 +1067,7 @@ export function WorldwideRetailPage({
 
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <PdfUploadCard
+              tone="po"
               title="อัปโหลด PO"
               description="เลือกไฟล์ PO ชนิด PDF"
               file={poFile}
@@ -1090,6 +1082,7 @@ export function WorldwideRetailPage({
             />
 
             <PdfUploadCard
+              tone="iv"
               title="อัปโหลด IV"
               description="เลือกไฟล์ IV ชนิด PDF"
               file={ivFile}
@@ -1120,7 +1113,7 @@ export function WorldwideRetailPage({
                 setSuccess("");
               }}
               disabled={saving}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+              className="worldwide-clear-button rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
             >
               ล้างข้อมูล
             </button>
@@ -1131,7 +1124,7 @@ export function WorldwideRetailPage({
                 void saveRecord();
               }}
               disabled={saving}
-              className="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-violet-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-800 disabled:cursor-wait disabled:opacity-60"
+              className="worldwide-save-button inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-200 transition hover:bg-teal-700 disabled:cursor-wait disabled:opacity-60"
             >
               {saving ? (
                 <LoaderCircle
@@ -1152,9 +1145,7 @@ export function WorldwideRetailPage({
       )}
 
       <OperationProgress
-        progress={
-          operationProgress
-        }
+        active={operationActive}
         label={operationLabel}
       />
 
@@ -1607,13 +1598,13 @@ export function WorldwideRetailPage({
 }
 
 function OperationProgress({
-  progress,
+  active,
   label,
 }: {
-  progress: number;
+  active: boolean;
   label: string;
 }) {
-  if (progress <= 0) {
+  if (!active) {
     return null;
   }
 
@@ -1624,38 +1615,19 @@ function OperationProgress({
       aria-live="polite"
     >
       <div className="flex items-center gap-3">
-        {progress < 100 ? (
-          <LoaderCircle
-            size={19}
-            className="shrink-0 animate-spin text-cyan-700"
-          />
-        ) : (
-          <CheckCircle2
-            size={19}
-            className="shrink-0 text-emerald-600"
-          />
-        )}
+        <LoaderCircle
+          size={19}
+          className="shrink-0 animate-spin text-cyan-700"
+        />
 
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">
           {label}
         </p>
 
-        <span className="text-lg font-semibold tabular-nums text-cyan-700">
-          {Math.round(
-            progress,
-          )}
-          %
-        </span>
       </div>
 
-      <AnimatedProgressBar
-        progress={progress}
+      <IndeterminateProgressBar
         className="mt-3"
-        tone={
-          progress >= 100
-            ? "emerald"
-            : "cyan"
-        }
       />
     </div>
   );
@@ -1696,6 +1668,7 @@ function Field({
 }
 
 interface PdfUploadCardProps {
+  tone: "po" | "iv";
   title: string;
   description: string;
   file:
@@ -1706,16 +1679,25 @@ interface PdfUploadCardProps {
 }
 
 function PdfUploadCard({
+  tone,
   title,
   description,
   file,
   onSelect,
   onClear,
 }: PdfUploadCardProps) {
+  const isPo = tone === "po";
+
   return (
-    <div className="rounded-2xl border border-dashed border-violet-200 bg-violet-50/50 p-5">
+    <div className={`worldwide-upload-card rounded-2xl border border-dashed p-5 ${
+      isPo
+        ? "border-cyan-200 bg-cyan-50/60"
+        : "border-violet-200 bg-violet-50/60"
+    }`}>
       <div className="flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-700 shadow-sm">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ${
+          isPo ? "text-cyan-700" : "text-violet-700"
+        }`}>
           {file ? (
             <CheckCircle2
               size={21}
@@ -1755,7 +1737,11 @@ function PdfUploadCard({
       <button
         type="button"
         onClick={onSelect}
-        className="mt-5 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:border-violet-400 hover:bg-violet-50"
+        className={`mt-5 w-full rounded-xl border px-4 py-3 text-sm font-semibold text-white shadow-sm transition ${
+          isPo
+            ? "border-cyan-600 bg-cyan-600 hover:border-cyan-700 hover:bg-cyan-700"
+            : "border-violet-600 bg-violet-600 hover:border-violet-700 hover:bg-violet-700"
+        }`}
       >
         {file
           ? "เปลี่ยนไฟล์ PDF"
@@ -1962,11 +1948,6 @@ function PdfPreviewModal({
 }) {
   const isPo =
     documentType === "po";
-  const loadingProgress =
-    useAnimatedProgress(
-      loading,
-    );
-
   useEffect(() => {
     const handleKeyDown = (
       event: KeyboardEvent,
@@ -2063,27 +2044,13 @@ function PdfPreviewModal({
                   : "text-violet-600"
               }`}
             />
-            <div className="mt-4 flex w-full max-w-md items-center justify-between gap-4">
+            <div className="mt-4 flex w-full max-w-md items-center justify-center gap-4">
               <p className="text-sm font-semibold">
                 กำลังเตรียมเอกสาร Preview
               </p>
-              <span className="text-xl font-semibold tabular-nums text-slate-800">
-                {Math.round(
-                  loadingProgress,
-                )}
-                %
-              </span>
             </div>
-            <AnimatedProgressBar
-              progress={
-                loadingProgress
-              }
+            <IndeterminateProgressBar
               className="mt-3 max-w-md"
-              tone={
-                isPo
-                  ? "sky"
-                  : "violet"
-              }
             />
           </div>
         ) : error ? (

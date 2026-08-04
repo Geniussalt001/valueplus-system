@@ -201,7 +201,7 @@ export function UpdateCenter() {
             : "status-online";
 
   return (
-    <section className="rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-4 shadow-sm">
+    <section className="update-center-panel rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.17em] text-cyan-300">

@@ -307,6 +307,7 @@ export function ReceivablesFreightPage({
         <div className="grid gap-2 sm:grid-cols-2">
           <ModeButton
             active={!isCreditNoteMode}
+            tone="receivables"
             title="ลูกหนี้"
             description="นำเข้ายอดลูกหนี้และค่าขนส่งตามระบบเดิม"
             icon={
@@ -323,6 +324,7 @@ export function ReceivablesFreightPage({
 
           <ModeButton
             active={isCreditNoteMode}
+            tone="credit-notes"
             title="ลดหนี้"
             description="อ่านใบลดหนี้และ IV อ้างอิงจาก CSV"
             icon={
@@ -529,40 +531,58 @@ export function ReceivablesFreightPage({
 
 function ModeButton({
   active,
+  tone,
   title,
   description,
   icon,
   onClick,
 }: {
   active: boolean;
+  tone: "receivables" | "credit-notes";
   title: string;
   description: string;
   icon: ReactNode;
   onClick: () => void;
 }) {
+  const isReceivables =
+    tone === "receivables";
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[82px] items-center gap-4 rounded-xl border px-5 py-4 text-left transition ${
+      className={`group relative flex min-h-[88px] items-center gap-4 overflow-hidden rounded-xl border px-5 py-4 text-left transition ${
         active
-          ? "border-cyan-400 bg-cyan-50 text-cyan-950 shadow-sm"
-          : "border-transparent bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50"
+          ? isReceivables
+            ? "border-cyan-400 bg-gradient-to-r from-cyan-50 to-sky-50 text-cyan-950 shadow-[0_10px_28px_rgba(8,145,178,0.13)]"
+            : "border-violet-400 bg-gradient-to-r from-violet-50 to-fuchsia-50 text-violet-950 shadow-[0_10px_28px_rgba(124,58,237,0.13)]"
+          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
       }`}
     >
       <span
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
           active
-            ? "bg-[#063b59] text-white"
+            ? isReceivables
+              ? "bg-cyan-600 text-white shadow-md shadow-cyan-200"
+              : "bg-violet-600 text-white shadow-md shadow-violet-200"
             : "bg-slate-100 text-slate-500"
         }`}
       >
         {icon}
       </span>
-      <span>
+      <span className="min-w-0 flex-1">
         <span className="block font-semibold">{title}</span>
         <span className="mt-1 block text-xs opacity-75">{description}</span>
       </span>
+      {active ? (
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+          isReceivables
+            ? "bg-cyan-100 text-cyan-800"
+            : "bg-violet-100 text-violet-800"
+        }`}>
+          กำลังใช้งาน
+        </span>
+      ) : null}
     </button>
   );
 }

@@ -1,14 +1,17 @@
 import {
+  CheckCircle2,
   LoaderCircle,
 } from "lucide-react";
 
 import {
-  createPortal,
-} from "react-dom";
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
+  createPortal,
+} from "react-dom";
 
 import {
   AnimatedProgressBar,
@@ -27,11 +30,41 @@ export function ProcessStatusOverlay({
   description = "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล",
   progress,
 }: ProcessStatusOverlayProps) {
-  const animatedProgress =
-    useAnimatedProgress(open);
+  const [visible, setVisible] =
+    useState(open);
+  const [completed, setCompleted] =
+    useState(false);
+  const wasOpenRef = useRef(open);
+
+  useEffect(() => {
+    let hideTimer:
+      | ReturnType<typeof setTimeout>
+      | undefined;
+
+    if (open) {
+      setVisible(true);
+      setCompleted(false);
+    } else if (wasOpenRef.current) {
+      setVisible(true);
+      setCompleted(true);
+      hideTimer = setTimeout(() => {
+        setVisible(false);
+        setCompleted(false);
+      }, 4000);
+    }
+
+    wasOpenRef.current = open;
+
+    return () => {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+      }
+    };
+  }, [open]);
+
   const visibleProgress =
     progress === undefined
-      ? animatedProgress
+      ? undefined
       : Math.max(
           0,
           Math.min(
@@ -41,7 +74,7 @@ export function ProcessStatusOverlay({
         );
 
   if (
-    !open ||
+    !visible ||
     typeof document === "undefined"
   ) {
     return null;
@@ -50,88 +83,79 @@ export function ProcessStatusOverlay({
   return createPortal(
     <div
       className="
+        vp-process-toast
         fixed
-        inset-0
+        right-5
+        top-[208px]
         z-[1400]
-        flex
-        items-center
-        justify-center
-        bg-slate-900/25
-        px-5
-        backdrop-blur-[4px]
+        w-[min(390px,calc(100vw-2rem))]
       "
       role="status"
       aria-live="polite"
-      aria-busy="true"
+      aria-busy={open}
     >
       <div
         className="
-          w-full
-          max-w-sm
-          rounded-3xl
+          flex
+          items-start
+          gap-4
+          rounded-2xl
           border
-          border-cyan-300/45
-          bg-white/95
-          px-8
-          py-7
-          text-center
-          shadow-[0_24px_70px_rgba(8,47,73,0.24)]
+          border-slate-200
+          bg-white
+          px-5
+          py-4
+          text-left
+          shadow-[0_20px_55px_rgba(30,41,59,0.18)]
         "
       >
         <div
-          className="
-            mx-auto
+          className={`
             flex
-            h-16
-            w-16
+            h-11
+            w-11
+            shrink-0
             items-center
             justify-center
-            rounded-2xl
+            rounded-xl
             border
-            border-cyan-200
-            bg-cyan-50
-            text-cyan-600
-          "
+            ${completed
+              ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+              : "border-cyan-200 bg-cyan-50 text-cyan-600"}
+          `}
         >
-          <LoaderCircle
-            className="animate-spin"
-            size={34}
-          />
+          {completed ? (
+            <CheckCircle2 size={23} />
+          ) : (
+            <LoaderCircle className="animate-spin" size={23} />
+          )}
         </div>
 
-        <p
-          className="
-            mt-6
-            text-base
-            font-semibold
-            text-slate-800
-          "
-        >
-          {title}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-900">
+            {completed ? "ดำเนินการเรียบร้อยแล้ว" : title}
+          </p>
 
-        <p className="mt-3 text-3xl font-semibold tabular-nums text-cyan-700">
-          {Math.round(
-            visibleProgress,
-          )}
-          %
-        </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            {completed ? "ระบบบันทึกผลลัพธ์และพร้อมใช้งานต่อแล้ว" : description}
+          </p>
 
-        <AnimatedProgressBar
-          progress={visibleProgress}
-          className="mt-4"
-        />
+          {visibleProgress !== undefined && !completed ? (
+            <>
+              <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                <span>ความคืบหน้า</span>
+                <span className="tabular-nums text-cyan-700">{Math.round(visibleProgress)}%</span>
+              </div>
+              <AnimatedProgressBar progress={visibleProgress} className="mt-1.5" />
+            </>
+          ) : null}
 
-        <p
-          className="
-            mt-4
-            text-xs
-            leading-5
-            text-slate-500
-          "
-        >
-          {description}
-        </p>
+          {completed ? (
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-emerald-100">
+              <span className="vp-process-toast-timer block h-full rounded-full bg-emerald-500" />
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>,
     document.body,
