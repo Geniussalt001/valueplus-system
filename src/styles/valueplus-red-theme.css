@@ -139,7 +139,7 @@ body {
 .splash-hybrid {
   color: var(--vp-ink);
   background-color: #f7f2f3;
-  background-image: url("/images/login-background-valueplus-red-v1.webp") !important;
+  background-image: url("/images/login-background-valueplus-mascot-red-v2.webp") !important;
 }
 
 .splash-hybrid-vignette {
@@ -250,20 +250,28 @@ body {
 }
 
 .sidebar-item {
+  --menu-accent: #ff9aad;
+  position: relative;
+  border-left: 3px solid transparent !important;
   color: rgb(255 239 242 / 76%) !important;
 }
 
+.sidebar-item[style] {
+  border-left-color: color-mix(in srgb, var(--menu-accent) 62%, transparent) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 9%, transparent), transparent 68%) !important;
+}
+
 .sidebar-item:hover {
-  border-color: rgb(255 255 255 / 14%) !important;
+  border-color: color-mix(in srgb, var(--menu-accent) 72%, white) !important;
   color: #ffffff !important;
-  background: rgb(255 255 255 / 10%) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 22%, transparent), rgb(255 255 255 / 7%)) !important;
 }
 
 .sidebar-item-active {
-  border-color: rgb(255 255 255 / 22%) !important;
+  border-color: var(--menu-accent) !important;
   color: #ffffff !important;
-  background: linear-gradient(90deg, rgb(255 255 255 / 20%), rgb(255 255 255 / 10%)) !important;
-  box-shadow: inset 3px 0 0 #ff9aad, 0 8px 18px rgb(53 6 18 / 18%) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 30%, transparent), rgb(255 255 255 / 10%)) !important;
+  box-shadow: 0 8px 18px rgb(53 6 18 / 18%), 0 0 0 1px color-mix(in srgb, var(--menu-accent) 32%, transparent) inset !important;
 }
 
 .dashboard-sidebar .update-center-card,
@@ -324,17 +332,19 @@ body {
 }
 
 .dashboard-metric {
-  --metric-accent: #b51635 !important;
-  border-color: #ead6db !important;
+  --metric-accent: #b51635;
+  border-color: color-mix(in srgb, var(--metric-accent) 24%, #dfe5eb) !important;
   color: var(--vp-ink) !important;
-  background: linear-gradient(145deg, #ffffff, #fff8f9) !important;
-  box-shadow: 0 9px 24px rgb(91 20 39 / 9%), inset 0 3px 0 var(--metric-accent) !important;
+  background:
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--metric-accent) 12%, transparent), transparent 36%),
+    linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--metric-accent) 7%, #ffffff)) !important;
+  box-shadow: 0 9px 24px rgb(31 49 71 / 9%), inset 0 3px 0 var(--metric-accent) !important;
 }
 
-.dashboard-metric-violet { --metric-accent: #78142a !important; }
-.dashboard-metric-teal { --metric-accent: #a61938 !important; }
-.dashboard-metric-pink { --metric-accent: #d22b49 !important; }
-.dashboard-metric-cyan { --metric-accent: #9b4358 !important; }
+.dashboard-metric-violet { --metric-accent: #6d5bd0; }
+.dashboard-metric-teal { --metric-accent: #079582; }
+.dashboard-metric-pink { --metric-accent: #d14d78; }
+.dashboard-metric-cyan { --metric-accent: #168fb8; }
 
 .dashboard-metric:hover {
   border-color: rgb(181 22 53 / 35%) !important;
@@ -386,16 +396,17 @@ body {
 }
 
 .module-card {
-  --accent-color: #bd1d3c !important;
-  border-color: #eadce0 !important;
+  border-color: color-mix(in srgb, var(--accent-color) 23%, #dfe5eb) !important;
   color: var(--vp-ink) !important;
-  background: linear-gradient(145deg, #ffffff, #fff9fa) !important;
-  box-shadow: 0 7px 20px rgb(91 20 39 / 7%), inset 0 3px 0 #d62a49 !important;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 36%),
+    linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--accent-color) 4%, #ffffff)) !important;
+  box-shadow: 0 7px 20px rgb(31 49 71 / 8%), inset 0 3px 0 var(--accent-color) !important;
 }
 
 .module-card:hover {
-  border-color: rgb(181 22 53 / 44%) !important;
-  box-shadow: 0 17px 36px rgb(91 20 39 / 14%), 0 0 0 3px rgb(215 38 69 / 6%), inset 0 3px 0 #b51635 !important;
+  border-color: color-mix(in srgb, var(--accent-color) 52%, #dfe5eb) !important;
+  box-shadow: 0 17px 36px rgb(31 49 71 / 13%), 0 0 0 3px color-mix(in srgb, var(--accent-color) 8%, transparent), inset 0 3px 0 var(--accent-color) !important;
 }
 
 .module-card h3 {
@@ -407,20 +418,20 @@ body {
 }
 
 .module-card p[style] {
-  color: #b51635 !important;
+  color: var(--accent-color) !important;
 }
 
 .module-icon {
-  border-color: rgb(181 22 53 / 20%) !important;
-  color: #b51635 !important;
-  background: #fff0f3 !important;
+  border-color: color-mix(in srgb, var(--accent-color) 26%, transparent) !important;
+  color: var(--accent-color) !important;
+  background: color-mix(in srgb, var(--accent-color) 9%, #ffffff) !important;
 }
 
 .module-open-button {
-  border-color: #b51635 !important;
+  border-color: var(--accent-color) !important;
   color: #ffffff !important;
-  background: linear-gradient(135deg, #8b1730, #d32848) !important;
-  box-shadow: 0 8px 18px rgb(155 21 51 / 22%) !important;
+  background: var(--accent-color) !important;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent-color) 27%, transparent) !important;
 }
 
 /* Shared work pages */
@@ -477,11 +488,7 @@ body {
 
 .dashboard button.vp-action-primary,
 .dashboard button.vp-next-process,
-.dashboard button.vp-action-wms,
-.dashboard button[class*="bg-cyan-"],
-.dashboard button[class*="bg-sky-"],
-.dashboard button[class*="bg-blue-"],
-.dashboard button[class*="bg-violet-"] {
+.dashboard button.vp-action-wms {
   border-color: #b51635 !important;
   color: #ffffff !important;
   background: linear-gradient(135deg, #78142a, #b51635 58%, #d92c4b) !important;
@@ -490,11 +497,7 @@ body {
 
 .dashboard button.vp-action-primary:hover,
 .dashboard button.vp-next-process:hover,
-.dashboard button.vp-action-wms:hover,
-.dashboard button[class*="bg-cyan-"]:hover,
-.dashboard button[class*="bg-sky-"]:hover,
-.dashboard button[class*="bg-blue-"]:hover,
-.dashboard button[class*="bg-violet-"]:hover {
+.dashboard button.vp-action-wms:hover {
   border-color: #9c1330 !important;
   background: linear-gradient(135deg, #641024, #9f1733 58%, #c51d3c) !important;
   box-shadow: 0 14px 30px rgb(155 21 51 / 27%) !important;
@@ -568,10 +571,13 @@ body {
 }
 
 .dashboard .summary-choice-express .summary-choice-icon,
-.dashboard .summary-choice-express .summary-choice-eyebrow,
+.dashboard .summary-choice-express .summary-choice-eyebrow {
+  color: #078779 !important;
+}
+
 .dashboard .summary-choice-doll .summary-choice-icon,
 .dashboard .summary-choice-doll .summary-choice-eyebrow {
-  color: #b51635 !important;
+  color: #7058c7 !important;
 }
 
 /* Inputs, text and pale utility colors */
@@ -600,27 +606,6 @@ body {
   background: #fff4f6 !important;
 }
 
-.dashboard [class*="text-cyan-"],
-.dashboard [class*="text-sky-"],
-.dashboard [class*="text-blue-"],
-.dashboard [class*="text-violet-"] {
-  color: #b51635 !important;
-}
-
-.dashboard [class*="border-cyan-"],
-.dashboard [class*="border-sky-"],
-.dashboard [class*="border-blue-"],
-.dashboard [class*="border-violet-"] {
-  border-color: rgb(181 22 53 / 23%) !important;
-}
-
-.dashboard [class*="bg-cyan-"]:not(button),
-.dashboard [class*="bg-sky-"]:not(button),
-.dashboard [class*="bg-blue-"]:not(button),
-.dashboard [class*="bg-violet-"]:not(button) {
-  background-color: rgb(215 38 69 / 7%) !important;
-}
-
 .dashboard .app-red-header h1,
 .dashboard .app-red-header p,
 .dashboard .app-red-header span,
@@ -633,10 +618,6 @@ body {
 .dashboard button.vp-next-process *,
 .dashboard button.vp-action-wms *,
 .dashboard button.vp-action-success *,
-.dashboard button[class*="bg-cyan-"] *,
-.dashboard button[class*="bg-sky-"] *,
-.dashboard button[class*="bg-blue-"] *,
-.dashboard button[class*="bg-violet-"] *,
 .dashboard button[class*="bg-emerald-"] * {
   color: #ffffff !important;
 }
@@ -687,7 +668,7 @@ body {
 
 @media (max-width: 639px) {
   .login-hybrid {
-    background-position: 34% center;
+    background-position: 39% center;
   }
 
   .login-hybrid-vignette {

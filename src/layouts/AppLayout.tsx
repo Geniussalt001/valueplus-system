@@ -1,4 +1,5 @@
 import type {
+  CSSProperties,
   ReactNode,
 } from "react";
 
@@ -293,12 +294,16 @@ export function AppLayout({
                         : "cursor-not-allowed opacity-45 grayscale disabled:pointer-events-none"
                     }
                   `}
+                  style={{
+                    "--menu-accent": isOnline
+                      ? module.color
+                      : "#94a3b8",
+                  } as CSSProperties}
                 >
                   <Icon
                     size={17}
                     style={{
                       color:
-                        isActive &&
                         isOnline
                           ? module.color
                           : undefined,
