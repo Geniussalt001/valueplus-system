@@ -2,14 +2,17 @@ import type {
   CSSProperties,
   ReactNode,
 } from "react";
+import {
+  useState,
+} from "react";
 
 import {
   Building2,
-  ChevronRight,
   Home,
   Link2,
   LockKeyhole,
   LogOut,
+  RefreshCw,
   ShoppingBag,
   UserRound,
 } from "lucide-react";
@@ -88,6 +91,9 @@ export function AppLayout({
   onNavigate,
   onLogout,
 }: AppLayoutProps) {
+  const [isUpdateOpen, setIsUpdateOpen] =
+    useState(false);
+
   const currentModule =
     systemModules.find(
       (module) =>
@@ -116,287 +122,143 @@ export function AppLayout({
     <main className="dashboard min-h-screen bg-[#f4faff] text-[#10243a]">
       <div className="tron-grid pointer-events-none fixed inset-0 opacity-[0.08]" />
 
-      <aside className="dashboard-sidebar fixed bottom-0 left-0 top-0 z-30 hidden w-64 flex-col overflow-y-auto border-r border-cyan-600/15 bg-white/95 p-5 backdrop-blur-xl lg:flex">
-        <button
-          type="button"
-          onClick={() =>
-            onNavigate("dashboard")
-          }
-          className="sidebar-brand-button text-left"
-          aria-label="กลับหน้าแดชบอร์ด"
-        >
-          <BrandLogo size="medium" />
-        </button>
-
-        <div className="my-5 h-px bg-gradient-to-r from-cyan-300/40 to-transparent" />
-
-        <div className="sidebar-user-card flex items-center gap-3 rounded-2xl p-3">
-          <span className="sidebar-user-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-            <UserRound size={18} />
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">
-              {workspaceName}
-            </span>
-            <span className="mt-0.5 block text-[10px] tracking-[0.12em]">
-              VALUEPLUS USER
-            </span>
-          </span>
-          <span className="status-light status-online ml-auto" aria-hidden="true" />
-        </div>
-
-        <p className="mt-5 px-3 text-[10px] tracking-[0.22em] text-slate-600">
-          WORKSPACE
-        </p>
-
-        <div className="workspace-switcher mt-3 grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50/90 p-2">
-          <button
-            type="button"
-            onClick={() =>
-              onWorkspaceChange(
-                "retail",
-              )
-            }
-            className={`
-              workspace-retail-button
-              flex
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              px-2
-              py-3
-              text-xs
-              font-medium
-              transition
-              ${
-                workspaceScope ===
-                "retail"
-                  ? "workspace-retail-active bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md shadow-cyan-900/20"
-                  : "border border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100"
-              }
-            `}
-          >
-            <ShoppingBag size={15} />
-            Retail
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              onWorkspaceChange(
-                "head-office",
-              )
-            }
-            className={`
-              workspace-head-office-button
-              flex
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              px-2
-              py-3
-              text-xs
-              font-medium
-              transition
-              ${
-                workspaceScope ===
-                "head-office"
-                  ? "workspace-head-office-active bg-gradient-to-r from-violet-600 to-indigo-700 text-white shadow-md shadow-indigo-900/20"
-                  : "border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"
-              }
-            `}
-          >
-            <Building2 size={15} />
-            สำนักงานใหญ่
-          </button>
-        </div>
-
-        <p className="mt-6 px-3 text-[10px] tracking-[0.22em] text-slate-600">
-          MAIN NAVIGATION
-        </p>
-
-        <nav className="mt-4 space-y-2">
-          <button
-            type="button"
-            onClick={() =>
-              onNavigate("dashboard")
-            }
-            className={`sidebar-item ${
-              currentRoute ===
-              "dashboard"
-                ? "sidebar-item-active"
-                : ""
-            }`}
-          >
-            <Home size={17} />
-
-            <span>แดชบอร์ด</span>
-
-            <ChevronRight
-              size={14}
-              className="ml-auto"
-            />
-          </button>
-
-          <p className="px-3 pb-1 pt-5 text-[10px] tracking-[0.2em] text-slate-700">
-            WORK MODULES
-          </p>
-
-          {availableModules.map(
-            (module) => {
-              const Icon =
-                module.icon;
-
-              const isActive =
-                currentRoute ===
-                module.route;
-
-              const isOnline =
-                module.status ===
-                "online";
-
-              return (
-                <button
-                  key={module.route}
-                  type="button"
-                  disabled={!isOnline}
-                  onClick={() => {
-                    if (!isOnline) {
-                      return;
-                    }
-
-                    onNavigate(
-                      module.route,
-                    );
-                  }}
-                  title={
-                    isOnline
-                      ? module.title
-                      : "ระบบนี้ยังไม่เปิดใช้งาน"
-                  }
-                  aria-label={
-                    isOnline
-                      ? `เปิดระบบ ${module.title}`
-                      : `${module.title} ยังไม่เปิดใช้งาน`
-                  }
-                  className={`
-                    sidebar-item
-                    ${
-                      isActive
-                        ? "sidebar-item-active"
-                        : ""
-                    }
-                    ${
-                      isOnline
-                        ? ""
-                        : "cursor-not-allowed opacity-45 grayscale disabled:pointer-events-none"
-                    }
-                  `}
-                  style={{
-                    "--menu-accent": isOnline
-                      ? module.color
-                      : "#94a3b8",
-                  } as CSSProperties}
-                >
-                  <Icon
-                    size={17}
-                    style={{
-                      color:
-                        isOnline
-                          ? module.color
-                          : undefined,
-                    }}
-                  />
-
-                  <span className="truncate">
-                    {module.title}
-                  </span>
-
-                  {!isOnline ? (
-                    <span className="ml-auto flex items-center gap-1 text-red-300/70">
-                      <Link2 size={11} />
-
-                      <LockKeyhole
-                        size={13}
-                      />
-                    </span>
-                  ) : isActive ? (
-                    <span
-                      className="status-light status-processing ml-auto"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <ChevronRight
-                      size={13}
-                      className="ml-auto opacity-40"
-                    />
-                  )}
-                </button>
-              );
-            },
-          )}
-        </nav>
-
-        <div className="mt-auto space-y-4 pt-6">
-          <UpdateCenter />
-
-          <p className="pt-2 text-[10px] tracking-[0.15em] text-slate-700">
-            VALUEPLUS SYSTEM · AUTO UPDATE
-          </p>
-        </div>
-      </aside>
-
-      <section className="relative z-10 min-h-screen lg:ml-64">
-        <header className="app-red-header sticky top-0 z-20 flex min-h-20 items-center justify-between gap-6 border-b border-cyan-600/15 bg-white/90 px-6 backdrop-blur-xl lg:px-10">
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-cyan-300">
-              VALUEPLUS WORKSPACE
-            </p>
-
-            <h1 className="mt-1 text-lg font-semibold">
-              {pageTitle}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <AppsScriptSyncStatus />
-
-            <div className="user-context-chip hidden min-h-10 items-center gap-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.04] px-4 py-2 sm:flex">
-              <span
-                className="status-light status-online"
-                aria-hidden="true"
-              />
-
-              <UserRound
-                size={15}
-                className="text-cyan-300"
-              />
-
-              <span className="text-xs font-medium tracking-[0.08em] text-cyan-100">
-                {workspaceName}
-              </span>
-            </div>
-
-            <LiveClock />
-
+      <section className="relative z-10 min-h-screen">
+        <header className="top-navigation-shell sticky top-0 z-40">
+          <div className="top-utility-bar">
             <button
               type="button"
-              onClick={onLogout}
-              className="logout-button flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-500 shadow-sm transition hover:border-red-400/60 hover:bg-red-50 hover:text-red-600"
-              aria-label="ออกจากระบบ"
-              title="ออกจากระบบ"
+              onClick={() => {
+                setIsUpdateOpen(false);
+                onNavigate("dashboard");
+              }}
+              className="top-brand-button"
+              aria-label="กลับหน้าแดชบอร์ด"
             >
-              <LogOut size={18} />
+              <BrandLogo size="medium" />
             </button>
+
+            <div className="top-workspace-switcher" aria-label="เลือกพื้นที่ทำงาน">
+              <button
+                type="button"
+                onClick={() => onWorkspaceChange("retail")}
+                className={`top-workspace-button workspace-retail-button ${
+                  workspaceScope === "retail" ? "workspace-retail-active" : ""
+                }`}
+              >
+                <ShoppingBag size={15} />
+                <span>Retail</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onWorkspaceChange("head-office")}
+                className={`top-workspace-button workspace-head-office-button ${
+                  workspaceScope === "head-office" ? "workspace-head-office-active" : ""
+                }`}
+              >
+                <Building2 size={15} />
+                <span>สำนักงานใหญ่</span>
+              </button>
+            </div>
+
+            <div className="top-page-context">
+              <p>VALUEPLUS WORKSPACE</p>
+              <h1>{pageTitle}</h1>
+            </div>
+
+            <div className="top-utility-actions">
+              <AppsScriptSyncStatus />
+
+              <div className="user-context-chip">
+                <span className="status-light status-online" aria-hidden="true" />
+                <UserRound size={15} />
+                <span>{workspaceName}</span>
+              </div>
+
+              <LiveClock />
+
+              <div className="top-update-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsUpdateOpen((current) => !current)}
+                  className={`top-update-button ${isUpdateOpen ? "top-update-button-active" : ""}`}
+                  aria-expanded={isUpdateOpen}
+                  title="ศูนย์อัปเดต"
+                >
+                  <RefreshCw size={17} />
+                  <span>อัปเดต</span>
+                </button>
+
+                {isUpdateOpen ? (
+                  <div className="top-update-popover">
+                    <UpdateCenter />
+                  </div>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={onLogout}
+                className="logout-button top-logout-button"
+                aria-label="ออกจากระบบ"
+                title="ออกจากระบบ"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           </div>
+
+          <nav className="top-module-navigation" aria-label="เมนูระบบงาน">
+            <div className="top-module-scroll">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUpdateOpen(false);
+                  onNavigate("dashboard");
+                }}
+                className={`top-module-tab top-dashboard-tab ${
+                  currentRoute === "dashboard" ? "top-module-tab-active" : ""
+                }`}
+              >
+                <span className="top-module-icon"><Home size={19} /></span>
+                <span className="top-module-label">แดชบอร์ด</span>
+              </button>
+
+              {availableModules.map((module) => {
+                const Icon = module.icon;
+                const isActive = currentRoute === module.route;
+                const isOnline = module.status === "online";
+
+                return (
+                  <button
+                    key={module.route}
+                    type="button"
+                    disabled={!isOnline}
+                    onClick={() => {
+                      if (!isOnline) return;
+                      setIsUpdateOpen(false);
+                      onNavigate(module.route);
+                    }}
+                    title={isOnline ? module.title : "ระบบนี้ยังไม่เปิดใช้งาน"}
+                    className={`top-module-tab ${
+                      isActive ? "top-module-tab-active" : ""
+                    } ${!isOnline ? "top-module-tab-offline" : ""}`}
+                    style={{
+                      "--menu-accent": isOnline ? module.color : "#94a3b8",
+                    } as CSSProperties}
+                  >
+                    <span className="top-module-icon"><Icon size={19} /></span>
+                    <span className="top-module-label">{module.title}</span>
+                    {!isOnline ? (
+                      <span className="top-module-lock"><Link2 size={10} /><LockKeyhole size={11} /></span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
         </header>
 
-        <div
-          key={currentRoute}
-          className="page-motion"
-        >
+        <div key={currentRoute} className="page-motion top-layout-content">
           {children}
         </div>
       </section>
