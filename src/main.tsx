@@ -7,6 +7,7 @@ import "./styles/effects.css";
 import "./styles/red-white-theme.css";
 import "./styles/blue-dashboard-theme.css";
 import "./styles/valueplus-red-theme.css";
+import "./styles/valueplus-modern-theme.css";
 
 import App from "./App";
 
