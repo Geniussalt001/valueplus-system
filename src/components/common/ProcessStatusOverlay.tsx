@@ -7,12 +7,12 @@ import {
 } from "react-dom";
 
 import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
-
-import {
   AnimatedProgressBar,
 } from "./AnimatedProgressBar";
+
+import {
+  IndeterminateProgressBar,
+} from "./IndeterminateProgressBar";
 
 interface ProcessStatusOverlayProps {
   open: boolean;
@@ -27,11 +27,9 @@ export function ProcessStatusOverlay({
   description = "กรุณาอย่าปิดโปรแกรมระหว่างประมวลผล",
   progress,
 }: ProcessStatusOverlayProps) {
-  const animatedProgress =
-    useAnimatedProgress(open);
   const visibleProgress =
     progress === undefined
-      ? animatedProgress
+      ? undefined
       : Math.max(
           0,
           Math.min(
@@ -110,17 +108,19 @@ export function ProcessStatusOverlay({
           {title}
         </p>
 
-        <p className="mt-3 text-3xl font-semibold tabular-nums text-cyan-700">
-          {Math.round(
-            visibleProgress,
-          )}
-          %
-        </p>
-
-        <AnimatedProgressBar
-          progress={visibleProgress}
-          className="mt-4"
-        />
+        {visibleProgress === undefined ? (
+          <IndeterminateProgressBar className="mt-5" />
+        ) : (
+          <>
+            <p className="mt-3 text-3xl font-semibold tabular-nums text-cyan-700">
+              {Math.round(visibleProgress)}%
+            </p>
+            <AnimatedProgressBar
+              progress={visibleProgress}
+              className="mt-4"
+            />
+          </>
+        )}
 
         <p
           className="

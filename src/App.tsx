@@ -20,6 +20,10 @@ import {
 } from "./layouts/AppLayout";
 
 import {
+  AppToastViewport,
+} from "./components/common/AppToastViewport";
+
+import {
   DashboardPage,
 } from "./pages/DashboardPage";
 
@@ -163,14 +167,22 @@ function App() {
     !currentUser
   ) {
     return (
-      <LoginPage
-        onLogin={handleLogin}
-      />
+      <>
+        <AppToastViewport />
+        <LoginPage
+          onLogin={handleLogin}
+        />
+      </>
     );
   }
 
   if (route === "splash") {
-    return <SplashPage />;
+    return (
+      <>
+        <AppToastViewport />
+        <SplashPage />
+      </>
+    );
   }
 
   const navigate = (nextRoute: WorkRoute) => {
@@ -310,16 +322,19 @@ function App() {
   };
 
   return (
-    <AppLayout
-      currentRoute={route}
-      currentUser={currentUser}
-      workspaceScope={workspaceScope}
-      onWorkspaceChange={changeWorkspace}
-      onNavigate={navigate}
-      onLogout={handleLogout}
-    >
-      {renderPage()}
-    </AppLayout>
+    <>
+      <AppToastViewport />
+      <AppLayout
+        currentRoute={route}
+        currentUser={currentUser}
+        workspaceScope={workspaceScope}
+        onWorkspaceChange={changeWorkspace}
+        onNavigate={navigate}
+        onLogout={handleLogout}
+      >
+        {renderPage()}
+      </AppLayout>
+    </>
   );
 }
 

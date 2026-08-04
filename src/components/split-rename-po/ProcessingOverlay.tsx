@@ -11,12 +11,8 @@ import type {
 } from "../../hooks/usePoProcessor";
 
 import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
-
-import {
-  AnimatedProgressBar,
-} from "../common/AnimatedProgressBar";
+  IndeterminateProgressBar,
+} from "../common/IndeterminateProgressBar";
 
 interface ProcessingOverlayProps {
   activity:
@@ -46,13 +42,9 @@ const activityMessages: Record<
 export function ProcessingOverlay({
   activity,
 }: ProcessingOverlayProps) {
-  const progress =
-    useAnimatedProgress(
-      activity !== "idle",
-    );
-
   if (
-    activity === "idle"
+    activity === "idle" ||
+    activity === "selecting"
   ) {
     return null;
   }
@@ -143,14 +135,8 @@ export function ProcessingOverlay({
           }
         </p>
 
-        <p className="mt-3 text-3xl font-semibold tabular-nums text-sky-700">
-          {Math.round(progress)}%
-        </p>
-
-        <AnimatedProgressBar
-          progress={progress}
+        <IndeterminateProgressBar
           className="mt-4"
-          tone="sky"
         />
 
         <p

@@ -184,6 +184,38 @@ button {
   }
 }
 
+.app-toast {
+  animation: app-toast-in 260ms ease-out both;
+}
+
+.app-toast-closing {
+  animation: app-toast-out 240ms ease-in both;
+}
+
+@keyframes app-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes app-toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(28px) scale(0.98);
+  }
+}
+
 @media (max-width: 700px) {
   .login-background {
     justify-content: center;
@@ -200,6 +232,11 @@ button {
   .card-scan::after,
   .splash-logo,
   .loading-bar {
+    animation: none;
+  }
+
+  .app-toast,
+  .app-toast-closing {
     animation: none;
   }
 }

@@ -31,12 +31,8 @@ import {
 } from "@tauri-apps/plugin-opener";
 
 import {
-  AnimatedProgressBar,
-} from "../../components/common/AnimatedProgressBar";
-
-import {
-  useAnimatedProgress,
-} from "../../hooks/useAnimatedProgress";
+  IndeterminateProgressBar,
+} from "../../components/common/IndeterminateProgressBar";
 
 import type {
   AppUser,
@@ -211,11 +207,6 @@ export function WorldwideRetailPage({
           : loading
             ? "กำลังโหลดแฟ้มข้อมูล"
             : "ดำเนินการเสร็จสิ้น";
-
-  const operationProgress =
-    useAnimatedProgress(
-      operationActive,
-    );
 
   const loadRecords =
     useCallback(async () => {
@@ -1152,9 +1143,7 @@ export function WorldwideRetailPage({
       )}
 
       <OperationProgress
-        progress={
-          operationProgress
-        }
+        active={operationActive}
         label={operationLabel}
       />
 
@@ -1607,13 +1596,13 @@ export function WorldwideRetailPage({
 }
 
 function OperationProgress({
-  progress,
+  active,
   label,
 }: {
-  progress: number;
+  active: boolean;
   label: string;
 }) {
-  if (progress <= 0) {
+  if (!active) {
     return null;
   }
 
@@ -1624,38 +1613,19 @@ function OperationProgress({
       aria-live="polite"
     >
       <div className="flex items-center gap-3">
-        {progress < 100 ? (
-          <LoaderCircle
-            size={19}
-            className="shrink-0 animate-spin text-cyan-700"
-          />
-        ) : (
-          <CheckCircle2
-            size={19}
-            className="shrink-0 text-emerald-600"
-          />
-        )}
+        <LoaderCircle
+          size={19}
+          className="shrink-0 animate-spin text-cyan-700"
+        />
 
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">
           {label}
         </p>
 
-        <span className="text-lg font-semibold tabular-nums text-cyan-700">
-          {Math.round(
-            progress,
-          )}
-          %
-        </span>
       </div>
 
-      <AnimatedProgressBar
-        progress={progress}
+      <IndeterminateProgressBar
         className="mt-3"
-        tone={
-          progress >= 100
-            ? "emerald"
-            : "cyan"
-        }
       />
     </div>
   );
@@ -1962,11 +1932,6 @@ function PdfPreviewModal({
 }) {
   const isPo =
     documentType === "po";
-  const loadingProgress =
-    useAnimatedProgress(
-      loading,
-    );
-
   useEffect(() => {
     const handleKeyDown = (
       event: KeyboardEvent,
@@ -2063,27 +2028,13 @@ function PdfPreviewModal({
                   : "text-violet-600"
               }`}
             />
-            <div className="mt-4 flex w-full max-w-md items-center justify-between gap-4">
+            <div className="mt-4 flex w-full max-w-md items-center justify-center gap-4">
               <p className="text-sm font-semibold">
                 กำลังเตรียมเอกสาร Preview
               </p>
-              <span className="text-xl font-semibold tabular-nums text-slate-800">
-                {Math.round(
-                  loadingProgress,
-                )}
-                %
-              </span>
             </div>
-            <AnimatedProgressBar
-              progress={
-                loadingProgress
-              }
+            <IndeterminateProgressBar
               className="mt-3 max-w-md"
-              tone={
-                isPo
-                  ? "sky"
-                  : "violet"
-              }
             />
           </div>
         ) : error ? (

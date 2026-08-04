@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { poProcessorService } from "../services/poProcessorService";
 
+import { showAppToast } from "../services/appToast";
+
 import type {
   PoPreviewResult,
   PoQuantityOverrides,
@@ -115,7 +117,6 @@ export function usePoProcessor() {
   }
 
   async function choosePdf() {
-    setActivity("selecting");
     setError("");
 
     try {
@@ -125,11 +126,20 @@ export function usePoProcessor() {
       if (path) {
         setPdfPath(path);
         clearResult();
+        showAppToast({
+          tone: "success",
+          title: "เลือกไฟล์ PDF แล้ว",
+          message: path,
+        });
       }
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-    } finally {
-      setActivity("idle");
+      const message = getErrorMessage(requestError);
+      setError(message);
+      showAppToast({
+        tone: "error",
+        title: "เลือกไฟล์ PDF ไม่สำเร็จ",
+        message,
+      });
     }
   }
 

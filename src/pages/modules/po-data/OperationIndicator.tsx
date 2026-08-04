@@ -1,12 +1,8 @@
 import { LoaderCircle } from "lucide-react";
 
 import {
-  AnimatedProgressBar,
-} from "../../../components/common/AnimatedProgressBar";
-
-import {
-  useAnimatedProgress,
-} from "../../../hooks/useAnimatedProgress";
+  IndeterminateProgressBar,
+} from "../../../components/common/IndeterminateProgressBar";
 
 interface OperationIndicatorProps {
   message: string;
@@ -15,11 +11,6 @@ interface OperationIndicatorProps {
 export function OperationIndicator({
   message,
 }: OperationIndicatorProps) {
-  const progress =
-    useAnimatedProgress(
-      Boolean(message),
-    );
-
   if (!message) return null;
 
   return (
@@ -32,21 +23,15 @@ export function OperationIndicator({
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[10px] tracking-[0.18em] text-cyan-300">
-            PROCESSING
-          </p>
-          <span className="text-sm font-semibold tabular-nums text-cyan-200">
-            {Math.round(progress)}%
-          </span>
-        </div>
+        <p className="text-[10px] tracking-[0.18em] text-cyan-300">
+          PROCESSING
+        </p>
 
         <p className="mt-1 text-sm text-slate-200">
           {message}
         </p>
 
-        <AnimatedProgressBar
-          progress={progress}
+        <IndeterminateProgressBar
           className="mt-3 bg-slate-700"
         />
       </div>

@@ -86,11 +86,6 @@ export function ReceivablesArchivePage({
   ] = useState(false);
 
   const [
-    loadingProgress,
-    setLoadingProgress,
-  ] = useState(0);
-
-  const [
     loadingLabel,
     setLoadingLabel,
   ] = useState("");
@@ -110,61 +105,14 @@ export function ReceivablesArchivePage({
     setSuccess,
   ] = useState("");
 
-  useEffect(() => {
-    if (!loading) {
-      return;
-    }
-
-    const timer =
-      window.setInterval(() => {
-        setLoadingProgress(
-          (current) => {
-            if (current >= 92) {
-              return current;
-            }
-
-            const step =
-              current < 35
-                ? 8
-                : current < 70
-                  ? 4
-                  : 2;
-
-            return Math.min(
-              92,
-              current + step,
-            );
-          },
-        );
-      }, 180);
-
-    return () => {
-      window.clearInterval(
-        timer,
-      );
-    };
-  }, [loading]);
-
   const beginLoading = (
     label: string,
   ) => {
     setLoadingLabel(label);
-    setLoadingProgress(8);
     setLoading(true);
   };
 
-  const finishLoading = async () => {
-    setLoadingProgress(100);
-
-    await new Promise<void>(
-      (resolve) => {
-        window.setTimeout(
-          resolve,
-          220,
-        );
-      },
-    );
-
+  const finishLoading = () => {
     setLoading(false);
   };
 
@@ -179,7 +127,6 @@ export function ReceivablesArchivePage({
         await receivablesArchiveService
           .list();
 
-      setLoadingProgress(82);
       setArchives(result);
 
       if (result.length > 0) {
@@ -197,7 +144,7 @@ export function ReceivablesArchivePage({
         ),
       );
     } finally {
-      await finishLoading();
+      finishLoading();
     }
   };
 
@@ -310,8 +257,6 @@ export function ReceivablesArchivePage({
     setSuccess("");
 
     try {
-      setLoadingProgress(48);
-
       await receivablesArchiveService
         .openGoogleSheetEditor(
           archive
@@ -323,7 +268,6 @@ export function ReceivablesArchivePage({
       setLoadingLabel(
         "เปิด Google Sheets Editor เรียบร้อยแล้ว",
       );
-      setLoadingProgress(100);
     } catch (requestError) {
       setError(
         getErrorMessage(
@@ -331,7 +275,7 @@ export function ReceivablesArchivePage({
         ),
       );
     } finally {
-      await finishLoading();
+      finishLoading();
     }
   };
 
@@ -365,8 +309,6 @@ export function ReceivablesArchivePage({
     setSelectedCell(null);
 
     try {
-      setLoadingProgress(42);
-
       const result =
         await receivablesArchiveService
           .get(
@@ -374,7 +316,6 @@ export function ReceivablesArchivePage({
             sheetName,
           );
 
-      setLoadingProgress(90);
       setDetail(result);
     } catch (requestError) {
       setError(
@@ -383,7 +324,7 @@ export function ReceivablesArchivePage({
         ),
       );
     } finally {
-      await finishLoading();
+      finishLoading();
     }
   };
 
@@ -446,8 +387,6 @@ export function ReceivablesArchivePage({
             },
           );
 
-        setLoadingProgress(35);
-
         const result =
           await receivablesArchiveService
             .update(
@@ -458,7 +397,6 @@ export function ReceivablesArchivePage({
               requestChanges,
             );
 
-        setLoadingProgress(90);
         setDetail(result);
         setChanges({});
         setSuccess(
@@ -472,7 +410,7 @@ export function ReceivablesArchivePage({
         );
       } finally {
         setSaving(false);
-        await finishLoading();
+        finishLoading();
       }
     };
 
@@ -515,9 +453,6 @@ export function ReceivablesArchivePage({
       <div className="mx-auto max-w-none px-3 py-4 lg:px-5">
         <LoadingOverlay
           open={loading}
-          progress={
-            loadingProgress
-          }
           label={loadingLabel}
         />
 
@@ -1017,9 +952,6 @@ export function ReceivablesArchivePage({
     <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
       <LoadingOverlay
         open={loading}
-        progress={
-          loadingProgress
-        }
         label={loadingLabel}
       />
 
@@ -1261,11 +1193,9 @@ export function ReceivablesArchivePage({
 
 function LoadingOverlay({
   open,
-  progress,
   label,
 }: {
   open: boolean;
-  progress: number;
   label: string;
 }) {
   if (!open) {
@@ -1293,21 +1223,14 @@ function LoadingOverlay({
             </p>
           </div>
 
-          <span className="ml-auto text-2xl font-semibold tabular-nums text-cyan-700">
-            {Math.round(
-              progress,
-            )}
-            %
-          </span>
         </div>
 
-        <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-200"
-            style={{
-              width: `${progress}%`,
-            }}
-          />
+        <div
+          className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100"
+          role="progressbar"
+          aria-label="กำลังดำเนินการ"
+        >
+          <div className="loading-bar h-full w-1/3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600" />
         </div>
       </div>
     </div>
