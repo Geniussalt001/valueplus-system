@@ -303,17 +303,73 @@ export function DailyPickingPage({
       return;
     }
 
-    addLocalLog(
-      "info",
-      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์ (เรียงทีละไฟล์เพื่อป้องกันข้อมูลชนกัน)`,
-    );
-
     let uploadedCount = 0;
     let duplicateCount = 0;
     let queuedCount = 0;
     let failedCount = 0;
     let completedCount = 0;
     let nextIndex = 0;
+    let recordsToUpload =
+      createdRecords;
+
+    try {
+      const archiveRecords =
+        await poArchiveService.list();
+      const existingPoNumbers =
+        new Set(
+          archiveRecords.map(
+            (record) =>
+              String(
+                record.poNumber || "",
+              )
+                .trim()
+                .toUpperCase(),
+          ),
+        );
+
+      recordsToUpload =
+        createdRecords.filter(
+          (record) =>
+            !existingPoNumbers.has(
+              String(
+                record.po_number || "",
+              )
+                .trim()
+                .toUpperCase(),
+            ),
+        );
+
+      duplicateCount =
+        createdRecords.length -
+        recordsToUpload.length;
+      completedCount =
+        duplicateCount;
+
+      if (duplicateCount > 0) {
+        addLocalLog(
+          "warning",
+          `ตรวจสารบัญครั้งเดียวและข้าม PO ที่มีใน Drive แล้ว ${duplicateCount} ไฟล์`,
+        );
+      }
+    } catch (reason) {
+      addLocalLog(
+        "warning",
+        `อ่านสารบัญ Drive ล่วงหน้าไม่สำเร็จ ระบบจะตรวจซ้ำระหว่างอัปโหลด — ${getErrorMessage(reason)}`,
+      );
+    }
+
+    addLocalLog(
+      "info",
+      `เริ่มบันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์ (อัปโหลดพร้อมกันสูงสุด 3 ไฟล์)`,
+    );
+
+    if (recordsToUpload.length === 0) {
+      addLocalLog(
+        "success",
+        "เอกสารทั้งหมดมีอยู่ในแฟ้ม Google Drive แล้ว",
+      );
+      return;
+    }
 
     const uploadOne = async (
       record:
@@ -349,13 +405,13 @@ export function DailyPickingPage({
 
         if (
           index >=
-          createdRecords.length
+          recordsToUpload.length
         ) {
           return;
         }
 
         const record =
-          createdRecords[index];
+          recordsToUpload[index];
 
         try {
           const uploadResult =
@@ -409,8 +465,8 @@ export function DailyPickingPage({
 
     const workerCount =
       Math.min(
-        1,
-        createdRecords.length,
+        3,
+        recordsToUpload.length,
       );
 
     await Promise.all(
