@@ -59,6 +59,12 @@ interface VisibleLog {
   message: string;
 }
 
+interface ProcessStatus {
+  title: string;
+  description: string;
+  progress?: number;
+}
+
 export function DailyPickingPage({
   onBack,
   initialPdfPath = "",
@@ -88,6 +94,16 @@ export function DailyPickingPage({
   ] = useState(
     false,
   );
+
+  const [
+    processStatus,
+    setProcessStatus,
+  ] = useState<ProcessStatus>({
+    title:
+      "กำลังประมวลผลและแยกไฟล์ PO...",
+    description:
+      "ระบบกำลังอ่านเอกสารและจัดเตรียมไฟล์",
+  });
 
   const [
     logs,
@@ -312,6 +328,18 @@ export function DailyPickingPage({
     let recordsToUpload =
       createdRecords;
 
+    setProcessStatus({
+      title:
+        "กำลังตรวจสอบแฟ้ม Google Drive...",
+      description:
+        `กำลังตรวจสารบัญก่อนอัปโหลด ${createdRecords.length} ไฟล์`,
+    });
+
+    addLocalLog(
+      "info",
+      `กำลังตรวจสอบสารบัญ Google Drive สำหรับ ${createdRecords.length} ไฟล์`,
+    );
+
     try {
       const archiveRecords =
         await poArchiveService.list();
@@ -363,11 +391,30 @@ export function DailyPickingPage({
       `เริ่มบันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์ (อัปโหลดพร้อมกันสูงสุด 3 ไฟล์)`,
     );
 
+    setProcessStatus({
+      title:
+        "กำลังอัปโหลดไฟล์ขึ้น Google Drive...",
+      description:
+        `ดำเนินการแล้ว ${completedCount} จาก ${createdRecords.length} ไฟล์ · ข้ามซ้ำ ${duplicateCount}`,
+      progress:
+        (completedCount /
+          createdRecords.length) *
+        100,
+    });
+
     if (recordsToUpload.length === 0) {
       addLocalLog(
         "success",
         "เอกสารทั้งหมดมีอยู่ในแฟ้ม Google Drive แล้ว",
       );
+
+      setProcessStatus({
+        title:
+          "ตรวจสอบ Google Drive เรียบร้อยแล้ว",
+        description:
+          `พบเอกสารครบทั้ง ${createdRecords.length} ไฟล์ ไม่ต้องอัปโหลดซ้ำ`,
+        progress: 100,
+      });
       return;
     }
 
@@ -455,6 +502,17 @@ export function DailyPickingPage({
         } finally {
           completedCount += 1;
 
+          setProcessStatus({
+            title:
+              "กำลังอัปโหลดไฟล์ขึ้น Google Drive...",
+            description:
+              `ดำเนินการแล้ว ${completedCount} จาก ${createdRecords.length} ไฟล์ · สำเร็จ ${uploadedCount} · ข้ามซ้ำ ${duplicateCount}`,
+            progress:
+              (completedCount /
+                createdRecords.length) *
+              100,
+          });
+
           addLocalLog(
             "progress",
             `บันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์`,
@@ -506,6 +564,14 @@ export function DailyPickingPage({
         `อัปโหลดไม่สำเร็จ ${failedCount} ไฟล์ ไฟล์ในเครื่องยังอยู่ครบ สามารถกดประมวลผลอีกครั้งเพื่ออัปโหลดใหม่ได้`,
       );
     }
+
+    setProcessStatus({
+      title:
+        "บันทึก Google Drive ครบแล้ว",
+      description:
+        `สำเร็จ ${uploadedCount} · ซ้ำ ${duplicateCount} · รอซิงก์ ${queuedCount} · ไม่สำเร็จ ${failedCount}`,
+      progress: 100,
+    });
   };
 
   const choosePdf = async () => {
@@ -576,6 +642,13 @@ export function DailyPickingPage({
       [],
     );
 
+    setProcessStatus({
+      title:
+        "กำลังประมวลผลและแยกไฟล์ PO...",
+      description:
+        "ระบบกำลังอ่านเอกสารและจัดเตรียมไฟล์",
+    });
+
     addLocalLog(
       "info",
       "เริ่มประมวลผลและแยกไฟล์ PO",
@@ -622,6 +695,13 @@ export function DailyPickingPage({
           "info",
           `กำลังเปิดโฟลเดอร์ปลายทาง: ${destinationFolder}`,
         );
+
+        setProcessStatus({
+          title:
+            "กำลังเปิดโฟลเดอร์ที่บันทึก...",
+          description:
+            "การแยกไฟล์และบันทึก Google Drive เสร็จเรียบร้อยแล้ว",
+        });
 
         try {
           await pdfSplitterService
@@ -699,7 +779,13 @@ export function DailyPickingPage({
     >
       <ProcessStatusOverlay
         open={processing}
-        title="กำลังประมวลผลและแยกไฟล์ PO..."
+        title={processStatus.title}
+        description={
+          processStatus.description
+        }
+        progress={
+          processStatus.progress
+        }
       />
       <header
         className="
