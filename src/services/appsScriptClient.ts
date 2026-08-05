@@ -601,6 +601,10 @@ function isTransientAppsScriptError(
 
   return [
     "ไม่ได้ส่งข้อมูลกลับมา",
+    "หมดเวลาการล็อก",
+    "ล็อกไว้นานเกินไป",
+    "lock timeout",
+    "could not acquire lock",
     "network",
     "fetch",
     "timeout",

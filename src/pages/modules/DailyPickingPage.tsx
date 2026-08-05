@@ -305,7 +305,7 @@ export function DailyPickingPage({
 
     addLocalLog(
       "info",
-      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์ (พร้อมกันสูงสุด 3 ไฟล์)`,
+      `เริ่มบันทึก Google Drive 0 / ${createdRecords.length} ไฟล์ (เรียงทีละไฟล์เพื่อป้องกันข้อมูลชนกัน)`,
     );
 
     let uploadedCount = 0;
@@ -409,7 +409,7 @@ export function DailyPickingPage({
 
     const workerCount =
       Math.min(
-        3,
+        1,
         createdRecords.length,
       );
 

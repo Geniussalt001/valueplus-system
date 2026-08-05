@@ -66,73 +66,65 @@ function uploadPoArchive(
 ) {
   validateArchiveUpload(input);
 
-  const lock =
+  const poNumber =
+    normalizeText(
+      input.poNumber,
+    );
+
+  const base64Data =
+    String(
+      input.base64Data || "",
+    ).replace(
+      /^data:application\/pdf;base64,/,
+      "",
+    );
+
+  const fileBytes =
+    Utilities.base64Decode(
+      base64Data,
+    );
+
+  if (
+    fileBytes.length >
+    MAX_ARCHIVE_PDF_SIZE_BYTES
+  ) {
+    throw new Error(
+      "ไฟล์ PDF ต้องมีขนาดไม่เกิน 8 MB",
+    );
+  }
+
+  const documentDate =
+    parseArchiveDate(
+      input.documentDate,
+    );
+
+  const fileName =
+    sanitizeFileName(
+      input.fileName ||
+        poNumber + ".pdf",
+    );
+
+  let destinationFolder;
+  const prepareLock =
     LockService.getScriptLock();
 
-  lock.waitLock(30000);
+  prepareLock.waitLock(30000);
 
   try {
-    const sheet =
-      getPoArchiveSheet();
-
-    const poNumber =
-      normalizeText(
-        input.poNumber,
-      );
-
     const duplicateRow =
       findArchiveRowByPoNumber(
         poNumber,
       );
 
     if (duplicateRow) {
-      return {
-        status: "duplicate",
-        message:
-          "พบเลข PO นี้ในแฟ้มแล้ว ระบบไม่ได้บันทึกซ้ำ",
-        record:
-          getPoArchiveRecordByRow(
-            duplicateRow,
-          ),
-      };
-    }
-
-    const base64Data =
-      String(
-        input.base64Data || "",
-      ).replace(
-        /^data:application\/pdf;base64,/,
-        "",
-      );
-
-    const fileBytes =
-      Utilities.base64Decode(
-        base64Data,
-      );
-
-    if (
-      fileBytes.length >
-      MAX_ARCHIVE_PDF_SIZE_BYTES
-    ) {
-      throw new Error(
-        "ไฟล์ PDF ต้องมีขนาดไม่เกิน 8 MB",
+      return createArchiveDuplicateResult(
+        duplicateRow,
       );
     }
 
-    const documentDate =
-      parseArchiveDate(
-        input.documentDate,
-      );
-
-    const destinationFolder =
+    destinationFolder =
       getArchiveDestinationFolder(
         documentDate,
-      );
-
-    const fileName =
-      sanitizeFileName(
-        input.fileName ||
-          poNumber + ".pdf",
       );
 
     const duplicateFiles =
@@ -141,63 +133,152 @@ function uploadPoArchive(
           fileName,
         );
 
-    if (
-      duplicateFiles.hasNext()
-    ) {
+    if (duplicateFiles.hasNext()) {
       throw new Error(
         "พบชื่อไฟล์ซ้ำใน Google Drive: " +
           fileName,
       );
     }
-
-    const blob =
-      Utilities.newBlob(
-        fileBytes,
-        "application/pdf",
-        fileName,
-      );
-
-    const file =
-      destinationFolder
-        .createFile(blob);
-
-    const now =
-      new Date();
-
-    const id =
-      "ARC-" +
-      Utilities.getUuid()
-        .split("-")[0]
-        .toUpperCase();
-
-    sheet.appendRow([
-      id,
-      poNumber,
-      documentDate.value,
-      cleanText(
-        input.warehouse,
-      ),
-      file.getId(),
-      file.getName(),
-      file.getUrl(),
-      fileBytes.length,
-      now,
-      userCode || "LOCAL",
-      "stored",
-      "",
-    ]);
-
-    return {
-      status: "stored",
-      message:
-        "บันทึกไฟล์ขึ้น Google Drive สำเร็จ",
-      record:
-        getPoArchiveRecordByRow(
-          sheet.getLastRow(),
-        ),
-    };
   } finally {
-    lock.releaseLock();
+    prepareLock.releaseLock();
+  }
+
+  const blob =
+    Utilities.newBlob(
+      fileBytes,
+      "application/pdf",
+      fileName,
+    );
+
+  const file =
+    destinationFolder
+      .createFile(blob);
+
+  let rowCommitted = false;
+
+  try {
+    const commitLock =
+      LockService.getScriptLock();
+
+    commitLock.waitLock(30000);
+
+    try {
+      const duplicateRow =
+        findArchiveRowByPoNumber(
+          poNumber,
+        );
+
+      if (duplicateRow) {
+        trashArchiveFileQuietly(
+          file,
+        );
+
+        return createArchiveDuplicateResult(
+          duplicateRow,
+        );
+      }
+
+      const duplicateFiles =
+        destinationFolder
+          .getFilesByName(
+            fileName,
+          );
+
+      while (duplicateFiles.hasNext()) {
+        const duplicateFile =
+          duplicateFiles.next();
+
+        if (
+          duplicateFile.getId() !==
+          file.getId()
+        ) {
+          trashArchiveFileQuietly(
+            file,
+          );
+
+          throw new Error(
+            "พบชื่อไฟล์ซ้ำใน Google Drive: " +
+              fileName,
+          );
+        }
+      }
+
+      const sheet =
+        getPoArchiveSheet();
+      const now =
+        new Date();
+      const id =
+        "ARC-" +
+        Utilities.getUuid()
+          .split("-")[0]
+          .toUpperCase();
+
+      sheet.appendRow([
+        id,
+        poNumber,
+        documentDate.value,
+        cleanText(
+          input.warehouse,
+        ),
+        file.getId(),
+        file.getName(),
+        file.getUrl(),
+        fileBytes.length,
+        now,
+        userCode || "LOCAL",
+        "stored",
+        "",
+      ]);
+
+      const rowNumber =
+        sheet.getLastRow();
+
+      rowCommitted = true;
+
+      return {
+        status: "stored",
+        message:
+          "บันทึกไฟล์ขึ้น Google Drive สำเร็จ",
+        record:
+          getPoArchiveRecordByRow(
+            rowNumber,
+          ),
+      };
+    } finally {
+      commitLock.releaseLock();
+    }
+  } catch (error) {
+    if (!rowCommitted) {
+      trashArchiveFileQuietly(
+        file,
+      );
+    }
+
+    throw error;
+  }
+}
+
+function createArchiveDuplicateResult(
+  rowNumber,
+) {
+  return {
+    status: "duplicate",
+    message:
+      "พบเลข PO นี้ในแฟ้มแล้ว ระบบไม่ได้บันทึกซ้ำ",
+    record:
+      getPoArchiveRecordByRow(
+        rowNumber,
+      ),
+  };
+}
+
+function trashArchiveFileQuietly(
+  file,
+) {
+  try {
+    file.setTrashed(true);
+  } catch (_error) {
+    // A cleanup failure must not hide the original upload error.
   }
 }
 
