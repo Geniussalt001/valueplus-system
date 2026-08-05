@@ -125,9 +125,18 @@ function App() {
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
 
+  const outboxSyncEnabled =
+    Boolean(currentUser) &&
+    route !== "login" &&
+    route !== "splash";
+
   useEffect(() => {
+    if (!outboxSyncEnabled) {
+      return;
+    }
+
     return startAppsScriptOutboxSync();
-  }, []);
+  }, [outboxSyncEnabled]);
 
   useEffect(() => {
     if (route !== "splash") {
@@ -136,7 +145,7 @@ function App() {
 
     const timer = window.setTimeout(() => {
       setRoute("dashboard");
-    }, 2200);
+    }, 700);
 
     return () => {
       window.clearTimeout(timer);

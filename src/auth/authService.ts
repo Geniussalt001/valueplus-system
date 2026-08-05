@@ -32,6 +32,8 @@ export const authService = {
         },
         {
           requireSession: false,
+          requestProfile:
+            "interactive",
         },
       );
 
@@ -71,6 +73,8 @@ export const authService = {
         input,
         {
           requireSession: false,
+          requestProfile:
+            "interactive",
         },
       );
 

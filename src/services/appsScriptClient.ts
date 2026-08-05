@@ -24,7 +24,12 @@ interface RequestOptions {
   queueOnFailure?: boolean;
   requestId?: string;
   transport?: ApiTransport;
+  requestProfile?: RequestProfile;
 }
+
+type RequestProfile =
+  | "default"
+  | "interactive";
 
 type ApiTransport =
   "apps-script";
@@ -227,6 +232,8 @@ export async function activateAppsScript(
 async function executeWithTransientRetry<T>(
   operation: () => Promise<T>,
   maximumAttempts: number,
+  retryDelays =
+    transientRetryDelays,
 ): Promise<T> {
   let lastError: unknown;
 
@@ -250,10 +257,10 @@ async function executeWithTransientRetry<T>(
       }
 
       const baseDelay =
-        transientRetryDelays[
+        retryDelays[
           Math.min(
             attempt - 1,
-            transientRetryDelays.length - 1,
+            retryDelays.length - 1,
           )
         ];
 
@@ -323,7 +330,22 @@ export async function callAppsScript<T>(
     options.retryTransient ===
     false
       ? 1
-      : 5;
+      : options.requestProfile ===
+          "interactive"
+        ? 3
+        : 5;
+
+  const retryDelays =
+    options.requestProfile ===
+    "interactive"
+      ? interactiveRetryDelays
+      : transientRetryDelays;
+
+  const connectTimeoutMs =
+    options.requestProfile ===
+    "interactive"
+      ? 7_000
+      : 15_000;
 
   const responseCacheKey =
     cacheableReadActions.has(
@@ -343,6 +365,7 @@ export async function callAppsScript<T>(
             await sendApiRequest<T>(
               requestBody,
               transport,
+              connectTimeoutMs,
             );
 
           return unwrapAppsScriptResult(
@@ -350,6 +373,7 @@ export async function callAppsScript<T>(
           );
         },
         maximumAttempts,
+        retryDelays,
       );
 
     if (responseCacheKey) {
@@ -472,6 +496,11 @@ const transientRetryDelays = [
   4_500,
 ];
 
+const interactiveRetryDelays = [
+  250,
+  600,
+];
+
 const transientHttpStatuses =
   new Set([
     404,
@@ -487,13 +516,15 @@ const transientHttpStatuses =
 async function sendApiRequest<T>(
   requestBody: string,
   _transport: ApiTransport,
+  connectTimeoutMs = 15_000,
 ): Promise<AppsScriptResponse<T>> {
   const response = await fetch(
     appsScriptApiUrl,
     {
       method: "POST",
       maxRedirections: 10,
-      connectTimeout: 15_000,
+      connectTimeout:
+        connectTimeoutMs,
       headers: {
         "Content-Type":
           "text/plain;charset=utf-8",
