@@ -207,6 +207,14 @@ export function DailyPickingPage({
           payload.level ===
           "progress"
         ) {
+          // Reserve the sequence before React evaluates the state updater.
+          // Updaters can be replayed in development and progress events can
+          // arrive alongside local upload logs, so mutating the sequence from
+          // inside the updater could produce duplicate React keys.
+          logSequence.current += 1;
+          const entryId =
+            logSequence.current;
+
           setLogs((current) => {
             const lastEntry =
               current[
@@ -224,19 +232,17 @@ export function DailyPickingPage({
                 ),
                 {
                   ...lastEntry,
+                  id: entryId,
                   message:
                     payload.message,
                 },
               ];
             }
 
-            logSequence.current += 1;
-
             return [
               ...current,
               {
-                id:
-                  logSequence.current,
+                id: entryId,
                 level:
                   "progress",
                 message:
