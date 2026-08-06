@@ -25,7 +25,12 @@ interface RequestOptions {
   requestId?: string;
   transport?: ApiTransport;
   requestProfile?: RequestProfile;
+  cachePolicy?: CachePolicy;
 }
+
+type CachePolicy =
+  | "network-first"
+  | "cache-first";
 
 type RequestProfile =
   | "default"
@@ -357,6 +362,30 @@ export async function callAppsScript<T>(
         )
       : "";
 
+  if (
+    responseCacheKey &&
+    options.cachePolicy ===
+      "cache-first"
+  ) {
+    try {
+      const cached =
+        await invoke<T | null>(
+          "read_apps_script_cache",
+          {
+            cacheKey:
+              responseCacheKey,
+          },
+        );
+
+      if (cached !== null) {
+        return cached;
+      }
+    } catch {
+      // A missing or damaged cache must transparently fall back to
+      // the live Apps Script request.
+    }
+  }
+
   try {
     const result =
       await executeWithTransientRetry(
@@ -462,6 +491,7 @@ export async function callAppsScript<T>(
 const queueableMutationActions =
   new Set([
     "archive.uploadPdf",
+    "archive.registerUpload",
     "receivables.saveMonthly",
     "receivables.saveCreditNotes",
     "receivables.archiveUpdate",

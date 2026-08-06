@@ -463,7 +463,11 @@ export function PoSevenArchivePage({
     try {
       const pdf =
         await poArchiveService
-          .getPdf(record.id);
+          .getPdf(
+            record.id,
+            record.fileId,
+            record.fileName,
+          );
 
       if (previewUrl) {
         URL.revokeObjectURL(
@@ -536,7 +540,11 @@ export function PoSevenArchivePage({
 
         const pdf =
           await poArchiveService
-            .getPdf(record.id);
+            .getPdf(
+              record.id,
+              record.fileId,
+              record.fileName,
+            );
 
         await poArchiveService
           .savePdf(

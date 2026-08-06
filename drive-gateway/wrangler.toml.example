@@ -1,0 +1,13 @@
+name = "valueplus-drive-gateway"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+[vars]
+# โฟลเดอร์นี้ใช้เป็นปลายทางเริ่มต้นสำหรับ resumable upload
+DRIVE_ROOT_FOLDER_ID = "PUT_GOOGLE_DRIVE_FOLDER_ID_HERE"
+
+# ตั้งค่าด้วย `wrangler secret put` เท่านั้น ห้ามใส่ค่าจริงในไฟล์นี้:
+# DRIVE_GATEWAY_SIGNING_SECRET
+# GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET
+# GOOGLE_REFRESH_TOKEN

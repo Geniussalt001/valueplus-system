@@ -121,6 +121,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          VITE_DRIVE_GATEWAY_URL: https://valueplus-drive-gateway.oilfacebook22.workers.dev
         with:
           owner: Geniussalt001
           repo: valueplus-system-releases

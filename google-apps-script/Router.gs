@@ -149,6 +149,47 @@ function doPost(event) {
 
     if (
       request.action ===
+      "archive.prepareUpload"
+    ) {
+      return createJsonResponse({
+        success: true,
+        data:
+          preparePoArchiveUpload(
+            request.data,
+          ),
+      });
+    }
+
+    if (
+      request.action ===
+      "archive.registerUpload"
+    ) {
+      const replayedRegistration =
+        getCachedRequestResult(
+          request,
+        );
+
+      if (replayedRegistration) {
+        return createJsonResponse(
+          replayedRegistration,
+        );
+      }
+
+      return createRequestResponse(
+        request,
+        {
+          success: true,
+          data:
+            registerPoArchiveUpload(
+              request.data,
+              "LOCAL",
+            ),
+        },
+      );
+    }
+
+    if (
+      request.action ===
       "archive.getPdf"
     ) {
       return createJsonResponse({
@@ -192,6 +233,13 @@ function doPost(event) {
         data =
           logoutUserSession(
             request.sessionToken,
+          );
+        break;
+
+      case "system.gatewayToken":
+        data =
+          issueDriveGatewayToken(
+            session,
           );
         break;
 
@@ -423,6 +471,7 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "auth.login",
   "auth.logout",
   "archive.uploadPdf",
+  "archive.registerUpload",
   "receivables.saveMonthly",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
@@ -455,6 +504,7 @@ const MAX_REQUEST_LOG_ROWS =
 
 const PERSISTENT_REPLAY_ACTIONS = [
   "archive.uploadPdf",
+  "archive.registerUpload",
   "receivables.saveMonthly",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",

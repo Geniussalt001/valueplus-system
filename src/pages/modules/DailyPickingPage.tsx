@@ -40,6 +40,10 @@ import {
   isAppsScriptQueuedError,
 } from "../../services/appsScriptClient";
 
+import {
+  hasDriveGateway,
+} from "../../services/driveGatewayClient";
+
 import type {
   PdfSplitLogEvent,
   PdfSplitLogLevel,
@@ -386,9 +390,12 @@ export function DailyPickingPage({
       );
     }
 
+    const uploadConcurrency =
+      hasDriveGateway() ? 6 : 3;
+
     addLocalLog(
       "info",
-      `เริ่มบันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์ (อัปโหลดพร้อมกันสูงสุด 3 ไฟล์)`,
+      `เริ่มบันทึก Google Drive ${completedCount} / ${createdRecords.length} ไฟล์ (อัปโหลดพร้อมกันสูงสุด ${uploadConcurrency} ไฟล์)`,
     );
 
     setProcessStatus({
@@ -422,14 +429,10 @@ export function DailyPickingPage({
       record:
         PdfSplitResult["records"][number],
     ) => {
-      const localPdf =
-        await poArchiveService
-          .readLocalPdf(
-            record.output_path,
-          );
-
       return poArchiveService
-        .upload({
+        .uploadFromPath({
+          path:
+            record.output_path,
           poNumber:
             record.po_number,
           documentDate:
@@ -437,9 +440,7 @@ export function DailyPickingPage({
           warehouse:
             record.warehouse,
           fileName:
-            localPdf.fileName,
-          base64Data:
-            localPdf.base64Data,
+            `${record.po_number}.pdf`,
         });
     };
 
@@ -523,7 +524,7 @@ export function DailyPickingPage({
 
     const workerCount =
       Math.min(
-        3,
+        uploadConcurrency,
         recordsToUpload.length,
       );
 

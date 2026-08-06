@@ -258,6 +258,204 @@ function uploadPoArchive(
   }
 }
 
+function preparePoArchiveUpload(
+  input,
+) {
+  if (
+    !input ||
+    !input.poNumber ||
+    !input.documentDate ||
+    !input.fileName
+  ) {
+    throw new Error(
+      "ข้อมูลเตรียมอัปโหลดไม่ครบถ้วน",
+    );
+  }
+
+  const poNumber =
+    normalizeText(
+      input.poNumber,
+    );
+  const duplicateRow =
+    findArchiveRowByPoNumber(
+      poNumber,
+    );
+
+  if (duplicateRow) {
+    return {
+      status: "duplicate",
+      result:
+        createArchiveDuplicateResult(
+          duplicateRow,
+        ),
+    };
+  }
+
+  const documentDate =
+    parseArchiveDate(
+      input.documentDate,
+    );
+  const destinationFolder =
+    getArchiveDestinationFolder(
+      documentDate,
+    );
+  const fileName =
+    sanitizeFileName(
+      input.fileName,
+    );
+  const duplicateFiles =
+    destinationFolder
+      .getFilesByName(fileName);
+
+  if (duplicateFiles.hasNext()) {
+    throw new Error(
+      "พบชื่อไฟล์ซ้ำใน Google Drive: " +
+        fileName,
+    );
+  }
+
+  return {
+    status: "ready",
+    folderId:
+      destinationFolder.getId(),
+    fileName: fileName,
+  };
+}
+
+function registerPoArchiveUpload(
+  input,
+  userCode,
+) {
+  if (
+    !input ||
+    !input.fileId ||
+    !input.poNumber ||
+    !input.documentDate
+  ) {
+    throw new Error(
+      "ข้อมูลยืนยันไฟล์อัปโหลดไม่ครบถ้วน",
+    );
+  }
+
+  const poNumber =
+    normalizeText(input.poNumber);
+  const documentDate =
+    parseArchiveDate(
+      input.documentDate,
+    );
+  const file =
+    DriveApp.getFileById(
+      String(input.fileId),
+    );
+
+  if (
+    file.getMimeType() !==
+      "application/pdf" ||
+    file.getSize() >
+      MAX_ARCHIVE_PDF_SIZE_BYTES
+  ) {
+    trashArchiveFileQuietly(file);
+    throw new Error(
+      "ไฟล์ที่อัปโหลดไม่ใช่ PDF หรือมีขนาดเกิน 8 MB",
+    );
+  }
+
+  const expectedFolder =
+    getArchiveDestinationFolder(
+      documentDate,
+    );
+  let belongsToFolder = false;
+  const parents = file.getParents();
+
+  while (parents.hasNext()) {
+    if (
+      parents.next().getId() ===
+      expectedFolder.getId()
+    ) {
+      belongsToFolder = true;
+      break;
+    }
+  }
+
+  if (!belongsToFolder) {
+    trashArchiveFileQuietly(file);
+    throw new Error(
+      "ตำแหน่งจัดเก็บไฟล์ไม่ถูกต้อง",
+    );
+  }
+
+  const lock =
+    LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    const duplicateRow =
+      findArchiveRowByPoNumber(
+        poNumber,
+      );
+
+    if (duplicateRow) {
+      const existing =
+        getPoArchiveRecordByRow(
+          duplicateRow,
+        );
+
+      if (
+        existing.fileId ===
+        file.getId()
+      ) {
+        return {
+          status: "stored",
+          message:
+            "ยืนยันไฟล์ Google Drive แล้ว",
+          record: existing,
+        };
+      }
+
+      trashArchiveFileQuietly(file);
+      return createArchiveDuplicateResult(
+        duplicateRow,
+      );
+    }
+
+    const sheet =
+      getPoArchiveSheet();
+    const now = new Date();
+    const id =
+      "ARC-" +
+      Utilities.getUuid()
+        .split("-")[0]
+        .toUpperCase();
+
+    sheet.appendRow([
+      id,
+      poNumber,
+      documentDate.value,
+      cleanText(input.warehouse),
+      file.getId(),
+      file.getName(),
+      file.getUrl(),
+      file.getSize(),
+      now,
+      userCode || "LOCAL",
+      "stored",
+      "",
+    ]);
+
+    return {
+      status: "stored",
+      message:
+        "บันทึกไฟล์ขึ้น Google Drive สำเร็จ",
+      record:
+        getPoArchiveRecordByRow(
+          sheet.getLastRow(),
+        ),
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function createArchiveDuplicateResult(
   rowNumber,
 ) {

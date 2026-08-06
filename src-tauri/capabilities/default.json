@@ -42,6 +42,9 @@
         },
         {
           "url": "https://script.googleusercontent.com/**"
+        },
+        {
+          "url": "https://*.workers.dev/**"
         }
       ]
     }

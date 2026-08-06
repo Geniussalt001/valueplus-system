@@ -843,6 +843,12 @@ export function WorldwideRetailPage({
         .getPdf(
           record.id,
           documentType,
+          documentType === "po"
+            ? record.poFileId
+            : record.ivFileId,
+          documentType === "po"
+            ? record.poFileName
+            : record.ivFileName,
         )
         .then((pdf) => {
           const loaded = {

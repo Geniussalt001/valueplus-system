@@ -14,6 +14,11 @@ import {
   callAppsScript,
 } from "./appsScriptClient";
 
+import {
+  getGatewayPdf,
+  hasDriveGateway,
+} from "./driveGatewayClient";
+
 import type {
   DeleteWorldwideRetailResult,
   SelectedWorldwidePdf,
@@ -137,7 +142,23 @@ export const worldwideRetailService = {
   async getPdf(
     id: string,
     documentType: "po" | "iv",
+    fileId = "",
+    fileName = "document.pdf",
   ): Promise<WorldwideRetailPdf> {
+    if (
+      fileId &&
+      hasDriveGateway()
+    ) {
+      try {
+        return await getGatewayPdf(
+          fileId,
+          fileName,
+        );
+      } catch {
+        // Fall back to Apps Script during staged deployment.
+      }
+    }
+
     return callAppsScript<
       WorldwideRetailPdf
     >(
@@ -145,6 +166,10 @@ export const worldwideRetailService = {
       {
         id,
         documentType,
+      },
+      {
+        cachePolicy:
+          "cache-first",
       },
     );
   },

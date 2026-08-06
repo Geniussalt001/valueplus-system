@@ -31,6 +31,14 @@ export interface UploadPoArchiveInput {
   base64Data: string;
 }
 
+export interface UploadPoArchivePathInput
+  extends Omit<
+    UploadPoArchiveInput,
+    "base64Data"
+  > {
+  path: string;
+}
+
 export interface PoArchivePdf {
   fileId: string;
   fileName: string;

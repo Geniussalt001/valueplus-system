@@ -39,8 +39,10 @@ use commands::pdf_splitter::{
 };
 
 use commands::local_pdf::{
+    get_local_pdf_metadata,
     read_local_pdf_base64,
     save_archive_pdf_base64,
+    upload_pdf_resumable,
 };
 
 use commands::po_processor::{
@@ -139,6 +141,8 @@ pub fn run() {
                 print_po_workbook,
                 split_po_pdf,
                 read_local_pdf_base64,
+                get_local_pdf_metadata,
+                upload_pdf_resumable,
                 save_archive_pdf_base64,
                 process_express_summary,
                 preview_daily_so,

@@ -14,6 +14,8 @@ target/
 .env
 .env.*
 !.env.example
+drive-gateway/.dev.vars*
+drive-gateway/wrangler.toml
 
 # Logs
 *.log

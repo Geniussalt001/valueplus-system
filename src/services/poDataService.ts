@@ -2,6 +2,11 @@ import {
   callAppsScript,
 } from "./appsScriptClient";
 
+import {
+  getGatewayPdf,
+  hasDriveGateway,
+} from "./driveGatewayClient";
+
 import type {
   NewPoInput,
   PoHistoryRecord,
@@ -112,13 +117,36 @@ export const poDataService = {
     );
   },
 
-  getPdf(
+  async getPdf(
     id: string,
+    fileId = "",
+    fileName = "document.pdf",
   ): Promise<PoPdfResponse> {
+    if (
+      fileId &&
+      hasDriveGateway()
+    ) {
+      try {
+        return await getGatewayPdf(
+          fileId,
+          fileName,
+        );
+      } catch {
+        // Fall back to Apps Script during staged deployment.
+      }
+    }
+
     return callAppsScript<
       PoPdfResponse
-    >("po.getPdf", {
-      id,
-    });
+    >(
+      "po.getPdf",
+      {
+        id,
+      },
+      {
+        cachePolicy:
+          "cache-first",
+      },
+    );
   },
 };
