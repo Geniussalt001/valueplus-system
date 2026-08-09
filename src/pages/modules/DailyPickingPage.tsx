@@ -254,13 +254,17 @@ export function DailyPickingPage({
           return;
         }
 
+        // Capture the sequence immediately. React can defer/replay state
+        // updaters, so reading the mutable ref from inside the updater can
+        // give several queued log entries the same id.
         logSequence.current += 1;
+        const entryId =
+          logSequence.current;
 
         setLogs((current) => [
           ...current,
           {
-            id:
-              logSequence.current,
+            id: entryId,
             level:
               payload.level,
             message:
@@ -295,12 +299,13 @@ export function DailyPickingPage({
     message: string,
   ) => {
     logSequence.current += 1;
+    const entryId =
+      logSequence.current;
 
     setLogs((current) => [
       ...current,
       {
-        id:
-          logSequence.current,
+        id: entryId,
         level,
         message,
       },
