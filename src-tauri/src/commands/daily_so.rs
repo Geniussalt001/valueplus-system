@@ -17,6 +17,7 @@ pub struct DailySoInput {
     template_path: String,
     output_folder: Option<String>,
     quantity_overrides: Option<Value>,
+    warehouse_overrides: Option<Value>,
 }
 
 #[derive(
@@ -125,6 +126,19 @@ fn validate_input(
         }
     }
 
+    if input
+        .warehouse_overrides
+        .as_ref()
+        .is_some_and(|value| {
+            !value.is_object()
+        })
+    {
+        return Err(
+            "ข้อมูลจัดการคลังไม่ถูกต้อง"
+                .to_string(),
+        );
+    }
+
     Ok(())
 }
 
@@ -191,6 +205,33 @@ fn run_python(
         )
         .arg(
             &input.template_path,
+        );
+
+    let warehouse_overrides = input
+        .warehouse_overrides
+        .as_ref()
+        .map(|value| {
+            serde_json::to_string(
+                value,
+            )
+        })
+        .transpose()
+        .map_err(|error| {
+            format!(
+                "แปลงข้อมูลจัดการคลังไม่สำเร็จ: {}",
+                error,
+            )
+        })?
+        .unwrap_or_else(|| {
+            "{}".to_string()
+        });
+
+    command
+        .arg(
+            "--warehouse-overrides-json",
+        )
+        .arg(
+            warehouse_overrides,
         );
 
     if preview_only {
