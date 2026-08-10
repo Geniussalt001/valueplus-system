@@ -44,10 +44,7 @@ class PurchaseOrder:
             and bool(self.express_date)
             and bool(self.sales_area_code)
             and bool(active_items)
-            and all(
-                item.match_status in {"matched", "matched_name"}
-                for item in active_items
-            )
+            and all(item.match_status == "matched" for item in active_items)
         )
 
     def to_dict(self) -> dict[str, Any]:

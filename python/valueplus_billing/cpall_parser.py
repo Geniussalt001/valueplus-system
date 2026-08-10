@@ -7,6 +7,10 @@ from pathlib import Path
 
 import pdfplumber
 
+from valueplus_common.cpall_pdf import (
+    normalize_wrapped_item_quantities,
+)
+
 from .mappings import assign_sales_areas
 from .models import ProductItem, PurchaseOrder
 from .product_database import ProductDatabase
@@ -50,7 +54,9 @@ def parse_pdf(
 
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
-            text = page.extract_text(x_tolerance=2, y_tolerance=3) or ""
+            text = normalize_wrapped_item_quantities(
+                page.extract_text(x_tolerance=2, y_tolerance=3) or "",
+            )
             po_match = PO_PATTERN.search(text)
             if not po_match:
                 continue
@@ -104,6 +110,17 @@ def parse_pdf(
         if unmatched:
             order.warnings.append(
                 "ไม่มีรหัส Express: " + ", ".join(sorted(set(unmatched)))
+            )
+
+        suggested = [
+            item.cpall_code
+            for item in order.items
+            if item.match_status == "matched_name"
+        ]
+        if suggested:
+            order.warnings.append(
+                "พบรหัส CPALL ใหม่ กรุณายืนยันรหัส Express: "
+                + ", ".join(sorted(set(suggested)))
             )
 
         orders.append(order)

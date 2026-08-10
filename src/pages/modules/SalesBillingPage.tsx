@@ -23,8 +23,10 @@ import {
   FileUp,
   MonitorDot,
   Octagon,
+  PackagePlus,
   Play,
   ReceiptText,
+  Save,
 } from "lucide-react";
 
 import {
@@ -83,6 +85,10 @@ export function SalesBillingPage({
   const [error, setError] =
     useState("");
   const [success, setSuccess] =
+    useState("");
+  const [mappingDrafts, setMappingDrafts] =
+    useState<Record<string, string>>({});
+  const [savingProduct, setSavingProduct] =
     useState("");
 
   useEffect(() => {
@@ -184,6 +190,29 @@ export function SalesBillingPage({
     [orders],
   );
 
+  const newProducts = useMemo(() => {
+    const products = new Map<
+      string,
+      SalesBillingOrder["items"][number]
+    >();
+
+    for (const order of orders) {
+      for (const item of order.items) {
+        if (
+          item.match_status === "unmatched" ||
+          item.match_method === "fuzzy_name"
+        ) {
+          products.set(
+            item.cpall_code,
+            item,
+          );
+        }
+      }
+    }
+
+    return [...products.values()];
+  }, [orders]);
+
   const currentPercent = useMemo(() => {
     if (
       !progress ||
@@ -270,6 +299,71 @@ export function SalesBillingPage({
       );
     } finally {
       setActivity("idle");
+    }
+  }
+
+  async function saveNewProduct(
+    item: SalesBillingOrder["items"][number],
+  ) {
+    const expressCode =
+      normalizeExpressCode(
+        mappingDrafts[item.cpall_code] ??
+          item.express_code,
+      );
+
+    if (
+      !/^\d{2}-\d{4}-\d{2}$/.test(
+        expressCode,
+      )
+    ) {
+      setError(
+        "กรุณากรอกรหัส Express รูปแบบ 01-0000-00",
+      );
+      return;
+    }
+
+    setSavingProduct(item.cpall_code);
+    setError("");
+    setSuccess("");
+
+    try {
+      await salesBillingService
+        .saveProductMapping({
+          cpallCode: item.cpall_code,
+          barcode: item.barcode,
+          pdfName: item.pdf_name,
+          expressCode,
+        });
+
+      const result =
+        await salesBillingService.preview(
+          pdfPath,
+          startIv.trim(),
+        );
+
+      setPreview({
+        ...result,
+        orders: result.orders.map(
+          (order) => ({
+            ...order,
+            selected: order.ready,
+          }),
+        ),
+      });
+      setMappingDrafts((current) => {
+        const next = { ...current };
+        delete next[item.cpall_code];
+        return next;
+      });
+      setSuccess(
+        `บันทึกสินค้า ${item.cpall_code} และรหัส Express ${expressCode} เรียบร้อยแล้ว`,
+      );
+    } catch (requestError) {
+      setError(
+        getErrorMessage(requestError),
+      );
+    } finally {
+      setSavingProduct("");
     }
   }
 
@@ -631,6 +725,97 @@ export function SalesBillingPage({
               tone="violet"
             />
           </section>
+
+          {newProducts.length > 0 && (
+            <section className="mt-6 overflow-hidden rounded-2xl border border-amber-300 bg-white shadow-[0_18px_42px_rgba(217,119,6,0.12)]">
+              <div className="flex flex-col gap-3 border-b border-amber-200 bg-gradient-to-r from-amber-50 via-white to-cyan-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-white text-amber-600 shadow-sm">
+                    <PackagePlus size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-amber-700">
+                      NEW PRODUCT DETECTED
+                    </p>
+                    <h3 className="mt-1 font-semibold text-slate-900">
+                      พบสินค้าใหม่ {newProducts.length} รายการ
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      ระบบอ่านข้อมูลจาก PDF ให้แล้ว กรุณากรอกรหัส Express เพียงครั้งเดียว
+                    </p>
+                  </div>
+                </div>
+                <span className="w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-semibold text-amber-700">
+                  บันทึกถาวรใน ValuePlus Data
+                </span>
+              </div>
+
+              <div className="grid gap-4 p-5 xl:grid-cols-2">
+                {newProducts.map((item) => {
+                  const draft =
+                    mappingDrafts[item.cpall_code] ??
+                    item.express_code;
+                  const saving =
+                    savingProduct === item.cpall_code;
+
+                  return (
+                    <article
+                      key={item.cpall_code}
+                      className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-mono text-xs font-semibold text-amber-700">
+                            CPALL {item.cpall_code}
+                          </p>
+                          <h4 className="mt-2 text-sm font-semibold text-slate-900">
+                            {item.pdf_name}
+                          </h4>
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            Barcode {item.barcode || "-"} • ราคา {item.unit_price.toLocaleString("th-TH")}
+                          </p>
+                        </div>
+                        {item.match_method === "fuzzy_name" && (
+                          <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-700">
+                            ระบบแนะนำ {item.express_code}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                        <input
+                          value={draft}
+                          disabled={saving || busy}
+                          onChange={(event) => {
+                            setMappingDrafts((current) => ({
+                              ...current,
+                              [item.cpall_code]: normalizeExpressCodeInput(
+                                event.target.value,
+                              ),
+                            }));
+                          }}
+                          placeholder="01-0000-00"
+                          maxLength={10}
+                          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm font-semibold text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                        />
+                        <button
+                          type="button"
+                          disabled={saving || busy || !draft.trim()}
+                          onClick={() => {
+                            void saveNewProduct(item);
+                          }}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <Save size={17} />
+                          {saving ? "กำลังบันทึก..." : "บันทึกสินค้า"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           <div className="mt-6 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
             <section className="vp-data-card overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
@@ -1036,12 +1221,32 @@ function isOrderReady(
       order.express_date &&
       order.sales_area_code &&
       items.length > 0 &&
-      items.every((item) =>
-        [
-          "matched",
-          "matched_name",
-        ].includes(item.match_status),
-      ),
+      items.every((item) => item.match_status === "matched"),
+  );
+}
+
+function normalizeExpressCodeInput(
+  value: string,
+): string {
+  const digits = value
+    .toUpperCase()
+    .replace(/[^0-9]/g, "")
+    .slice(0, 8);
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+  if (digits.length <= 6) {
+    return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  }
+  return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`;
+}
+
+function normalizeExpressCode(
+  value: string,
+): string {
+  return normalizeExpressCodeInput(
+    value,
   );
 }
 

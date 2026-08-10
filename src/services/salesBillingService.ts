@@ -4,6 +4,7 @@ import {
 
 import {
   desktopDir,
+  join,
 } from "@tauri-apps/api/path";
 
 import {
@@ -23,6 +24,16 @@ const pdfFilter = [
   },
 ];
 
+async function getCatalogPath():
+  Promise<string>
+{
+  return join(
+    await desktopDir(),
+    "ValuePlus Data",
+    "valueplus.db",
+  );
+}
+
 export const salesBillingService = {
   async selectPdf(): Promise<string | null> {
     const selected = await open({
@@ -41,12 +52,36 @@ export const salesBillingService = {
     pdfPath: string,
     startIv: string,
   ): Promise<SalesBillingPreview> {
+    const catalogPath =
+      await getCatalogPath();
+
     return invoke<SalesBillingPreview>(
       "preview_sales_billing",
       {
         input: {
           pdfPath,
           startIv,
+          catalogPath,
+        },
+      },
+    );
+  },
+
+  async saveProductMapping(input: {
+    cpallCode: string;
+    barcode: string;
+    pdfName: string;
+    expressCode: string;
+  }): Promise<void> {
+    const catalogPath =
+      await getCatalogPath();
+
+    await invoke(
+      "save_sales_billing_product",
+      {
+        input: {
+          ...input,
+          catalogPath,
         },
       },
     );
