@@ -11,6 +11,8 @@ export interface DailySoInput {
   outputFolder?: string;
   quantityOverrides?:
     Record<string, number>;
+  warehouseOverrides?:
+    Record<string, "Q19" | "Q20">;
 }
 
 export type DailySoRecordStatus =
@@ -60,6 +62,8 @@ export interface DailySoResult {
   error_count: number;
   unknown_warehouses: string[];
   groups: DailySoGroup[];
+  warehouse_overrides?:
+    Record<string, "Q19" | "Q20">;
   output_folder: string;
   output_paths: string[];
 }

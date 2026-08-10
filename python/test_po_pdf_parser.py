@@ -22,8 +22,8 @@ class PoPdfParserTest(unittest.TestCase):
 
     def test_joins_five_digit_wrapped_quantity(self):
         text = (
-            "1 8859898700316 สินค้าทดสอบ 1 10,000.    0 8.13\n"
-            "                                  00\n"
+            "1 8859898700316 สินค้าทดสอบ 1 10,000 0 8.13\n"
+            "                                  .00\n"
         )
 
         normalized = _normalize_wrapped_decimal_values(text)
@@ -34,6 +34,14 @@ class PoPdfParserTest(unittest.TestCase):
         self.assertEqual(
             float(match.group(4).replace(",", "")),
             10000.0,
+        )
+
+    def test_does_not_join_unrelated_wrapped_decimal(self):
+        text = "ยอดรวม 10,000.\n00\n"
+
+        self.assertEqual(
+            _normalize_wrapped_decimal_values(text),
+            text.rstrip("\n"),
         )
 
     def test_keeps_complete_quantity_unchanged(self):

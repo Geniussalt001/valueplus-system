@@ -7,6 +7,7 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowRightLeft,
   Ban,
   Boxes,
   CheckCircle2,
@@ -23,6 +24,7 @@ import {
   TriangleAlert,
   Upload,
   Warehouse,
+  X,
 } from "lucide-react";
 
 import {
@@ -49,6 +51,7 @@ interface DailySoPageProps {
 type Activity =
   | "idle"
   | "preview"
+  | "warehouse"
   | "export";
 
 type QuantityEdits =
@@ -56,6 +59,13 @@ type QuantityEdits =
     string,
     number | ""
   >;
+
+type WarehouseGroupCode =
+  | "Q19"
+  | "Q20";
+
+type WarehouseAssignments =
+  Record<string, WarehouseGroupCode>;
 
 export function DailySoPage({
   onBack,
@@ -125,6 +135,21 @@ export function DailySoPage({
   ] = useState<QuantityEdits>(
     {},
   );
+
+  const [
+    warehouseAssignments,
+    setWarehouseAssignments,
+  ] = useState<WarehouseAssignments>({});
+
+  const [
+    warehouseDraft,
+    setWarehouseDraft,
+  ] = useState<WarehouseAssignments>({});
+
+  const [
+    warehouseManagerOpen,
+    setWarehouseManagerOpen,
+  ] = useState(false);
 
   const busy =
     activity !== "idle";
@@ -228,6 +253,10 @@ export function DailySoPage({
       setQuantityEdits(
         {},
       );
+
+      setWarehouseAssignments({});
+      setWarehouseDraft({});
+      setWarehouseManagerOpen(false);
     } catch (reason) {
       setError(
         getErrorMessage(
@@ -265,6 +294,8 @@ export function DailySoPage({
             pdfPath,
             templatePath:
               paths.templatePath,
+            warehouseOverrides:
+              warehouseAssignments,
           });
 
       setPreview(
@@ -295,6 +326,86 @@ export function DailySoPage({
     }
   };
 
+  const openWarehouseManager = () => {
+    if (!preview || busy) {
+      return;
+    }
+
+    const assignments: WarehouseAssignments = {};
+
+    for (const group of preview.groups) {
+      for (const warehouse of group.warehouses) {
+        assignments[warehouse] = group.code;
+      }
+    }
+
+    setWarehouseDraft(assignments);
+    setWarehouseManagerOpen(true);
+  };
+
+  const saveWarehouseAssignments = async () => {
+    if (!preview || !paths || !pdfPath || busy) {
+      return;
+    }
+
+    setWarehouseManagerOpen(false);
+    setActivity("warehouse");
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await dailySoService.preview({
+        pdfPath,
+        templatePath: paths.templatePath,
+        warehouseOverrides: warehouseDraft,
+      });
+
+      setPreview(result);
+      setWarehouseAssignments(warehouseDraft);
+      setAdjusting(false);
+      setQuantityEdits({});
+      setSuccess(
+        "บันทึกการย้ายคลังแล้ว Preview Q19 และ Q20 ถูกคำนวณใหม่เรียบร้อย",
+      );
+    } catch (reason) {
+      setError(getErrorMessage(reason));
+      setWarehouseManagerOpen(true);
+    } finally {
+      setActivity("idle");
+    }
+  };
+
+  const restoreWarehouseDefaults = async () => {
+    if (!preview || !paths || !pdfPath || busy) {
+      return;
+    }
+
+    setWarehouseManagerOpen(false);
+    setActivity("warehouse");
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await dailySoService.preview({
+        pdfPath,
+        templatePath: paths.templatePath,
+        warehouseOverrides: {},
+      });
+
+      setPreview(result);
+      setWarehouseAssignments({});
+      setWarehouseDraft({});
+      setAdjusting(false);
+      setQuantityEdits({});
+      setSuccess("คืนค่ากลุ่มคลัง Q19 และ Q20 ตามมาตรฐานแล้ว");
+    } catch (reason) {
+      setError(getErrorMessage(reason));
+      setWarehouseManagerOpen(true);
+    } finally {
+      setActivity("idle");
+    }
+  };
+
   useEffect(() => {
     if (
       !initialPdfPath ||
@@ -309,6 +420,9 @@ export function DailySoPage({
     setPreview(null);
     setAdjusting(false);
     setQuantityEdits({});
+    setWarehouseAssignments({});
+    setWarehouseDraft({});
+    setWarehouseManagerOpen(false);
     setActivity("preview");
     setError("");
     setSuccess(
@@ -319,6 +433,7 @@ export function DailySoPage({
       .preview({
         pdfPath: initialPdfPath,
         templatePath: paths.templatePath,
+        warehouseOverrides: {},
       })
       .then((result) => {
         setPreview(result);
@@ -406,6 +521,8 @@ export function DailySoPage({
             outputFolder:
               outputFolder,
             quantityOverrides,
+            warehouseOverrides:
+              warehouseAssignments,
           });
 
       setPreview(
@@ -453,9 +570,33 @@ export function DailySoPage({
         title={
           activity === "export"
             ? "กำลังสร้างไฟล์ Q19 และ Q20..."
-            : "กำลังอ่าน PDF และรวมยอด SO..."
+            : activity === "warehouse"
+              ? "กำลังจัดกลุ่มคลัง Q19 และ Q20 ใหม่..."
+              : "กำลังอ่าน PDF และรวมยอด SO..."
         }
       />
+
+      {warehouseManagerOpen && preview && (
+        <WarehouseManagerModal
+          groups={preview.groups}
+          assignments={warehouseDraft}
+          onChange={(warehouse, groupCode) => {
+            setWarehouseDraft((current) => ({
+              ...current,
+              [warehouse]: groupCode,
+            }));
+          }}
+          onClose={() => {
+            setWarehouseManagerOpen(false);
+          }}
+          onRestore={() => {
+            void restoreWarehouseDefaults();
+          }}
+          onSave={() => {
+            void saveWarehouseAssignments();
+          }}
+        />
+      )}
       <header
         className="
           vp-page-header
@@ -865,6 +1006,18 @@ export function DailySoPage({
         {preview && (
           <button
             type="button"
+            disabled={busy}
+            onClick={openWarehouseManager}
+            className="vp-action-button flex items-center gap-2 rounded-xl border border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-3 text-sm font-semibold text-cyan-800 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <ArrowRightLeft size={18} />
+            จัดการคลัง
+          </button>
+        )}
+
+        {preview && (
+          <button
+            type="button"
             disabled={
               busy ||
               invalidQuantityEdit
@@ -1264,6 +1417,154 @@ export function DailySoPage({
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function WarehouseManagerModal({
+  groups,
+  assignments,
+  onChange,
+  onClose,
+  onRestore,
+  onSave,
+}: {
+  groups: DailySoGroup[];
+  assignments: WarehouseAssignments;
+  onChange: (
+    warehouse: string,
+    groupCode: WarehouseGroupCode,
+  ) => void;
+  onClose: () => void;
+  onRestore: () => void;
+  onSave: () => void;
+}) {
+  const warehouses = groups.flatMap((group) =>
+    group.warehouses.map((warehouse) => ({
+      warehouse,
+      currentGroup: group.code,
+    })),
+  );
+
+  const q19Count = warehouses.filter(
+    ({ warehouse, currentGroup }) =>
+      (assignments[warehouse] ?? currentGroup) === "Q19",
+  ).length;
+  const q20Count = warehouses.length - q19Count;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="warehouse-manager-title"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm"
+    >
+      <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-2xl shadow-slate-900/20">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-white text-cyan-700 shadow-sm">
+              <ArrowRightLeft size={21} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
+                WAREHOUSE MANAGER
+              </p>
+              <h3
+                id="warehouse-manager-title"
+                className="mt-1 text-xl font-semibold text-slate-900"
+              >
+                จัดการคลัง Q19 / Q20
+              </h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                เลือกกลุ่มปลายทางของแต่ละคลัง แล้วกดบันทึกเพื่อคำนวณ Preview และไฟล์ Excel ใหม่
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="ปิดหน้าต่างจัดการคลัง"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+          >
+            <X size={19} />
+          </button>
+        </div>
+
+        <div className="flex gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
+          <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+            Q19 · {q19Count} คลัง
+          </span>
+          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
+            Q20 · {q20Count} คลัง
+          </span>
+        </div>
+
+        <div className="max-h-[55vh] space-y-3 overflow-y-auto p-6">
+          {warehouses.map(({ warehouse, currentGroup }) => {
+            const selected = assignments[warehouse] ?? currentGroup;
+
+            return (
+              <div
+                key={warehouse}
+                className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <Warehouse size={19} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">
+                      {warehouse}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      เลือกว่าจะรวมยอดและบันทึกไว้ในไฟล์ใด
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5">
+                  {(["Q19", "Q20"] as const).map((groupCode) => (
+                    <button
+                      key={groupCode}
+                      type="button"
+                      onClick={() => onChange(warehouse, groupCode)}
+                      className={`min-w-24 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
+                        selected === groupCode
+                          ? groupCode === "Q19"
+                            ? "bg-violet-600 text-white shadow-md shadow-violet-200"
+                            : "bg-cyan-600 text-white shadow-md shadow-cyan-200"
+                          : "bg-white text-slate-500 hover:text-slate-900"
+                      }`}
+                    >
+                      {groupCode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onRestore}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+          >
+            <RotateCcw size={17} />
+            คืนค่ามาตรฐาน
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-200 transition hover:-translate-y-0.5"
+          >
+            <Check size={18} />
+            บันทึกการย้ายคลัง
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

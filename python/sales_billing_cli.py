@@ -14,14 +14,22 @@ from valueplus_billing.express_plan import assign_iv_numbers
 from valueplus_billing.models import ProductItem, PurchaseOrder
 from valueplus_billing.product_database import ProductDatabase
 from valueplus_billing.runtime_paths import product_db_path
+from valueplus_billing.product_mapping_store import save_product_mapping
 
 
 def write_json(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, ensure_ascii=False), flush=True)
 
 
-def preview(pdf_path: Path, start_iv: str) -> dict[str, Any]:
-    database = ProductDatabase(product_db_path())
+def preview(
+    pdf_path: Path,
+    start_iv: str,
+    catalog_path: Path | None = None,
+) -> dict[str, Any]:
+    database = ProductDatabase(
+        product_db_path(),
+        catalog_path,
+    )
     orders = parse_pdf(pdf_path, database)
     assign_iv_numbers(orders, start_iv)
     return result_payload(orders)
@@ -311,6 +319,14 @@ def build_parser() -> argparse.ArgumentParser:
     preview_parser = subparsers.add_parser("preview")
     preview_parser.add_argument("--pdf", required=True)
     preview_parser.add_argument("--start-iv", required=True)
+    preview_parser.add_argument("--catalog")
+
+    mapping_parser = subparsers.add_parser("save-product")
+    mapping_parser.add_argument("--catalog", required=True)
+    mapping_parser.add_argument("--cpall-code", required=True)
+    mapping_parser.add_argument("--barcode", default="")
+    mapping_parser.add_argument("--pdf-name", required=True)
+    mapping_parser.add_argument("--express-code", required=True)
 
     execute_parser = subparsers.add_parser("execute")
     execute_parser.add_argument("--request", required=True)
@@ -323,7 +339,22 @@ def main() -> int:
     args = build_parser().parse_args()
     try:
         if args.command == "preview":
-            data = preview(Path(args.pdf), args.start_iv)
+            data = preview(
+                Path(args.pdf),
+                args.start_iv,
+                Path(args.catalog) if args.catalog else None,
+            )
+            write_json({"success": True, "data": data})
+            return 0
+
+        if args.command == "save-product":
+            data = save_product_mapping(
+                database_path=Path(args.catalog),
+                cpall_code=args.cpall_code,
+                barcode=args.barcode,
+                pdf_name=args.pdf_name,
+                express_code=args.express_code,
+            )
             write_json({"success": True, "data": data})
             return 0
 

@@ -17,6 +17,17 @@ use crate::python_engine::engine_command;
 pub struct SalesBillingPreviewInput {
     pdf_path: String,
     start_iv: String,
+    catalog_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SalesBillingProductMappingInput {
+    catalog_path: String,
+    cpall_code: String,
+    barcode: String,
+    pdf_name: String,
+    express_code: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,6 +63,9 @@ pub async fn preview_sales_billing(
         if input.start_iv.trim().is_empty() {
             return Err("กรุณาระบุเลข IV เริ่มต้น".to_string());
         }
+        if input.catalog_path.trim().is_empty() {
+            return Err("ไม่พบตำแหน่งฐานข้อมูลสินค้า".to_string());
+        }
 
         let output = engine_command("sales-billing", "sales_billing_cli.py")?
             .arg("preview")
@@ -59,6 +73,8 @@ pub async fn preview_sales_billing(
             .arg(pdf_path)
             .arg("--start-iv")
             .arg(input.start_iv.trim())
+            .arg("--catalog")
+            .arg(input.catalog_path.trim())
             .output()
             .map_err(|error| format!("เปิดระบบ Preview ไม่สำเร็จ: {}", error))?;
 
@@ -81,6 +97,52 @@ pub async fn preview_sales_billing(
     })
     .await
     .map_err(|error| format!("ระบบ Preview หยุดทำงาน: {}", error))?
+}
+
+#[tauri::command]
+pub async fn save_sales_billing_product(
+    input: SalesBillingProductMappingInput,
+) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if input.catalog_path.trim().is_empty() {
+            return Err("ไม่พบตำแหน่งฐานข้อมูลสินค้า".to_string());
+        }
+
+        let output = engine_command("sales-billing", "sales_billing_cli.py")?
+            .arg("save-product")
+            .arg("--catalog")
+            .arg(input.catalog_path.trim())
+            .arg("--cpall-code")
+            .arg(input.cpall_code.trim())
+            .arg("--barcode")
+            .arg(input.barcode.trim())
+            .arg("--pdf-name")
+            .arg(input.pdf_name.trim())
+            .arg("--express-code")
+            .arg(input.express_code.trim())
+            .output()
+            .map_err(|error| format!("บันทึกสินค้าใหม่ไม่สำเร็จ: {}", error))?;
+
+        let text = if output.stdout.is_empty() {
+            String::from_utf8_lossy(&output.stderr).trim().to_string()
+        } else {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        };
+        let response: PythonResponse = serde_json::from_str(&text)
+            .map_err(|error| format!("อ่านผลบันทึกสินค้าไม่สำเร็จ: {}\n{}", error, text))?;
+
+        if !output.status.success() || !response.success {
+            return Err(response
+                .message
+                .unwrap_or_else(|| "บันทึกสินค้าใหม่ไม่สำเร็จ".to_string()));
+        }
+
+        response
+            .data
+            .ok_or_else(|| "ระบบไม่ได้ส่งข้อมูลสินค้ากลับมา".to_string())
+    })
+    .await
+    .map_err(|error| format!("ระบบบันทึกสินค้าหยุดทำงาน: {}", error))?
 }
 
 #[tauri::command]

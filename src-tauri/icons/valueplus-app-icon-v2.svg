@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="shell" x1="128" y1="72" x2="896" y2="952" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#12c8dc"/>
+      <stop offset="0.48" stop-color="#6d63f3"/>
+      <stop offset="1" stop-color="#eb5bb4"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="280" y1="180" x2="760" y2="824" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fff7f9"/>
+    </linearGradient>
+    <linearGradient id="vmark" x1="292" y1="280" x2="716" y2="750" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9f1730"/>
+      <stop offset="0.55" stop-color="#c3263e"/>
+      <stop offset="1" stop-color="#e03b58"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="252" y1="214" x2="780" y2="742" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.82"/>
+      <stop offset="0.46" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- A generous transparent margin prevents Windows from clipping the glow. -->
+  <rect x="78" y="92" width="868" height="868" rx="226" fill="#6e3155" opacity="0.18"/>
+  <rect x="78" y="78" width="868" height="868" rx="226" fill="url(#shell)"/>
+  <rect x="96" y="96" width="832" height="832" rx="210" fill="url(#paper)"/>
+  <rect x="112" y="112" width="800" height="800" rx="196" fill="none" stroke="#ffffff" stroke-width="8" opacity="0.82"/>
+
+  <!-- Compact V+ mark: deliberately bold so it stays legible at taskbar sizes. -->
+  <g>
+    <path d="M250 308h174l88 153 88-153h174L512 784 250 308Z" fill="#741126" opacity="0.16"/>
+    <path d="M238 292h174l100 174 100-174h174L512 766 238 292Z" fill="url(#vmark)"/>
+    <path d="M238 292h174l100 174-51 88L354 368H282l-44-76Z" fill="#8f1329" opacity="0.5"/>
+    <path d="M650 190h82v76h76v82h-76v76h-82v-76h-76v-82h76v-76Z" fill="#c3263e"/>
+  </g>
+
+  <!-- Subtle glass highlight links the icon to the modern white UI. -->
+  <path d="M206 154h464c-188 42-347 144-478 306-32 40-58 83-80 128V296c0-78 40-124 94-142Z" fill="url(#shine)"/>
+
+  <!-- Tiny cyan/violet signature bars remain visible at medium icon sizes. -->
+  <rect x="326" y="820" width="218" height="16" rx="8" fill="#13bfd5"/>
+  <rect x="558" y="820" width="140" height="16" rx="8" fill="#725ff2"/>
+</svg>

@@ -67,6 +67,7 @@ use commands::sales_billing::{
     control_sales_billing,
     preview_sales_billing,
     run_sales_billing,
+    save_sales_billing_product,
 };
 
 #[tauri::command]
@@ -153,6 +154,7 @@ pub fn run() {
                 preview_sales_billing,
                 run_sales_billing,
                 control_sales_billing,
+                save_sales_billing_product,
             ],
         )
         .run(

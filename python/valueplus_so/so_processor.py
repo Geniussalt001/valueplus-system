@@ -117,6 +117,7 @@ class TemplateProduct:
 def preview_daily_so(
     pdf_path: str | Path,
     template_path: str | Path,
+    warehouse_overrides: dict[str, str] | None = None,
 ) -> dict:
     source_pdf = _validate_file(
         pdf_path,
@@ -143,6 +144,7 @@ def preview_daily_so(
         source_template,
         documents,
         template_products,
+        warehouse_overrides or {},
     )
 
 
@@ -151,10 +153,12 @@ def process_daily_so(
     template_path: str | Path,
     output_folder: str | Path,
     quantity_overrides: dict[str, float] | None = None,
+    warehouse_overrides: dict[str, str] | None = None,
 ) -> dict:
     preview = preview_daily_so(
         pdf_path,
         template_path,
+        warehouse_overrides,
     )
 
     if preview["error_count"] > 0:
@@ -519,6 +523,7 @@ def _build_preview(
     template_path: Path,
     documents: list[PdfDocument],
     template_products: list[TemplateProduct],
+    warehouse_overrides: dict[str, str],
 ) -> dict:
     dates = {
         document.document_date
@@ -547,6 +552,11 @@ def _build_preview(
 
     groups = []
     total_errors = 0
+    normalized_overrides = (
+        _normalize_warehouse_overrides(
+            warehouse_overrides,
+        )
+    )
 
     for group_code in (
         "Q19",
@@ -555,8 +565,9 @@ def _build_preview(
         group_documents = [
             document
             for document in documents
-            if _warehouse_group(
+            if _resolved_warehouse_group(
                 document.warehouse,
+                normalized_overrides,
             ) == group_code
         ]
 
@@ -578,8 +589,9 @@ def _build_preview(
     unknown_warehouses = sorted({
         document.warehouse
         for document in documents
-        if _warehouse_group(
+        if _resolved_warehouse_group(
             document.warehouse,
+            normalized_overrides,
         ) is None
     })
 
@@ -617,6 +629,9 @@ def _build_preview(
             unknown_warehouses
         ),
         "groups": groups,
+        "warehouse_overrides": (
+            normalized_overrides
+        ),
         "output_folder": "",
         "output_paths": [],
     }
@@ -1182,6 +1197,40 @@ def _warehouse_group(
         return "Q20"
 
     return None
+
+
+def _normalize_warehouse_overrides(
+    overrides: dict[str, str],
+) -> dict[str, str]:
+    normalized: dict[str, str] = {}
+
+    for warehouse, group_code in overrides.items():
+        warehouse_name = _normalize_warehouse(
+            str(warehouse or ""),
+        )
+        target = str(group_code or "").upper().strip()
+
+        if not warehouse_name:
+            continue
+
+        if target not in {"Q19", "Q20"}:
+            raise DailySoError(
+                f"กลุ่มปลายทางของคลัง {warehouse_name} ไม่ถูกต้อง",
+            )
+
+        normalized[warehouse_name] = target
+
+    return normalized
+
+
+def _resolved_warehouse_group(
+    warehouse: str,
+    overrides: dict[str, str],
+) -> str | None:
+    return overrides.get(
+        _normalize_warehouse(warehouse),
+        _warehouse_group(warehouse),
+    )
 
 
 def _normalize_product_name(

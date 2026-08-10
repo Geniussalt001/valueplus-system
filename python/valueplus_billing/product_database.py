@@ -6,19 +6,33 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 from .models import ProductItem
+from .product_mapping_store import load_product_mappings
 
 
 class ProductDatabase:
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        path: Path,
+        mapping_database_path: Path | None = None,
+    ) -> None:
         self.path = path
+        self.mapping_database_path = mapping_database_path
         self.products = self._load()
 
     def _load(self) -> dict[str, dict[str, str]]:
         payload = json.loads(self.path.read_text(encoding="utf-8"))
-        return {
+        products = {
             str(product["cpall_code"]): product
             for product in payload["products"]
         }
+
+        if self.mapping_database_path is not None:
+            for product in load_product_mappings(
+                self.mapping_database_path,
+            ):
+                products[str(product["cpall_code"])] = product
+
+        return products
 
     @staticmethod
     def _normalize_name(value: str) -> str:
