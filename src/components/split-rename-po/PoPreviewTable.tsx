@@ -41,8 +41,7 @@ export function PoPreviewTable({
         </p>
 
         <p className="mt-1 text-xs text-slate-500">
-          ตรวจสอบคลัง, PO,
-          IV และการจับคู่สินค้า
+          ตรวจสอบคลัง, PO, IV และจุดที่ต้องแก้ไขของสินค้า
           ก่อนสร้างไฟล์ Excel
         </p>
       </div>
@@ -51,7 +50,7 @@ export function PoPreviewTable({
         <table
           className="
             w-full
-            min-w-[980px]
+            min-w-[1180px]
             text-left
           "
         >
@@ -92,6 +91,10 @@ export function PoPreviewTable({
 
               <th className="px-5 py-4">
                 สินค้า
+              </th>
+
+              <th className="px-5 py-4">
+                สิ่งที่ต้องตรวจ
               </th>
 
               <th className="px-5 py-4">
@@ -219,6 +222,12 @@ export function PoPreviewTable({
                     )}
                   </td>
 
+                  <td className="min-w-[270px] px-5 py-4">
+                    <ReviewGuidance
+                      record={record}
+                    />
+                  </td>
+
                   <td className="px-5 py-4">
                     <RecordStatus
                       record={
@@ -290,35 +299,48 @@ function RecordStatus({
     record.status ===
     "review"
   ) {
+    const unmatchedItems = record.items.filter(
+      (item) => !item.matched,
+    );
+    const firstIssue = unmatchedItems[0];
+
     return (
-      <div
-        title={
-          record.message
-        }
-        className="
-          inline-flex
-          items-center
-          gap-2
-          rounded-full
-          border
-          border-amber-300/15
-          bg-amber-300/[0.06]
-          px-3
-          py-1.5
-          text-xs
-          text-amber-300
-        "
-      >
-        <span
-          className="status-light status-waiting"
-          aria-hidden="true"
-        />
+      <div className="min-w-[230px] space-y-2">
+        <div
+          title={
+            record.message
+          }
+          className="
+            inline-flex
+            items-center
+            gap-2
+            rounded-full
+            border
+            border-amber-300/15
+            bg-amber-300/[0.06]
+            px-3
+            py-1.5
+            text-xs
+            text-amber-300
+          "
+        >
+          <span
+            className="status-light status-waiting"
+            aria-hidden="true"
+          />
 
-        <TriangleAlert
-          size={14}
-        />
+          <TriangleAlert
+            size={14}
+          />
 
-        รอตรวจสอบ
+          มีจุดต้องตรวจ
+        </div>
+
+        <p className="text-xs leading-5 text-amber-800">
+          {firstIssue
+            ? `${firstIssue.pdf_name || firstIssue.barcode || "สินค้า"}: ${firstIssue.message || "ไม่พบข้อมูลสำหรับจับคู่สินค้า"}`
+            : record.message || "ตรวจสอบข้อมูล PO และสินค้าในชีตปลายทาง"}
+        </p>
       </div>
     );
   }
@@ -352,6 +374,66 @@ function RecordStatus({
       />
 
       ผิดพลาด
+    </div>
+  );
+}
+
+function ReviewGuidance({
+  record,
+}: {
+  record: PoPreviewRecord;
+}) {
+  if (record.status === "ready") {
+    return (
+      <p className="text-xs text-emerald-700">
+        สินค้าตรงกับชีตปลายทางแล้ว
+      </p>
+    );
+  }
+
+  if (record.status === "error") {
+    return (
+      <p className="text-xs leading-5 text-red-700">
+        {record.message || "ตรวจสอบข้อมูล PO และไฟล์ PDF อีกครั้ง"}
+      </p>
+    );
+  }
+
+  const unmatchedItems = record.items.filter(
+    (item) => !item.matched,
+  );
+  const visibleItems = unmatchedItems.slice(0, 2);
+  const remainingCount = unmatchedItems.length - visibleItems.length;
+
+  return (
+    <div className="space-y-1.5 text-xs leading-5">
+      <p className="font-semibold text-amber-700">
+        ตรวจ {unmatchedItems.length} รายการก่อนสร้างไฟล์
+      </p>
+
+      {visibleItems.map((item, index) => (
+        <div
+          key={`${item.barcode}-${item.pdf_name}-${index}`}
+          className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-2.5 py-1.5"
+        >
+          <p className="font-medium text-slate-700">
+            {item.pdf_name || item.barcode || "ไม่พบชื่อสินค้า"}
+          </p>
+          <p className="text-amber-800">
+            {item.message || "ไม่พบข้อมูลสำหรับจับคู่สินค้า"}
+          </p>
+        </div>
+      ))}
+
+      {remainingCount > 0 && (
+        <p className="text-amber-700">
+          และมีอีก {remainingCount} รายการที่ต้องตรวจ
+        </p>
+      )}
+
+      <p className="text-slate-500">
+        ให้เปิด PDF หน้า {record.pages.join(", ")} แล้วเทียบกับชีต {record.target_sheet}
+      </p>
     </div>
   );
 }
