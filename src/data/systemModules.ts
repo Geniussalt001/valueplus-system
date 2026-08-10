@@ -142,7 +142,7 @@ export const systemModules:
     },
 
     {
-      id: 8,
+      id: 7,
       route:
         "retail-worldwide-po",
       title:
@@ -163,7 +163,7 @@ export const systemModules:
     },
 
     {
-      id: 7,
+      id: 8,
       route:
         "po-data",
       title:

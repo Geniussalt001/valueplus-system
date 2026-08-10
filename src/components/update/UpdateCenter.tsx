@@ -201,16 +201,16 @@ export function UpdateCenter() {
             : "status-online";
 
   return (
-    <section className="update-center-panel rounded-xl border border-cyan-600/15 bg-cyan-50/60 p-4 shadow-sm">
+    <section className="update-center-panel rounded-2xl border border-sky-200 bg-gradient-to-br from-white via-sky-50 to-violet-50 p-4 shadow-[0_12px_30px_rgba(56,86,146,0.10)]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold tracking-[0.17em] text-cyan-300">
+          <p className="text-[10px] font-bold tracking-[0.17em] text-sky-700">
             UPDATE CENTER
           </p>
 
-          <p className="mt-1.5 text-xs text-slate-300">
+          <p className="mt-1.5 text-xs text-slate-600">
             VERSION{" "}
-            <span className="font-semibold text-cyan-100">
+            <span className="font-bold text-violet-700">
               {currentVersion}
             </span>
           </p>
@@ -229,26 +229,26 @@ export function UpdateCenter() {
         status === "installing" ? (
           <LoaderCircle
             size={14}
-            className="shrink-0 animate-spin text-cyan-300"
+            className="shrink-0 animate-spin text-sky-600"
           />
         ) : status === "available" ? (
           <Download
             size={14}
-            className="shrink-0 text-amber-300"
+            className="shrink-0 text-amber-600"
           />
         ) : status === "error" ? (
           <TriangleAlert
             size={14}
-            className="shrink-0 text-red-300"
+            className="shrink-0 text-rose-600"
           />
         ) : (
           <CheckCircle2
             size={14}
-            className="shrink-0 text-emerald-300"
+            className="shrink-0 text-emerald-600"
           />
         )}
 
-        <p className="line-clamp-2 text-[10px] leading-4 text-slate-500">
+        <p className="line-clamp-2 text-[10px] font-medium leading-4 text-slate-600">
           {message}
         </p>
       </div>
@@ -265,7 +265,7 @@ export function UpdateCenter() {
             />
           </div>
 
-          <p className="mt-1.5 text-right text-[9px] text-cyan-300">
+          <p className="mt-1.5 text-right text-[9px] font-semibold text-sky-700">
             {progress}%
           </p>
         </div>
@@ -277,7 +277,7 @@ export function UpdateCenter() {
           onClick={() => {
             void startUpdate();
           }}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300/25 bg-amber-300/[0.08] px-3 py-2 text-[10px] font-semibold text-amber-200 transition hover:bg-amber-300/[0.14]"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-500 bg-gradient-to-r from-violet-600 to-fuchsia-500 px-3 py-2.5 text-[10px] font-bold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-fuchsia-600"
         >
           <RotateCcw size={13} />
           อัปเดตเป็น {nextVersion}
@@ -289,7 +289,7 @@ export function UpdateCenter() {
           onClick={() => {
             void checkUpdate();
           }}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] px-3 py-2 text-[10px] font-semibold text-cyan-200 transition hover:bg-cyan-300/[0.1] disabled:cursor-not-allowed disabled:opacity-45"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-600 bg-gradient-to-r from-sky-600 to-cyan-500 px-3 py-2.5 text-[10px] font-bold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:from-sky-700 hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {status === "checking" ? (
             <LoaderCircle

@@ -1743,10 +1743,10 @@ function PdfUploadCard({
       <button
         type="button"
         onClick={onSelect}
-        className={`mt-5 w-full rounded-xl border px-4 py-3 text-sm font-semibold text-white shadow-sm transition ${
+        className={`worldwide-file-button mt-5 w-full rounded-xl border px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 ${
           isPo
-            ? "border-cyan-600 bg-cyan-600 hover:border-cyan-700 hover:bg-cyan-700"
-            : "border-violet-600 bg-violet-600 hover:border-violet-700 hover:bg-violet-700"
+            ? "worldwide-file-button-po border-cyan-500 bg-gradient-to-r from-cyan-500 to-sky-500 shadow-cyan-500/20 hover:from-cyan-600 hover:to-sky-600"
+            : "worldwide-file-button-iv border-fuchsia-400 bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-violet-500/20 hover:from-violet-600 hover:to-fuchsia-600"
         }`}
       >
         {file

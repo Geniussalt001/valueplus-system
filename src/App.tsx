@@ -125,6 +125,12 @@ function App() {
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
 
+  const [nextProcessIv, setNextProcessIv] =
+    useState("");
+
+  const [nextProcessCsvPath, setNextProcessCsvPath] =
+    useState("");
+
   const outboxSyncEnabled =
     Boolean(currentUser) &&
     route !== "login" &&
@@ -164,6 +170,8 @@ function App() {
 
   const handleLogout = () => {
     setNextProcessPdfPath("");
+    setNextProcessIv("");
+    setNextProcessCsvPath("");
     setWorkspaceScope("retail");
     setCurrentUser(null);
     setRoute("login");
@@ -203,6 +211,8 @@ function App() {
   ) => {
     setWorkspaceScope(nextWorkspace);
     setNextProcessPdfPath("");
+    setNextProcessIv("");
+    setNextProcessCsvPath("");
     setRoute("dashboard");
   };
 
@@ -210,8 +220,16 @@ function App() {
     setRoute("dashboard");
   };
 
-  const continueToDailySo = (pdfPath: string) => {
+  const continueToDailySo = (
+    pdfPath: string,
+    startIv: string,
+  ) => {
     setNextProcessPdfPath(pdfPath);
+    setNextProcessIv(
+      startIv
+        ? `VPR${startIv.replace(/\D/g, "")}`
+        : "",
+    );
     setRoute("daily-so");
   };
 
@@ -230,13 +248,25 @@ function App() {
     setRoute("daily-summary");
   };
 
-  const continueToReceivablesFreight = () => {
+  const continueToReceivablesFreight = (
+    csvPath = "",
+  ) => {
     setNextProcessPdfPath("");
+    setNextProcessCsvPath(csvPath);
     setRoute("receivables-freight");
   };
 
   const consumeNextProcessPdf = () => {
     setNextProcessPdfPath("");
+  };
+
+  const consumeSalesBillingHandoff = () => {
+    setNextProcessPdfPath("");
+    setNextProcessIv("");
+  };
+
+  const consumeNextProcessCsv = () => {
+    setNextProcessCsvPath("");
   };
 
   const renderPage = () => {
@@ -264,7 +294,8 @@ function App() {
           <SalesBillingPage
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
-            onInitialPdfConsumed={consumeNextProcessPdf}
+            initialIv={nextProcessIv}
+            onInitialPdfConsumed={consumeSalesBillingHandoff}
             onNextProcess={continueToSplitRename}
           />
         );
@@ -300,6 +331,8 @@ function App() {
         return (
           <ReceivablesFreightPage
             onBack={backToDashboard}
+            initialCsvPath={nextProcessCsvPath}
+            onInitialCsvConsumed={consumeNextProcessCsv}
           />
         );
 

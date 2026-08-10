@@ -43,8 +43,8 @@ interface LoginPageProps {
 const accounts = [
   {
     code: "OFFICE",
-    label: "สำนักงาน",
-    englishLabel: "OFFICE",
+    label: "คลังสินค้า",
+    englishLabel: "WAREHOUSE",
     description:
       "สำหรับจัดการและประมวลผลงานประจำวัน",
     icon: Warehouse,
@@ -241,7 +241,7 @@ export function LoginPage({
             </h1>
 
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกส่วนงาน Office หรือ Head Office
+              เลือกส่วนงาน Warehouse หรือ Head Office
               เพื่อเข้าสู่ระบบได้ทันที
             </p>
           </div>

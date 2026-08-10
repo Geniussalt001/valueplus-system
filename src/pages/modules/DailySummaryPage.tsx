@@ -24,7 +24,7 @@ import {
 
 interface DailySummaryPageProps {
   onBack: () => void;
-  onNextProcess: () => void;
+  onNextProcess: (csvPath?: string) => void;
 }
 
 type SummaryMode =
@@ -56,7 +56,9 @@ export function DailySummaryPage({
     return (
       <DollSummaryPage
         onBack={backToSummaryMenu}
-        onNextProcess={onNextProcess}
+        onNextProcess={() => {
+          onNextProcess();
+        }}
       />
     );
   }

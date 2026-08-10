@@ -46,6 +46,7 @@ import type {
 interface SalesBillingPageProps {
   onBack: () => void;
   initialPdfPath?: string;
+  initialIv?: string;
   onInitialPdfConsumed?: () => void;
   onNextProcess: (pdfPath: string) => void;
 }
@@ -59,6 +60,7 @@ type Activity =
 export function SalesBillingPage({
   onBack,
   initialPdfPath,
+  initialIv,
   onInitialPdfConsumed,
   onNextProcess,
 }: SalesBillingPageProps) {
@@ -103,6 +105,9 @@ export function SalesBillingPage({
     consumedPdfRef.current =
       initialPdfPath;
     setPdfPath(initialPdfPath);
+    if (initialIv) {
+      setStartIv(initialIv);
+    }
     setPreview(null);
     setProgress(null);
     setError("");
@@ -112,6 +117,7 @@ export function SalesBillingPage({
     onInitialPdfConsumed?.();
   }, [
     initialPdfPath,
+    initialIv,
     onInitialPdfConsumed,
   ]);
 

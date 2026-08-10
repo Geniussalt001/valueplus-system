@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -40,6 +42,8 @@ import type {
 
 interface ReceivablesFreightPageProps {
   onBack: () => void;
+  initialCsvPath?: string;
+  onInitialCsvConsumed?: () => void;
 }
 
 type ReceivablesMode =
@@ -48,7 +52,10 @@ type ReceivablesMode =
 
 export function ReceivablesFreightPage({
   onBack,
+  initialCsvPath,
+  onInitialCsvConsumed,
 }: ReceivablesFreightPageProps) {
+  const consumedCsvRef = useRef("");
   const [mode, setMode] =
     useState<ReceivablesMode>(
       "receivables",
@@ -69,6 +76,29 @@ export function ReceivablesFreightPage({
     useState("");
   const [success, setSuccess] =
     useState("");
+
+  useEffect(() => {
+    if (
+      !initialCsvPath ||
+      consumedCsvRef.current === initialCsvPath
+    ) {
+      return;
+    }
+
+    consumedCsvRef.current = initialCsvPath;
+    setMode("receivables");
+    setCsvPath(initialCsvPath);
+    setResult(null);
+    setMonthlySheet(null);
+    setError("");
+    setSuccess(
+      "รับไฟล์ CSV จากสรุปยอด Express แล้ว",
+    );
+    onInitialCsvConsumed?.();
+  }, [
+    initialCsvPath,
+    onInitialCsvConsumed,
+  ]);
 
   const canExport = Boolean(
     result &&

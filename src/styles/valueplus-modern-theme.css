@@ -1217,6 +1217,66 @@ body {
   background: #fff6f8 !important;
 }
 
+/* Keep the update card readable against the bright application shell. */
+.dashboard-sidebar .update-center-panel {
+  border-color: #cce9ef !important;
+  color: #426075 !important;
+  background: linear-gradient(145deg, #ffffff 0%, #eefbff 62%, #f6f1ff 100%) !important;
+  box-shadow: 0 12px 28px rgb(31 105 135 / 10%) !important;
+}
+
+.dashboard-sidebar .update-center-panel button {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #087d9b, #146c93 58%, #6856ce) !important;
+  box-shadow: 0 9px 20px rgb(22 108 147 / 20%) !important;
+}
+
+/* PO and IV actions use distinct, light-theme roles without heavy blocks. */
+.worldwide-file-button {
+  border-width: 1px !important;
+  color: #ffffff !important;
+}
+
+.worldwide-file-button-po {
+  background: linear-gradient(135deg, #0b9fc0, #1685c8) !important;
+  box-shadow: 0 10px 20px rgb(14 145 193 / 20%) !important;
+}
+
+.worldwide-file-button-iv {
+  background: linear-gradient(135deg, #7161d8, #8754c9) !important;
+  box-shadow: 0 10px 20px rgb(112 88 207 / 19%) !important;
+}
+
+/* Archive cards must stay legible regardless of workspace-level theme overrides. */
+.receivables-archive-month-card {
+  border-color: #b9e1ed !important;
+  background: linear-gradient(145deg, #ffffff, #f0fbff) !important;
+  color: #182c42 !important;
+  box-shadow: 0 9px 22px rgb(30 91 126 / 10%) !important;
+}
+
+.receivables-archive-month-card:hover {
+  border-color: #8071dc !important;
+  background: linear-gradient(145deg, #f7feff, #f2f0ff) !important;
+}
+
+.receivables-archive-month-card .receivables-archive-month-title {
+  color: #182c42 !important;
+}
+
+.receivables-archive-month-card .receivables-archive-month-meta {
+  color: #6250ba !important;
+}
+
+.receivables-archive-month-card .receivables-archive-month-date {
+  color: #5d7184 !important;
+}
+
+.receivables-archive-month-card .receivables-archive-month-status {
+  color: #087e67 !important;
+  background: #e8faf4 !important;
+}
+
 @media (max-width: 720px) {
   .vp-process-toast {
     top: 150px !important;

@@ -6,6 +6,10 @@ import {
 } from "react";
 
 import {
+  createPortal,
+} from "react-dom";
+
+import {
   ArrowLeft,
   CalendarDays,
   Download,
@@ -202,6 +206,13 @@ export function ReceivablesArchivePage({
               .includes(query),
           );
         },
+      ).sort(
+        (a, b) =>
+          a.month - b.month ||
+          a.spreadsheetName.localeCompare(
+            b.spreadsheetName,
+            "th",
+          ),
       );
     }, [
       archives,
@@ -1144,28 +1155,28 @@ export function ReceivablesArchivePage({
                         archive,
                       );
                     }}
-                    className="group min-h-[150px] rounded-2xl border border-amber-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-amber-400 hover:bg-amber-50/40 hover:shadow-md"
+                    className="receivables-archive-month-card group min-h-[150px] rounded-2xl border border-sky-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-sky-700">
                         <FileSpreadsheet
                           size={20}
                         />
                       </span>
 
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                      <span className="receivables-archive-month-status rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
                         พร้อม
                       </span>
                     </div>
 
-                    <p className="mt-3 text-lg font-semibold text-slate-900">
+                    <p className="receivables-archive-month-title mt-3 text-lg font-semibold text-slate-900">
                       {
                         archive
                           .monthName
                       }
                     </p>
 
-                    <p className="text-xs font-medium text-cyan-700">
+                    <p className="receivables-archive-month-meta text-xs font-medium text-violet-700">
                       พ.ศ.{" "}
                       {
                         archive
@@ -1173,7 +1184,7 @@ export function ReceivablesArchivePage({
                       }
                     </p>
 
-                    <p className="mt-3 truncate text-[10px] text-slate-400">
+                    <p className="receivables-archive-month-date mt-3 truncate text-[10px] text-slate-500">
                       แก้ไข{" "}
                       {formatDateTime(
                         archive
@@ -1202,7 +1213,7 @@ function LoadingOverlay({
     return null;
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 p-6 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-3xl border border-cyan-200 bg-white p-7 shadow-2xl">
         <div className="flex items-center gap-4">
@@ -1233,7 +1244,8 @@ function LoadingOverlay({
           <div className="loading-bar h-full w-1/3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600" />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

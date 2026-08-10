@@ -34,7 +34,7 @@ import type {
 
 interface ExpressSummaryPageProps {
   onBack: () => void;
-  onNextProcess: () => void;
+  onNextProcess: (csvPath: string) => void;
 }
 
 export function ExpressSummaryPage({
@@ -578,7 +578,9 @@ export function ExpressSummaryPage({
 
         <RealtimeCard
           result={result}
-          onNextProcess={onNextProcess}
+          onNextProcess={() => {
+            onNextProcess(csvPath);
+          }}
         />
       </div>
     </div>
