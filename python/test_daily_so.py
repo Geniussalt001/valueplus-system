@@ -6,15 +6,56 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 
 from valueplus_so.so_processor import (
+    ITEM_PATTERN,
     PdfDocument,
     PdfItem,
     TemplateProduct,
     _build_preview,
+    _match_product,
+    _parse_number,
     _write_group_workbook,
 )
 
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_reads_large_quantity_when_decimal_wraps_to_next_line(self):
+        text = (
+            "  2  8859898700415  Hชิสึเค้กรสชาอู่หลงUM 70.00 G. "
+            "1 10,890\n       .00  0 13.55 0.00"
+        )
+
+        match = ITEM_PATTERN.search(text)
+
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(2), "8859898700415")
+        self.assertEqual(_parse_number(match.group(4)), 10890)
+
+    def test_maps_oolong_cheesecake_to_new_template_product(self):
+        product = TemplateProduct(
+            item_code="01-0000-38",
+            item_name="ยูมิยูมิ ชีสเค้ก (ขนมเค้กรสชาอู่หลง) 70 กรัม",
+            price=13.55,
+            row_number=45,
+            normalized_name="ยูมิยูมิชีสเค้กขนมเค้กรสชาอู่หลง70กรัม",
+        )
+        item = PdfItem(
+            barcode="8859898700415",
+            pdf_name="Hชิสึเค้กรสชาอู่หลงUM 70.00 G.",
+            quantity=10890,
+            price=13.55,
+            page_number=1,
+        )
+
+        matched, score, method = _match_product(
+            item,
+            [product],
+            {product.item_code: product},
+        )
+
+        self.assertIs(matched, product)
+        self.assertEqual(score, 1.0)
+        self.assertEqual(method, "barcode")
+
     def test_moves_warehouse_from_q19_to_q20_before_aggregation(self):
         products = [
             TemplateProduct(
