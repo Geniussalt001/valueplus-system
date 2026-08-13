@@ -20,7 +20,10 @@ import {
 
 import {
   checkForUpdate,
+  getCurrentVersion,
+  getOfflineUpdateDecision,
   installUpdate,
+  rememberSuccessfulUpdateCheck,
   type UpdateInformation,
 } from "../../services/updateService";
 
@@ -68,6 +71,9 @@ export function StartupUpdateGate({
 
     try {
       const result = await checkForUpdate();
+      rememberSuccessfulUpdateCheck(
+        result,
+      );
       setInformation(result);
 
       if (!result.available) {
@@ -81,6 +87,23 @@ export function StartupUpdateGate({
           `พบ ValuePlus System เวอร์ชัน ${result.nextVersion}`,
       );
     } catch (error) {
+      try {
+        const currentVersion =
+          await getCurrentVersion();
+        const offlineDecision =
+          getOfflineUpdateDecision(
+            currentVersion,
+          );
+
+        if (offlineDecision.allowed) {
+          onReady();
+          return;
+        }
+      } catch {
+        // Keep the update screen locked when the installed version
+        // or the last successful decision cannot be verified.
+      }
+
       setStatus("error");
       setMessage(getErrorMessage(error));
     }

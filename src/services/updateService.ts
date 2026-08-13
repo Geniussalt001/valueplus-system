@@ -34,8 +34,32 @@ interface ParsedUpdatePolicy {
   message?: string;
 }
 
+interface StoredUpdateDecision {
+  checkedAt: number;
+  currentVersion: string;
+  available: boolean;
+  nextVersion?: string;
+  mandatory: boolean;
+  minimumSupportedVersion?: string;
+}
+
+export interface OfflineUpdateDecision {
+  allowed: boolean;
+  reason:
+    | "allowed"
+    | "missing"
+    | "expired"
+    | "mandatory-update";
+}
+
 const POLICY_PATTERN =
   /\[update-policy\]([\s\S]*?)\[\/update-policy\]/i;
+
+const STARTUP_UPDATE_DECISION_KEY =
+  "valueplus.startup-update-decision.v1";
+
+export const STARTUP_UPDATE_OFFLINE_GRACE_MS =
+  24 * 60 * 60 * 1000;
 
 function normalizeVersion(version: string): number[] {
   return version
@@ -105,6 +129,116 @@ export function parseUpdatePolicy(
 
 export function stripUpdatePolicy(notes = ""): string {
   return notes.replace(POLICY_PATTERN, "").trim();
+}
+
+export function rememberSuccessfulUpdateCheck(
+  information: UpdateInformation,
+): void {
+  const decision: StoredUpdateDecision = {
+    checkedAt: Date.now(),
+    currentVersion:
+      information.currentVersion,
+    available:
+      information.available,
+    nextVersion:
+      information.nextVersion,
+    mandatory:
+      information.mandatory,
+    minimumSupportedVersion:
+      information.minimumSupportedVersion,
+  };
+
+  try {
+    window.localStorage.setItem(
+      STARTUP_UPDATE_DECISION_KEY,
+      JSON.stringify(decision),
+    );
+  } catch {
+    // A storage failure must not break a successful online check.
+  }
+}
+
+export function getOfflineUpdateDecision(
+  currentVersion: string,
+  now = Date.now(),
+): OfflineUpdateDecision {
+  let storedValue = "";
+
+  try {
+    storedValue =
+      window.localStorage.getItem(
+        STARTUP_UPDATE_DECISION_KEY,
+      ) ?? "";
+  } catch {
+    return {
+      allowed: false,
+      reason: "missing",
+    };
+  }
+
+  if (!storedValue) {
+    return {
+      allowed: false,
+      reason: "missing",
+    };
+  }
+
+  try {
+    const decision = JSON.parse(
+      storedValue,
+    ) as StoredUpdateDecision;
+    const age =
+      now - Number(decision.checkedAt);
+
+    if (
+      !Number.isFinite(age) ||
+      age < 0 ||
+      age >
+        STARTUP_UPDATE_OFFLINE_GRACE_MS
+    ) {
+      return {
+        allowed: false,
+        reason: "expired",
+      };
+    }
+
+    const belowMinimum = Boolean(
+      decision.minimumSupportedVersion &&
+        compareVersions(
+          currentVersion,
+          decision.minimumSupportedVersion,
+        ) < 0,
+    );
+    const belowMandatoryTarget = Boolean(
+      decision.mandatory &&
+        decision.available &&
+        decision.nextVersion &&
+        compareVersions(
+          currentVersion,
+          decision.nextVersion,
+        ) < 0,
+    );
+
+    if (
+      belowMinimum ||
+      belowMandatoryTarget
+    ) {
+      return {
+        allowed: false,
+        reason: "mandatory-update",
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: "allowed",
+    };
+  } catch {
+    return {
+      allowed: false,
+      reason: "missing",
+    };
+  }
 }
 
 export type UpdateProgressHandler = (
