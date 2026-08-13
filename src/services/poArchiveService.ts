@@ -12,6 +12,7 @@ import {
 
 import {
   callAppsScript,
+  readCachedAppsScriptResponse,
 } from "./appsScriptClient";
 
 import {
@@ -31,6 +32,16 @@ import type {
 } from "../types/poArchive.types";
 
 export const poArchiveService = {
+  async listCached():
+    Promise<PoArchiveRecord[] | null>
+  {
+    return readCachedAppsScriptResponse<
+      PoArchiveRecord[]
+    >(
+      "archive.list",
+    );
+  },
+
   async list():
     Promise<PoArchiveRecord[]>
   {
@@ -38,6 +49,11 @@ export const poArchiveService = {
       PoArchiveRecord[]
     >(
       "archive.list",
+      {},
+      {
+        requestProfile:
+          "interactive",
+      },
     );
   },
 
