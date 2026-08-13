@@ -33,7 +33,7 @@ export const authService = {
         {
           requireSession: false,
           requestProfile:
-            "interactive",
+            "login",
         },
       );
 

@@ -182,6 +182,13 @@ export function LoginPage({
     setError("");
 
     try {
+      try {
+        await warmAppsScriptConnection();
+      } catch {
+        // Continue to the authenticated request. Its dedicated retry
+        // policy handles a temporary Apps Script warm-up failure.
+      }
+
       const session =
         await authService.select(
           userCode,

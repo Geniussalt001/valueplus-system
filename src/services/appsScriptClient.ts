@@ -34,7 +34,8 @@ type CachePolicy =
 
 type RequestProfile =
   | "default"
-  | "interactive";
+  | "interactive"
+  | "login";
 
 type ApiTransport =
   "apps-script";
@@ -383,21 +384,30 @@ export async function callAppsScript<T>(
     false
       ? 1
       : options.requestProfile ===
+          "login"
+        ? 4
+        : options.requestProfile ===
           "interactive"
         ? 3
         : 5;
 
   const retryDelays =
     options.requestProfile ===
-    "interactive"
-      ? interactiveRetryDelays
-      : transientRetryDelays;
+      "login"
+      ? loginRetryDelays
+      : options.requestProfile ===
+        "interactive"
+        ? interactiveRetryDelays
+        : transientRetryDelays;
 
   const connectTimeoutMs =
     options.requestProfile ===
-    "interactive"
-      ? 7_000
-      : 15_000;
+      "login"
+      ? 15_000
+      : options.requestProfile ===
+        "interactive"
+        ? 7_000
+        : 15_000;
 
   const responseCacheKey =
     cacheableReadActions.has(
@@ -602,6 +612,12 @@ const transientRetryDelays = [
 const interactiveRetryDelays = [
   250,
   600,
+];
+
+const loginRetryDelays = [
+  1_000,
+  2_000,
+  4_000,
 ];
 
 const transientHttpStatuses =
