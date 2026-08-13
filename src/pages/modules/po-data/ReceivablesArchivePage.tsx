@@ -199,7 +199,7 @@ export function ReceivablesArchivePage({
             archive.buddhistYear,
         ),
       ),
-    ).sort((a, b) => b - a);
+    ).sort((a, b) => a - b);
   }, [archives]);
 
   const visibleArchives =
@@ -211,8 +211,8 @@ export function ReceivablesArchivePage({
             "th",
           );
 
-      return archives.filter(
-        (archive) => {
+      return archives
+        .filter((archive) => {
           if (
             selectedYear &&
             archive.buddhistYear !==
@@ -240,8 +240,12 @@ export function ReceivablesArchivePage({
               )
               .includes(query),
           );
-        },
-      );
+        })
+        .sort((first, second) =>
+          first.buddhistYear -
+            second.buddhistYear ||
+          first.month - second.month,
+        );
     }, [
       archives,
       folderQuery,
@@ -1186,28 +1190,28 @@ export function ReceivablesArchivePage({
                         archive,
                       );
                     }}
-                    className="group min-h-[150px] rounded-2xl border border-amber-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-amber-400 hover:bg-amber-50/40 hover:shadow-md"
+                    className="receivables-month-card group min-h-[150px] rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600">
+                      <span className="receivables-month-icon flex h-10 w-10 items-center justify-center rounded-xl border">
                         <FileSpreadsheet
                           size={20}
                         />
                       </span>
 
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                      <span className="receivables-month-status rounded-full px-2 py-1 text-[9px] font-semibold">
                         พร้อม
                       </span>
                     </div>
 
-                    <p className="mt-3 text-lg font-semibold text-slate-900">
+                    <p className="receivables-month-title mt-3 text-lg font-semibold">
                       {
                         archive
                           .monthName
                       }
                     </p>
 
-                    <p className="text-xs font-medium text-cyan-700">
+                    <p className="receivables-month-year text-xs font-medium">
                       พ.ศ.{" "}
                       {
                         archive
@@ -1215,7 +1219,7 @@ export function ReceivablesArchivePage({
                       }
                     </p>
 
-                    <p className="mt-3 truncate text-[10px] text-slate-400">
+                    <p className="receivables-month-updated mt-3 truncate text-[10px]">
                       แก้ไข{" "}
                       {formatDateTime(
                         archive

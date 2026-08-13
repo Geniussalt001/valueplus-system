@@ -298,7 +298,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([year, items]) => ({
           key: year,
@@ -345,7 +345,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([month, items]) => ({
           key: month,
@@ -400,7 +400,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([day, items]) => ({
           key: day,

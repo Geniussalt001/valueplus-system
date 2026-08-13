@@ -1227,3 +1227,127 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Daily summary: keep Express actions and the Doll realtime card on the
+   bright white-blue workspace theme instead of inheriting legacy dark fills. */
+.dashboard .express-csv-panel {
+  border-color: #d9e8f2 !important;
+  background: linear-gradient(145deg, #ffffff, #f6fbff) !important;
+  box-shadow: 0 12px 30px rgb(41 83 120 / 8%) !important;
+}
+
+.dashboard button.express-csv-upload {
+  border-color: #b9deed !important;
+  color: #17324a !important;
+  background: linear-gradient(135deg, #ffffff, #edf9ff) !important;
+  box-shadow: inset 0 1px 0 #ffffff, 0 7px 18px rgb(40 112 153 / 8%) !important;
+}
+
+.dashboard button.express-csv-upload:hover {
+  border-color: #57bfdc !important;
+  background: linear-gradient(135deg, #fafdff, #e3f6ff) !important;
+  box-shadow: 0 12px 24px rgb(32 132 176 / 13%) !important;
+}
+
+.dashboard button.express-csv-upload .express-csv-upload-icon {
+  border-color: #a9dce9 !important;
+  color: #087c9c !important;
+  background: #e9f9fd !important;
+}
+
+.dashboard button.express-csv-upload .express-csv-upload-title {
+  color: #17324a !important;
+}
+
+.dashboard button.express-csv-upload .express-csv-upload-path {
+  color: #527087 !important;
+}
+
+.dashboard button.express-csv-process-button {
+  border-color: #8ed3e7 !important;
+  color: #075f7a !important;
+  background: linear-gradient(135deg, #effbff, #dff5fc) !important;
+  box-shadow: 0 8px 20px rgb(31 132 172 / 12%) !important;
+}
+
+.dashboard button.express-csv-process-button * {
+  color: inherit !important;
+}
+
+.dashboard button.express-csv-process-button:hover {
+  border-color: #3db1d2 !important;
+  color: #064e66 !important;
+  background: linear-gradient(135deg, #e6f8fe, #cceffa) !important;
+  box-shadow: 0 12px 25px rgb(31 132 172 / 17%) !important;
+}
+
+.dashboard .doll-summary .doll-realtime-header {
+  border-color: #cfe2f4 !important;
+  color: #17324a !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(105 112 239 / 10%), transparent 38%),
+    linear-gradient(135deg, #ffffff, #eef7ff) !important;
+}
+
+.dashboard .doll-summary .doll-realtime-header * {
+  color: #17324a !important;
+}
+
+.dashboard .doll-summary .doll-realtime-header > div:first-child p {
+  color: #5278c7 !important;
+}
+
+.dashboard .doll-summary .doll-summary-stat {
+  border-color: #c9dff0 !important;
+  background: rgb(255 255 255 / 82%) !important;
+  box-shadow: 0 5px 14px rgb(40 91 135 / 7%) !important;
+}
+
+.dashboard .doll-summary .doll-summary-stat-label {
+  color: #64758a !important;
+}
+
+.dashboard .doll-summary .doll-summary-stat-value {
+  color: #245fc7 !important;
+}
+
+/* Receivables archive month folders need stronger contrast than the old
+   pale amber cards, especially on office displays. */
+.dashboard button.receivables-month-card {
+  border-color: #b9ddeb !important;
+  color: #17324a !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(92 116 239 / 8%), transparent 38%),
+    linear-gradient(145deg, #ffffff, #eef8fd) !important;
+  box-shadow: 0 10px 24px rgb(36 87 126 / 9%) !important;
+}
+
+.dashboard button.receivables-month-card:hover {
+  border-color: #55b8d5 !important;
+  color: #102d44 !important;
+  background: linear-gradient(145deg, #ffffff, #e3f5fc) !important;
+  box-shadow: 0 15px 30px rgb(36 112 151 / 15%) !important;
+}
+
+.dashboard button.receivables-month-card .receivables-month-icon {
+  border-color: #a9d9e9 !important;
+  color: #087c9c !important;
+  background: #e7f8fc !important;
+}
+
+.dashboard button.receivables-month-card .receivables-month-status {
+  color: #06765c !important;
+  background: #e7f8f1 !important;
+}
+
+.dashboard button.receivables-month-card .receivables-month-title {
+  color: #172d43 !important;
+}
+
+.dashboard button.receivables-month-card .receivables-month-year {
+  color: #137c9c !important;
+}
+
+.dashboard button.receivables-month-card .receivables-month-updated {
+  color: #6d7d8c !important;
+}

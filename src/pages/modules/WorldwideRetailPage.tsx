@@ -66,6 +66,7 @@ interface WorldwideRetailPageProps {
 interface ArchiveDate {
   year: number;
   month: number;
+  day: number;
 }
 
 interface CachedPdfPreview {
@@ -386,7 +387,7 @@ export function WorldwideRetailPage({
         groups.entries(),
       ).sort(
         ([first], [second]) =>
-          second - first,
+          first - second,
       );
     }, [datedRecords]);
 
@@ -429,7 +430,7 @@ export function WorldwideRetailPage({
         groups.entries(),
       ).sort(
         ([first], [second]) =>
-          second - first,
+          first - second,
       );
     }, [
       datedRecords,
@@ -480,12 +481,28 @@ export function WorldwideRetailPage({
               ),
           );
         })
-        .sort((first, second) =>
-          second.documentDate
-            .localeCompare(
+        .sort((first, second) => {
+          const firstDate =
+            parseArchiveDate(
               first.documentDate,
-            ),
-        );
+            );
+          const secondDate =
+            parseArchiveDate(
+              second.documentDate,
+            );
+
+          return (
+            (firstDate?.day ?? 0) -
+              (secondDate?.day ?? 0) ||
+            first.poNumber.localeCompare(
+              second.poNumber,
+              "th",
+              {
+                numeric: true,
+              },
+            )
+          );
+        });
     }, [
       datedRecords,
       search,
@@ -2173,6 +2190,7 @@ function parseArchiveDate(
   return {
     year: Number(match[1]),
     month: Number(match[2]),
+    day: Number(match[3]),
   };
 }
 
