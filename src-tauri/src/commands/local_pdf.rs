@@ -79,25 +79,185 @@ pub async fn upload_pdf_resumable(
         .and_then(|value| value.to_str())
         .unwrap_or("document.pdf")
         .to_string();
-    let response = reqwest::Client::new()
-        .put(upload_url)
+    let client = reqwest::Client::new();
+    let upload_result = client
+        .put(&upload_url)
         .header("Content-Type", "application/pdf")
         .header(
             "Content-Length",
             bytes.len().to_string(),
         )
-        .body(bytes)
+        .body(bytes.clone())
         .send()
-        .await
-        .map_err(|error| {
-            format!(
-                "ส่งไฟล์ไป Google Drive ไม่สำเร็จ: {}",
-                error,
+        .await;
+
+    match upload_result {
+        Ok(response)
+            if response.status().is_success() =>
+        {
+            match read_upload_result(
+                response,
+                &file_name,
             )
-        })?;
-    let status = response.status();
-    let payload = response
-        .json::<Value>()
+            .await
+            {
+                Ok(result) => Ok(result),
+                Err(_) => recover_resumable_upload(
+                    &client,
+                    &upload_url,
+                    &bytes,
+                    &file_name,
+                )
+                .await,
+            }
+        }
+        Ok(response) => {
+            let status = response.status();
+
+            if status.as_u16() == 308 {
+                return recover_resumable_upload(
+                    &client,
+                    &upload_url,
+                    &bytes,
+                    &file_name,
+                )
+                .await;
+            }
+
+            Err(format!(
+                "Google Drive ปฏิเสธการอัปโหลด ({})",
+                status.as_u16(),
+            ))
+        }
+        Err(initial_error) => {
+            recover_resumable_upload(
+                &client,
+                &upload_url,
+                &bytes,
+                &file_name,
+            )
+            .await
+            .map_err(|recovery_error| {
+                format!(
+                    "ส่งไฟล์ไป Google Drive ไม่สำเร็จ: {}; ตรวจสอบสถานะอัปโหลดซ้ำไม่สำเร็จ: {}",
+                    initial_error,
+                    recovery_error,
+                )
+            })
+        }
+    }
+}
+
+async fn recover_resumable_upload(
+    client: &reqwest::Client,
+    upload_url: &str,
+    bytes: &[u8],
+    file_name: &str,
+) -> Result<ResumableUploadResult, String> {
+    for _attempt in 0..4 {
+        let probe = client
+            .put(upload_url)
+            .header("Content-Length", "0")
+            .header(
+                "Content-Range",
+                format!(
+                    "bytes */{}",
+                    bytes.len(),
+                ),
+            )
+            .body(Vec::new())
+            .send()
+            .await
+            .map_err(|error| {
+                format!(
+                    "ตรวจสถานะ Google Drive ไม่สำเร็จ: {}",
+                    error,
+                )
+            })?;
+        let status = probe.status();
+
+        if status.is_success() {
+            if let Ok(result) = read_upload_result(
+                probe,
+                file_name,
+            )
+            .await
+            {
+                return Ok(result);
+            }
+
+            continue;
+        }
+
+        if status.as_u16() != 308 {
+            return Err(format!(
+                "Google Drive ไม่สามารถกู้คืนการอัปโหลดได้ ({})",
+                status.as_u16(),
+            ));
+        }
+
+        let next_offset = next_upload_offset(
+            probe
+                .headers()
+                .get("Range")
+                .and_then(|value| value.to_str().ok()),
+        );
+
+        if next_offset >= bytes.len() {
+            continue;
+        }
+
+        let resumed = client
+            .put(upload_url)
+            .header("Content-Type", "application/pdf")
+            .header(
+                "Content-Length",
+                (bytes.len() - next_offset)
+                    .to_string(),
+            )
+            .header(
+                "Content-Range",
+                format!(
+                    "bytes {}-{}/{}",
+                    next_offset,
+                    bytes.len() - 1,
+                    bytes.len(),
+                ),
+            )
+            .body(bytes[next_offset..].to_vec())
+            .send()
+            .await
+            .map_err(|error| {
+                format!(
+                    "ส่งข้อมูล PDF ที่เหลือไม่สำเร็จ: {}",
+                    error,
+                )
+            })?;
+
+        if resumed.status().is_success() {
+            if let Ok(result) = read_upload_result(
+                resumed,
+                file_name,
+            )
+            .await
+            {
+                return Ok(result);
+            }
+        }
+    }
+
+    Err(
+        "Google Drive รับไฟล์แล้วแต่ยังไม่ส่งรหัสไฟล์กลับมา"
+            .to_string(),
+    )
+}
+
+async fn read_upload_result(
+    response: reqwest::Response,
+    file_name: &str,
+) -> Result<ResumableUploadResult, String> {
+    let payload_text = response
+        .text()
         .await
         .map_err(|error| {
             format!(
@@ -106,18 +266,30 @@ pub async fn upload_pdf_resumable(
             )
         })?;
 
-    if !status.is_success() {
-        return Err(format!(
-            "Google Drive ปฏิเสธการอัปโหลด ({})",
-            status.as_u16(),
-        ));
-    }
+    parse_upload_result(
+        &payload_text,
+        file_name,
+    )
+}
 
+fn parse_upload_result(
+    payload_text: &str,
+    file_name: &str,
+) -> Result<ResumableUploadResult, String> {
+    let payload = serde_json::from_str::<Value>(
+        payload_text,
+    )
+    .map_err(|error| {
+        format!(
+            "ผลอัปโหลดจาก Google Drive ไม่ใช่ JSON ที่สมบูรณ์: {}",
+            error,
+        )
+    })?;
     let file_id = payload
         .get("id")
         .and_then(Value::as_str)
         .unwrap_or("")
-        .to_string();
+        .trim();
 
     if file_id.is_empty() {
         return Err(
@@ -127,13 +299,74 @@ pub async fn upload_pdf_resumable(
     }
 
     Ok(ResumableUploadResult {
-        file_id,
+        file_id: file_id.to_string(),
         file_name: payload
             .get("name")
             .and_then(Value::as_str)
-            .unwrap_or(&file_name)
+            .unwrap_or(file_name)
             .to_string(),
     })
+}
+
+fn next_upload_offset(
+    range_header: Option<&str>,
+) -> usize {
+    range_header
+        .and_then(|value| value.rsplit('-').next())
+        .and_then(|value| value.parse::<usize>().ok())
+        .map(|last_byte| last_byte + 1)
+        .unwrap_or(0)
+}
+
+#[cfg(test)]
+mod upload_tests {
+    use super::{
+        next_upload_offset,
+        parse_upload_result,
+    };
+
+    #[test]
+    fn parses_google_drive_upload_result() {
+        let result = parse_upload_result(
+            r#"{"id":"drive-file-123","name":"B022800853.pdf"}"#,
+            "fallback.pdf",
+        )
+        .expect("valid Google Drive response");
+
+        assert_eq!(
+            result.file_id,
+            "drive-file-123",
+        );
+        assert_eq!(
+            result.file_name,
+            "B022800853.pdf",
+        );
+    }
+
+    #[test]
+    fn rejects_incomplete_google_drive_response() {
+        assert!(
+            parse_upload_result(
+                "",
+                "B022800853.pdf",
+            )
+            .is_err(),
+        );
+    }
+
+    #[test]
+    fn resumes_after_last_confirmed_byte() {
+        assert_eq!(
+            next_upload_offset(
+                Some("bytes=0-1048575"),
+            ),
+            1_048_576,
+        );
+        assert_eq!(
+            next_upload_offset(None),
+            0,
+        );
+    }
 }
 
 #[tauri::command]

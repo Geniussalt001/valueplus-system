@@ -402,7 +402,7 @@ export function DailyPickingPage({
     }
 
     const uploadConcurrency =
-      hasDriveGateway() ? 6 : 3;
+      hasDriveGateway() ? 3 : 2;
 
     addLocalLog(
       "info",
