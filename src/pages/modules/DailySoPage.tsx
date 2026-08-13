@@ -341,6 +341,17 @@ export function DailySoPage({
 
     setWarehouseDraft(assignments);
     setWarehouseManagerOpen(true);
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(
+          "warehouse-manager-panel",
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    });
   };
 
   const saveWarehouseAssignments = async () => {
@@ -577,7 +588,7 @@ export function DailySoPage({
       />
 
       {warehouseManagerOpen && preview && (
-        <WarehouseManagerModal
+        <WarehouseManagerPanel
           groups={preview.groups}
           assignments={warehouseDraft}
           onChange={(warehouse, groupCode) => {
@@ -1421,7 +1432,7 @@ export function DailySoPage({
   );
 }
 
-function WarehouseManagerModal({
+function WarehouseManagerPanel({
   groups,
   assignments,
   onChange,
@@ -1453,13 +1464,12 @@ function WarehouseManagerModal({
   const q20Count = warehouses.length - q19Count;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <section
+      id="warehouse-manager-panel"
       aria-labelledby="warehouse-manager-title"
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm"
+      className="mb-7 scroll-mt-6 overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-xl shadow-cyan-100/60"
     >
-      <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-2xl shadow-slate-900/20">
+      <div className="overflow-hidden">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-white text-cyan-700 shadow-sm">
@@ -1484,7 +1494,7 @@ function WarehouseManagerModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="ปิดหน้าต่างจัดการคลัง"
+            aria-label="ปิดส่วนจัดการคลัง"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
           >
             <X size={19} />
@@ -1500,7 +1510,7 @@ function WarehouseManagerModal({
           </span>
         </div>
 
-        <div className="max-h-[55vh] space-y-3 overflow-y-auto p-6">
+        <div className="grid gap-3 p-6 md:grid-cols-2">
           {warehouses.map(({ warehouse, currentGroup }) => {
             const selected = assignments[warehouse] ?? currentGroup;
 
@@ -1565,7 +1575,7 @@ function WarehouseManagerModal({
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
