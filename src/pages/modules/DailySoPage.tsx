@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import {
+  createPortal,
+} from "react-dom";
+
+import {
   ArrowLeft,
   ArrowRight,
   ArrowRightLeft,
@@ -1492,12 +1496,12 @@ function WarehouseManagerPopup({
   ).length;
   const q20Count = warehouses.length - q19Count;
 
-  return (
+  return createPortal(
     <section
       role="dialog"
       aria-modal="true"
       aria-labelledby="warehouse-manager-title"
-      className="fixed inset-0 z-[9999] bg-slate-50 p-4 sm:p-6"
+      className="fixed inset-0 z-[9999] flex bg-slate-50 p-4 sm:p-6"
     >
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-xl shadow-cyan-100/60">
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
@@ -1540,7 +1544,7 @@ function WarehouseManagerPopup({
           </span>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-6 md:grid-cols-2">
+        <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain p-6 md:grid-cols-2">
           {warehouses.map(({ warehouse, currentGroup }) => {
             const selected = assignments[warehouse] ?? currentGroup;
 
@@ -1605,7 +1609,8 @@ function WarehouseManagerPopup({
           </button>
         </div>
       </div>
-    </section>
+    </section>,
+    document.body,
   );
 }
 
