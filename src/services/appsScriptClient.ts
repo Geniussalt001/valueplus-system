@@ -114,6 +114,12 @@ let cachedDeviceToken:
   | null
   | undefined;
 
+let activeAppsScriptWarmup:
+  | Promise<void>
+  | null = null;
+
+let lastAppsScriptWarmupAt = 0;
+
 function validateConfiguration() {
   if (!appsScriptApiUrl) {
     throw new Error(
@@ -156,6 +162,47 @@ export async function hasAppsScriptConnection() {
   return Boolean(
     await getApiToken(),
   );
+}
+
+export function warmAppsScriptConnection(): Promise<void> {
+  const now = Date.now();
+
+  if (
+    now - lastAppsScriptWarmupAt <
+    60_000
+  ) {
+    return Promise.resolve();
+  }
+
+  if (activeAppsScriptWarmup) {
+    return activeAppsScriptWarmup;
+  }
+
+  activeAppsScriptWarmup = (async () => {
+    validateConfiguration();
+
+    const response = await fetch(
+      appsScriptApiUrl,
+      {
+        method: "GET",
+        maxRedirections: 10,
+        connectTimeout: 4_000,
+      },
+    );
+
+    if (!response.ok) {
+      throw new AppsScriptHttpError(
+        response.status,
+      );
+    }
+
+    lastAppsScriptWarmupAt =
+      Date.now();
+  })().finally(() => {
+    activeAppsScriptWarmup = null;
+  });
+
+  return activeAppsScriptWarmup;
 }
 
 export async function clearAppsScriptConnection() {
