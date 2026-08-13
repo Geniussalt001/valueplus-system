@@ -86,6 +86,11 @@ export function ReceivablesArchivePage({
   ] = useState(false);
 
   const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
+
+  const [
     loadingLabel,
     setLoadingLabel,
   ] = useState("");
@@ -120,9 +125,40 @@ export function ReceivablesArchivePage({
     beginLoading(
       "กำลังค้นหาแฟ้มปีและเดือน",
     );
+    setRefreshing(true);
     setError("");
 
+    let hasCachedResponse = false;
+
     try {
+      const cachedArchives =
+        await receivablesArchiveService
+          .listCached();
+
+      if (
+        Array.isArray(
+          cachedArchives,
+        )
+      ) {
+        hasCachedResponse = true;
+        setArchives(
+          cachedArchives,
+        );
+
+        if (
+          cachedArchives.length > 0
+        ) {
+          setSelectedYear(
+            (current) =>
+              current ??
+              cachedArchives[0]
+                .buddhistYear,
+          );
+        }
+
+        finishLoading();
+      }
+
       const result =
         await receivablesArchiveService
           .list();
@@ -139,12 +175,15 @@ export function ReceivablesArchivePage({
       }
     } catch (requestError) {
       setError(
-        getErrorMessage(
-          requestError,
-        ),
+        hasCachedResponse
+          ? "กำลังแสดงข้อมูลที่บันทึกไว้ แต่ยังดึงข้อมูลล่าสุดไม่สำเร็จ กรุณาโหลดใหม่อีกครั้ง"
+          : getErrorMessage(
+              requestError,
+            ),
       );
     } finally {
       finishLoading();
+      setRefreshing(false);
     }
   };
 
@@ -984,7 +1023,10 @@ export function ReceivablesArchivePage({
 
         <button
           type="button"
-          disabled={loading}
+          disabled={
+            loading ||
+            refreshing
+          }
           onClick={() => {
             void loadArchives();
           }}
@@ -993,7 +1035,7 @@ export function ReceivablesArchivePage({
           <RefreshCw
             size={17}
             className={
-              loading
+              refreshing
                 ? "animate-spin"
                 : ""
             }
