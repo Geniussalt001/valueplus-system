@@ -6,6 +6,7 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 
 from valueplus_so.so_processor import (
+    ITEM_PATTERN,
     PdfDocument,
     PdfItem,
     TemplateProduct,
@@ -13,8 +14,35 @@ from valueplus_so.so_processor import (
     _write_group_workbook,
 )
 
+from valueplus_common import (
+    normalize_wrapped_item_quantities,
+)
+
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_reads_large_quantities_wrapped_by_cpall_pdf(self):
+        cases = [
+            ("13,330", ".00", 13330.0),
+            ("5,440.", "00", 5440.0),
+            ("125,000", ".00", 125000.0),
+        ]
+
+        for quantity, decimal_line, expected in cases:
+            with self.subTest(quantity=quantity):
+                text = (
+                    "2 8859898700415 สินค้าทดสอบ UM 70 G. "
+                    f"1 {quantity} 0 13.55 0.00\n"
+                    f"                         {decimal_line}"
+                )
+                normalized = normalize_wrapped_item_quantities(text)
+                match = ITEM_PATTERN.search(normalized)
+
+                self.assertIsNotNone(match)
+                self.assertEqual(
+                    float(match.group(4).replace(",", "")),
+                    expected,
+                )
+
     def test_moves_warehouse_from_q19_to_q20_before_aggregation(self):
         products = [
             TemplateProduct(

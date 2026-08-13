@@ -86,6 +86,11 @@ export function ReceivablesArchivePage({
   ] = useState(false);
 
   const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
+
+  const [
     loadingLabel,
     setLoadingLabel,
   ] = useState("");
@@ -120,9 +125,40 @@ export function ReceivablesArchivePage({
     beginLoading(
       "กำลังค้นหาแฟ้มปีและเดือน",
     );
+    setRefreshing(true);
     setError("");
 
+    let hasCachedResponse = false;
+
     try {
+      const cachedArchives =
+        await receivablesArchiveService
+          .listCached();
+
+      if (
+        Array.isArray(
+          cachedArchives,
+        )
+      ) {
+        hasCachedResponse = true;
+        setArchives(
+          cachedArchives,
+        );
+
+        if (
+          cachedArchives.length > 0
+        ) {
+          setSelectedYear(
+            (current) =>
+              current ??
+              cachedArchives[0]
+                .buddhistYear,
+          );
+        }
+
+        finishLoading();
+      }
+
       const result =
         await receivablesArchiveService
           .list();
@@ -139,12 +175,15 @@ export function ReceivablesArchivePage({
       }
     } catch (requestError) {
       setError(
-        getErrorMessage(
-          requestError,
-        ),
+        hasCachedResponse
+          ? "กำลังแสดงข้อมูลที่บันทึกไว้ แต่ยังดึงข้อมูลล่าสุดไม่สำเร็จ กรุณาโหลดใหม่อีกครั้ง"
+          : getErrorMessage(
+              requestError,
+            ),
       );
     } finally {
       finishLoading();
+      setRefreshing(false);
     }
   };
 
@@ -160,7 +199,7 @@ export function ReceivablesArchivePage({
             archive.buddhistYear,
         ),
       ),
-    ).sort((a, b) => b - a);
+    ).sort((a, b) => a - b);
   }, [archives]);
 
   const visibleArchives =
@@ -172,8 +211,8 @@ export function ReceivablesArchivePage({
             "th",
           );
 
-      return archives.filter(
-        (archive) => {
+      return archives
+        .filter((archive) => {
           if (
             selectedYear &&
             archive.buddhistYear !==
@@ -201,8 +240,12 @@ export function ReceivablesArchivePage({
               )
               .includes(query),
           );
-        },
-      );
+        })
+        .sort((first, second) =>
+          first.buddhistYear -
+            second.buddhistYear ||
+          first.month - second.month,
+        );
     }, [
       archives,
       folderQuery,
@@ -984,7 +1027,10 @@ export function ReceivablesArchivePage({
 
         <button
           type="button"
-          disabled={loading}
+          disabled={
+            loading ||
+            refreshing
+          }
           onClick={() => {
             void loadArchives();
           }}
@@ -993,7 +1039,7 @@ export function ReceivablesArchivePage({
           <RefreshCw
             size={17}
             className={
-              loading
+              refreshing
                 ? "animate-spin"
                 : ""
             }
@@ -1144,28 +1190,28 @@ export function ReceivablesArchivePage({
                         archive,
                       );
                     }}
-                    className="group min-h-[150px] rounded-2xl border border-amber-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-amber-400 hover:bg-amber-50/40 hover:shadow-md"
+                    className="receivables-month-card group min-h-[150px] rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600">
+                      <span className="receivables-month-icon flex h-10 w-10 items-center justify-center rounded-xl border">
                         <FileSpreadsheet
                           size={20}
                         />
                       </span>
 
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                      <span className="receivables-month-status rounded-full px-2 py-1 text-[9px] font-semibold">
                         พร้อม
                       </span>
                     </div>
 
-                    <p className="mt-3 text-lg font-semibold text-slate-900">
+                    <p className="receivables-month-title mt-3 text-lg font-semibold">
                       {
                         archive
                           .monthName
                       }
                     </p>
 
-                    <p className="text-xs font-medium text-cyan-700">
+                    <p className="receivables-month-year text-xs font-medium">
                       พ.ศ.{" "}
                       {
                         archive
@@ -1173,7 +1219,7 @@ export function ReceivablesArchivePage({
                       }
                     </p>
 
-                    <p className="mt-3 truncate text-[10px] text-slate-400">
+                    <p className="receivables-month-updated mt-3 truncate text-[10px]">
                       แก้ไข{" "}
                       {formatDateTime(
                         archive

@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import {
+  createPortal,
+} from "react-dom";
+
+import {
   ArrowLeft,
   ArrowRight,
   ArrowRightLeft,
@@ -215,6 +219,46 @@ export function DailySoPage({
       );
     };
   }, [success]);
+
+  useEffect(() => {
+    if (!warehouseManagerOpen) {
+      return;
+    }
+
+    const previousBodyOverflow =
+      document.body.style.overflow;
+    const previousRootOverflow =
+      document.documentElement.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+    document.documentElement.style.overflow =
+      "hidden";
+
+    const closeOnEscape = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        setWarehouseManagerOpen(false);
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      closeOnEscape,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousBodyOverflow;
+      document.documentElement.style.overflow =
+        previousRootOverflow;
+      window.removeEventListener(
+        "keydown",
+        closeOnEscape,
+      );
+    };
+  }, [warehouseManagerOpen]);
 
   const choosePdf = async () => {
     if (busy) {
@@ -577,7 +621,7 @@ export function DailySoPage({
       />
 
       {warehouseManagerOpen && preview && (
-        <WarehouseManagerModal
+        <WarehouseManagerPopup
           groups={preview.groups}
           assignments={warehouseDraft}
           onChange={(warehouse, groupCode) => {
@@ -1421,7 +1465,7 @@ export function DailySoPage({
   );
 }
 
-function WarehouseManagerModal({
+function WarehouseManagerPopup({
   groups,
   assignments,
   onChange,
@@ -1452,15 +1496,15 @@ function WarehouseManagerModal({
   ).length;
   const q20Count = warehouses.length - q19Count;
 
-  return (
-    <div
+  return createPortal(
+    <section
       role="dialog"
       aria-modal="true"
       aria-labelledby="warehouse-manager-title"
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex bg-slate-50 p-4 sm:p-6"
     >
-      <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-2xl shadow-slate-900/20">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-xl shadow-cyan-100/60">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-white text-cyan-700 shadow-sm">
               <ArrowRightLeft size={21} />
@@ -1484,14 +1528,14 @@ function WarehouseManagerModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="ปิดหน้าต่างจัดการคลัง"
+            aria-label="ปิดหน้าจัดการคลัง"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
           >
             <X size={19} />
           </button>
         </div>
 
-        <div className="flex gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
+        <div className="flex shrink-0 gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
           <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
             Q19 · {q19Count} คลัง
           </span>
@@ -1500,7 +1544,7 @@ function WarehouseManagerModal({
           </span>
         </div>
 
-        <div className="max-h-[55vh] space-y-3 overflow-y-auto p-6">
+        <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto overscroll-contain p-6 md:grid-cols-2">
           {warehouses.map(({ warehouse, currentGroup }) => {
             const selected = assignments[warehouse] ?? currentGroup;
 
@@ -1546,7 +1590,7 @@ function WarehouseManagerModal({
           })}
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+        <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onRestore}
@@ -1565,7 +1609,8 @@ function WarehouseManagerModal({
           </button>
         </div>
       </div>
-    </div>
+    </section>,
+    document.body,
   );
 }
 

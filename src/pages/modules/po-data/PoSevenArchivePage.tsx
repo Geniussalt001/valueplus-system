@@ -96,6 +96,8 @@ export function PoSevenArchivePage({
     useState("");
   const [loading, setLoading] =
     useState(true);
+  const [refreshing, setRefreshing] =
+    useState(false);
   const [error, setError] =
     useState("");
   const [success, setSuccess] =
@@ -125,10 +127,29 @@ export function PoSevenArchivePage({
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
+      setRefreshing(true);
       setError("");
       setSuccess("");
 
+      let hasCachedResponse = false;
+
       try {
+        const cachedRecords =
+          await poArchiveService
+            .listCached();
+
+        if (
+          Array.isArray(
+            cachedRecords,
+          )
+        ) {
+          hasCachedResponse = true;
+          setRecords(
+            cachedRecords,
+          );
+          setLoading(false);
+        }
+
         const nextRecords =
           await poArchiveService.list();
 
@@ -139,10 +160,13 @@ export function PoSevenArchivePage({
         );
       } catch (reason) {
         setError(
-          getErrorMessage(reason),
+          hasCachedResponse
+            ? "กำลังแสดงข้อมูลที่บันทึกไว้ แต่ยังดึงข้อมูลล่าสุดไม่สำเร็จ กรุณากดโหลดใหม่อีกครั้ง"
+            : getErrorMessage(reason),
         );
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     }, []);
 
@@ -274,7 +298,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([year, items]) => ({
           key: year,
@@ -321,7 +345,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([month, items]) => ({
           key: month,
@@ -376,7 +400,7 @@ export function PoSevenArchivePage({
       )
         .sort(
           ([first], [second]) =>
-            second - first,
+            first - second,
         )
         .map(([day, items]) => ({
           key: day,
@@ -616,7 +640,8 @@ export function PoSevenArchivePage({
     >
       <ProcessStatusOverlay
         open={
-          loading ||
+          (loading &&
+            records.length === 0) ||
           downloading ||
           Boolean(openingId)
         }
@@ -789,7 +814,7 @@ export function PoSevenArchivePage({
           onClick={() => {
             void loadRecords();
           }}
-          disabled={loading}
+          disabled={refreshing}
           className="
             flex
             min-h-11
@@ -810,7 +835,7 @@ export function PoSevenArchivePage({
         >
           <RefreshCw
             className={
-              loading
+              refreshing
                 ? "animate-spin"
                 : ""
             }
@@ -958,7 +983,8 @@ export function PoSevenArchivePage({
             )}
         </div>
 
-        {loading ? (
+        {loading &&
+        records.length === 0 ? (
           <EmptyState
             loading
             text="กำลังโหลด..."

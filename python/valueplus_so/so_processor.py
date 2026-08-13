@@ -13,6 +13,10 @@ import pdfplumber
 
 from openpyxl import load_workbook
 
+from valueplus_common import (
+    normalize_wrapped_item_quantities,
+)
+
 
 PO_PATTERN = re.compile(
     r"เลขที่\s*:\s*([A-Z]\d+)",
@@ -322,6 +326,12 @@ def _parse_pdf(
                     layout=True,
                 )
                 or ""
+            )
+
+            text = (
+                normalize_wrapped_item_quantities(
+                    text,
+                )
             )
 
             po_match = PO_PATTERN.search(

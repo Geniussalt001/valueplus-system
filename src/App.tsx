@@ -24,6 +24,10 @@ import {
 } from "./components/common/AppToastViewport";
 
 import {
+  StartupUpdateGate,
+} from "./components/update/StartupUpdateGate";
+
+import {
   DashboardPage,
 } from "./pages/DashboardPage";
 
@@ -96,6 +100,9 @@ function getInitialWorkspace(
 }
 
 function App() {
+  const [startupCheckComplete, setStartupCheckComplete] =
+    useState(false);
+
   const initialSession =
     getAuthSession();
 
@@ -126,6 +133,7 @@ function App() {
     useState("");
 
   const outboxSyncEnabled =
+    startupCheckComplete &&
     Boolean(currentUser) &&
     route !== "login" &&
     route !== "splash";
@@ -151,6 +159,16 @@ function App() {
       window.clearTimeout(timer);
     };
   }, [route]);
+
+  if (!startupCheckComplete) {
+    return (
+      <StartupUpdateGate
+        onReady={() => {
+          setStartupCheckComplete(true);
+        }}
+      />
+    );
+  }
 
   const handleLogin = (
     user: AppUser,

@@ -4,6 +4,7 @@ import {
 
 import {
   callAppsScript,
+  readCachedAppsScriptResponse,
 } from "./appsScriptClient";
 
 import type {
@@ -13,6 +14,18 @@ import type {
 } from "../types/receivablesArchive.types";
 
 export const receivablesArchiveService = {
+  async listCached():
+    Promise<
+      ReceivablesArchiveSummary[] | null
+    >
+  {
+    return readCachedAppsScriptResponse<
+      ReceivablesArchiveSummary[]
+    >(
+      "receivables.archiveList",
+    );
+  },
+
   async list():
     Promise<
       ReceivablesArchiveSummary[]
@@ -22,6 +35,11 @@ export const receivablesArchiveService = {
       ReceivablesArchiveSummary[]
     >(
       "receivables.archiveList",
+      {},
+      {
+        requestProfile:
+          "interactive",
+      },
     );
   },
 

@@ -66,6 +66,7 @@ interface WorldwideRetailPageProps {
 interface ArchiveDate {
   year: number;
   month: number;
+  day: number;
 }
 
 interface CachedPdfPreview {
@@ -100,6 +101,8 @@ export function WorldwideRetailPage({
     >([]);
   const [loading, setLoading] =
     useState(true);
+  const [refreshing, setRefreshing] =
+    useState(false);
   const [saving, setSaving] =
     useState(false);
   const [deletingIds, setDeletingIds] =
@@ -211,9 +214,28 @@ export function WorldwideRetailPage({
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
+      setRefreshing(true);
       setError("");
 
+      let hasCachedResponse = false;
+
       try {
+        const cachedRecords =
+          await worldwideRetailService
+            .listCached();
+
+        if (
+          Array.isArray(
+            cachedRecords,
+          )
+        ) {
+          hasCachedResponse = true;
+          setRecords(
+            cachedRecords,
+          );
+          setLoading(false);
+        }
+
         const nextRecords =
           await worldwideRetailService
             .list();
@@ -227,12 +249,15 @@ export function WorldwideRetailPage({
         );
       } catch (reason) {
         setError(
-          getErrorMessage(
-            reason,
-          ),
+          hasCachedResponse
+            ? "กำลังแสดงข้อมูลที่บันทึกไว้ แต่ยังดึงข้อมูลล่าสุดไม่สำเร็จ กรุณารีเฟรชอีกครั้ง"
+            : getErrorMessage(
+                reason,
+              ),
         );
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     }, []);
 
@@ -362,7 +387,7 @@ export function WorldwideRetailPage({
         groups.entries(),
       ).sort(
         ([first], [second]) =>
-          second - first,
+          first - second,
       );
     }, [datedRecords]);
 
@@ -405,7 +430,7 @@ export function WorldwideRetailPage({
         groups.entries(),
       ).sort(
         ([first], [second]) =>
-          second - first,
+          first - second,
       );
     }, [
       datedRecords,
@@ -456,12 +481,28 @@ export function WorldwideRetailPage({
               ),
           );
         })
-        .sort((first, second) =>
-          second.documentDate
-            .localeCompare(
+        .sort((first, second) => {
+          const firstDate =
+            parseArchiveDate(
               first.documentDate,
-            ),
-        );
+            );
+          const secondDate =
+            parseArchiveDate(
+              second.documentDate,
+            );
+
+          return (
+            (firstDate?.day ?? 0) -
+              (secondDate?.day ?? 0) ||
+            first.poNumber.localeCompare(
+              second.poNumber,
+              "th",
+              {
+                numeric: true,
+              },
+            )
+          );
+        });
     }, [
       datedRecords,
       search,
@@ -1218,13 +1259,13 @@ export function WorldwideRetailPage({
               onClick={() => {
                 void loadRecords();
               }}
-              disabled={loading}
+              disabled={refreshing}
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
             >
               <RefreshCw
                 size={16}
                 className={
-                  loading
+                  refreshing
                     ? "animate-spin"
                     : ""
                 }
@@ -1289,7 +1330,8 @@ export function WorldwideRetailPage({
           </div>
         </div>
 
-        {loading ? (
+        {loading &&
+        records.length === 0 ? (
           <div className="px-5 py-16 text-center">
             <LoaderCircle
               size={28}
@@ -2148,6 +2190,7 @@ function parseArchiveDate(
   return {
     year: Number(match[1]),
     month: Number(match[2]),
+    day: Number(match[3]),
   };
 }
 

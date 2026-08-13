@@ -560,11 +560,11 @@ function SummaryStat({
   value: number;
 }) {
   return (
-    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-3">
-      <p className="text-[10px] text-blue-100">
+    <div className="doll-summary-stat rounded-xl border px-3 py-3">
+      <p className="doll-summary-stat-label text-[10px]">
         {label}
       </p>
-      <p className="mt-1 text-lg font-bold text-white">
+      <p className="doll-summary-stat-value mt-1 text-lg font-bold">
         {formatNumber(value)}
       </p>
     </div>

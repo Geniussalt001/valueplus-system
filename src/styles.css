@@ -34,6 +34,57 @@ button {
   font: inherit;
 }
 
+.startup-update-gate {
+  color: #1e293b;
+  background-color: #f4f7fc;
+  background-image: url("/images/login-background-valueplus-modern-mascot-v3.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.startup-update-vignette {
+  background: linear-gradient(
+    90deg,
+    rgb(244 247 252 / 5%) 0%,
+    rgb(244 247 252 / 35%) 48%,
+    rgb(244 247 252 / 96%) 78%,
+    #f4f7fc 100%
+  );
+}
+
+.startup-update-card {
+  border: 1px solid rgb(219 228 242 / 95%);
+  background: rgb(255 255 255 / 96%);
+  box-shadow:
+    0 30px 80px rgb(30 64 175 / 15%),
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(22px);
+}
+
+.startup-update-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 5px;
+  border-radius: 28px 28px 0 0;
+  content: "";
+  background: linear-gradient(90deg, #164eaa, #2389ed, #38bdf8);
+}
+
+.startup-update-icon {
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.startup-update-primary,
+.startup-update-progress {
+  background: linear-gradient(100deg, #174ea6, #267fe7 58%, #38bdf8);
+  box-shadow: 0 10px 24px rgb(37 99 235 / 22%);
+}
+
 .login-background {
   background-position: center;
   background-repeat: no-repeat;

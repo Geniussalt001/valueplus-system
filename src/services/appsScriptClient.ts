@@ -34,7 +34,8 @@ type CachePolicy =
 
 type RequestProfile =
   | "default"
-  | "interactive";
+  | "interactive"
+  | "login";
 
 type ApiTransport =
   "apps-script";
@@ -114,6 +115,12 @@ let cachedDeviceToken:
   | null
   | undefined;
 
+let activeAppsScriptWarmup:
+  | Promise<void>
+  | null = null;
+
+let lastAppsScriptWarmupAt = 0;
+
 function validateConfiguration() {
   if (!appsScriptApiUrl) {
     throw new Error(
@@ -156,6 +163,47 @@ export async function hasAppsScriptConnection() {
   return Boolean(
     await getApiToken(),
   );
+}
+
+export function warmAppsScriptConnection(): Promise<void> {
+  const now = Date.now();
+
+  if (
+    now - lastAppsScriptWarmupAt <
+    60_000
+  ) {
+    return Promise.resolve();
+  }
+
+  if (activeAppsScriptWarmup) {
+    return activeAppsScriptWarmup;
+  }
+
+  activeAppsScriptWarmup = (async () => {
+    validateConfiguration();
+
+    const response = await fetch(
+      appsScriptApiUrl,
+      {
+        method: "GET",
+        maxRedirections: 10,
+        connectTimeout: 4_000,
+      },
+    );
+
+    if (!response.ok) {
+      throw new AppsScriptHttpError(
+        response.status,
+      );
+    }
+
+    lastAppsScriptWarmupAt =
+      Date.now();
+  })().finally(() => {
+    activeAppsScriptWarmup = null;
+  });
+
+  return activeAppsScriptWarmup;
 }
 
 export async function clearAppsScriptConnection() {
@@ -336,21 +384,30 @@ export async function callAppsScript<T>(
     false
       ? 1
       : options.requestProfile ===
+          "login"
+        ? 4
+        : options.requestProfile ===
           "interactive"
         ? 3
         : 5;
 
   const retryDelays =
     options.requestProfile ===
-    "interactive"
-      ? interactiveRetryDelays
-      : transientRetryDelays;
+      "login"
+      ? loginRetryDelays
+      : options.requestProfile ===
+        "interactive"
+        ? interactiveRetryDelays
+        : transientRetryDelays;
 
   const connectTimeoutMs =
     options.requestProfile ===
-    "interactive"
-      ? 7_000
-      : 15_000;
+      "login"
+      ? 15_000
+      : options.requestProfile ===
+        "interactive"
+        ? 7_000
+        : 15_000;
 
   const responseCacheKey =
     cacheableReadActions.has(
@@ -488,6 +545,32 @@ export async function callAppsScript<T>(
   }
 }
 
+export async function readCachedAppsScriptResponse<T>(
+  action: string,
+  data: unknown = {},
+): Promise<T | null> {
+  if (!cacheableReadActions.has(action)) {
+    return null;
+  }
+
+  try {
+    const cacheKey =
+      await createResponseCacheKey(
+        action,
+        data,
+      );
+
+    return await invoke<T | null>(
+      "read_apps_script_cache",
+      {
+        cacheKey,
+      },
+    );
+  } catch {
+    return null;
+  }
+}
+
 const queueableMutationActions =
   new Set([
     "archive.uploadPdf",
@@ -529,6 +612,12 @@ const transientRetryDelays = [
 const interactiveRetryDelays = [
   250,
   600,
+];
+
+const loginRetryDelays = [
+  1_000,
+  2_000,
+  4_000,
 ];
 
 const transientHttpStatuses =

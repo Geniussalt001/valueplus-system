@@ -258,6 +258,7 @@ export function ExpressSummaryPage({
 
       <section
         className="
+          express-csv-panel
           vp-setup-card
           mt-7
           rounded-2xl
@@ -285,6 +286,7 @@ export function ExpressSummaryPage({
             }}
             disabled={processing}
             className="
+              express-csv-upload
               vp-upload-card
               flex
               min-w-0
@@ -307,6 +309,7 @@ export function ExpressSummaryPage({
           >
             <div
               className="
+                express-csv-upload-icon
                 flex
                 h-11
                 w-11
@@ -326,6 +329,7 @@ export function ExpressSummaryPage({
             <div className="min-w-0">
               <p
                 className="
+                  express-csv-upload-title
                   text-sm
                   font-medium
                   text-white
@@ -336,6 +340,7 @@ export function ExpressSummaryPage({
 
               <p
                 className={`
+                  express-csv-upload-path
                   mt-1
                   truncate
                   text-xs
@@ -364,8 +369,8 @@ export function ExpressSummaryPage({
               void processCsv();
             }}
             className="
+              express-csv-process-button
               vp-action-button
-              vp-action-success
               flex
               items-center
               justify-center

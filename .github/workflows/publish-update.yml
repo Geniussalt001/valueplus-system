@@ -2,6 +2,25 @@ name: Publish ValuePlus Update
 
 on:
   workflow_dispatch:
+    inputs:
+      mandatory:
+        description: "บังคับให้ผู้ใช้อัปเดตก่อนเข้าโปรแกรม"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
+      minimum_supported_version:
+        description: "เวอร์ชันต่ำสุดที่ยังอนุญาตให้กดภายหลังได้"
+        required: true
+        type: string
+        default: "1.0.16"
+      update_message:
+        description: "ข้อความภาษาไทยที่แสดงบนหน้าอัปเดต"
+        required: true
+        type: string
+        default: "ปรับปรุงระบบและแก้ไขการทำงานให้มีประสิทธิภาพยิ่งขึ้น"
   push:
     tags:
       - "v*"
@@ -131,7 +150,13 @@ jobs:
           releaseBody: |
             ValuePlus System automatic update.
 
-            กด "ตรวจสอบอัปเดต" ภายในโปรแกรมเพื่อดาวน์โหลดและติดตั้งเวอร์ชันนี้
+            ${{ inputs.update_message || 'ปรับปรุงระบบและแก้ไขการทำงานให้มีประสิทธิภาพยิ่งขึ้น' }}
+
+            [update-policy]
+            mandatory=${{ inputs.mandatory || 'false' }}
+            minimumSupportedVersion=${{ inputs.minimum_supported_version || '1.0.16' }}
+            message=${{ inputs.update_message || 'มี ValuePlus System เวอร์ชันใหม่พร้อมใช้งาน' }}
+            [/update-policy]
           releaseDraft: false
           prerelease: false
           generateReleaseNotes: false

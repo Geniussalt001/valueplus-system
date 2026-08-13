@@ -32,6 +32,7 @@ import {
 import {
   activateAppsScript,
   hasAppsScriptConnection,
+  warmAppsScriptConnection,
 } from "../services/appsScriptClient";
 
 interface LoginPageProps {
@@ -89,6 +90,11 @@ export function LoginPage({
 
   useEffect(() => {
     let active = true;
+
+    void warmAppsScriptConnection()
+      .catch(() => {
+        // Login remains available if the optional warm-up fails.
+      });
 
     async function checkConnection() {
       try {
@@ -176,6 +182,13 @@ export function LoginPage({
     setError("");
 
     try {
+      try {
+        await warmAppsScriptConnection();
+      } catch {
+        // Continue to the authenticated request. Its dedicated retry
+        // policy handles a temporary Apps Script warm-up failure.
+      }
+
       const session =
         await authService.select(
           userCode,
@@ -204,6 +217,13 @@ export function LoginPage({
     } finally {
       setLoadingCode("");
     }
+  };
+
+  const warmLoginConnection = () => {
+    void warmAppsScriptConnection()
+      .catch(() => {
+        // The real login request reports any connection error.
+      });
   };
 
   return (
@@ -362,6 +382,8 @@ export function LoginPage({
                   disabled={Boolean(
                     loadingCode,
                   )}
+                  onPointerEnter={warmLoginConnection}
+                  onFocus={warmLoginConnection}
                   onClick={() => {
                     void selectAccount(
                       account.code,
