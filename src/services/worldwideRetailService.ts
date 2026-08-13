@@ -12,6 +12,7 @@ import {
 
 import {
   callAppsScript,
+  readCachedAppsScriptResponse,
 } from "./appsScriptClient";
 
 import {
@@ -42,12 +43,27 @@ const pdfFilter = [
 ];
 
 export const worldwideRetailService = {
+  async listCached(): Promise<
+    WorldwideRetailRecord[] | null
+  > {
+    return readCachedAppsScriptResponse<
+      WorldwideRetailRecord[]
+    >("worldwide.list");
+  },
+
   async list(): Promise<
     WorldwideRetailRecord[]
   > {
     return callAppsScript<
       WorldwideRetailRecord[]
-    >("worldwide.list");
+    >(
+      "worldwide.list",
+      {},
+      {
+        requestProfile:
+          "interactive",
+      },
+    );
   },
 
   async selectPdf():

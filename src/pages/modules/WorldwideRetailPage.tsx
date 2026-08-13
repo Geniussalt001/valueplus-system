@@ -100,6 +100,8 @@ export function WorldwideRetailPage({
     >([]);
   const [loading, setLoading] =
     useState(true);
+  const [refreshing, setRefreshing] =
+    useState(false);
   const [saving, setSaving] =
     useState(false);
   const [deletingIds, setDeletingIds] =
@@ -211,9 +213,28 @@ export function WorldwideRetailPage({
   const loadRecords =
     useCallback(async () => {
       setLoading(true);
+      setRefreshing(true);
       setError("");
 
+      let hasCachedResponse = false;
+
       try {
+        const cachedRecords =
+          await worldwideRetailService
+            .listCached();
+
+        if (
+          Array.isArray(
+            cachedRecords,
+          )
+        ) {
+          hasCachedResponse = true;
+          setRecords(
+            cachedRecords,
+          );
+          setLoading(false);
+        }
+
         const nextRecords =
           await worldwideRetailService
             .list();
@@ -227,12 +248,15 @@ export function WorldwideRetailPage({
         );
       } catch (reason) {
         setError(
-          getErrorMessage(
-            reason,
-          ),
+          hasCachedResponse
+            ? "กำลังแสดงข้อมูลที่บันทึกไว้ แต่ยังดึงข้อมูลล่าสุดไม่สำเร็จ กรุณารีเฟรชอีกครั้ง"
+            : getErrorMessage(
+                reason,
+              ),
         );
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     }, []);
 
@@ -1218,13 +1242,13 @@ export function WorldwideRetailPage({
               onClick={() => {
                 void loadRecords();
               }}
-              disabled={loading}
+              disabled={refreshing}
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
             >
               <RefreshCw
                 size={16}
                 className={
-                  loading
+                  refreshing
                     ? "animate-spin"
                     : ""
                 }
@@ -1289,7 +1313,8 @@ export function WorldwideRetailPage({
           </div>
         </div>
 
-        {loading ? (
+        {loading &&
+        records.length === 0 ? (
           <div className="px-5 py-16 text-center">
             <LoaderCircle
               size={28}

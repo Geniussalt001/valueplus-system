@@ -488,6 +488,32 @@ export async function callAppsScript<T>(
   }
 }
 
+export async function readCachedAppsScriptResponse<T>(
+  action: string,
+  data: unknown = {},
+): Promise<T | null> {
+  if (!cacheableReadActions.has(action)) {
+    return null;
+  }
+
+  try {
+    const cacheKey =
+      await createResponseCacheKey(
+        action,
+        data,
+      );
+
+    return await invoke<T | null>(
+      "read_apps_script_cache",
+      {
+        cacheKey,
+      },
+    );
+  } catch {
+    return null;
+  }
+}
+
 const queueableMutationActions =
   new Set([
     "archive.uploadPdf",
