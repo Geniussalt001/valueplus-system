@@ -23,6 +23,88 @@ export interface UpdateInformation {
   nextVersion?: string;
   notes?: string;
   publishedAt?: string;
+  mandatory: boolean;
+  minimumSupportedVersion?: string;
+  message?: string;
+}
+
+interface ParsedUpdatePolicy {
+  mandatory: boolean;
+  minimumSupportedVersion?: string;
+  message?: string;
+}
+
+const POLICY_PATTERN =
+  /\[update-policy\]([\s\S]*?)\[\/update-policy\]/i;
+
+function normalizeVersion(version: string): number[] {
+  return version
+    .trim()
+    .replace(/^v/i, "")
+    .split(".")
+    .map((part) => {
+      const value = Number.parseInt(part, 10);
+      return Number.isFinite(value) ? value : 0;
+    });
+}
+
+export function compareVersions(
+  left: string,
+  right: string,
+): number {
+  const leftParts = normalizeVersion(left);
+  const rightParts = normalizeVersion(right);
+  const length = Math.max(
+    leftParts.length,
+    rightParts.length,
+  );
+
+  for (let index = 0; index < length; index += 1) {
+    const difference =
+      (leftParts[index] ?? 0) -
+      (rightParts[index] ?? 0);
+
+    if (difference !== 0) {
+      return difference > 0 ? 1 : -1;
+    }
+  }
+
+  return 0;
+}
+
+export function parseUpdatePolicy(
+  notes = "",
+): ParsedUpdatePolicy {
+  const policyBlock = notes.match(POLICY_PATTERN)?.[1] ?? "";
+  const entries = new Map<string, string>();
+
+  for (const line of policyBlock.split(/\r?\n/)) {
+    const separator = line.indexOf("=");
+
+    if (separator < 1) {
+      continue;
+    }
+
+    entries.set(
+      line.slice(0, separator).trim().toLowerCase(),
+      line.slice(separator + 1).trim(),
+    );
+  }
+
+  const minimumSupportedVersion =
+    entries.get("minimumsupportedversion") || undefined;
+  const message = entries.get("message") || undefined;
+
+  return {
+    mandatory:
+      entries.get("mandatory")?.toLowerCase() === "true",
+    minimumSupportedVersion,
+    message,
+  };
+}
+
+export function stripUpdatePolicy(notes = ""): string {
+  return notes.replace(POLICY_PATTERN, "").trim();
 }
 
 export type UpdateProgressHandler = (
@@ -52,20 +134,34 @@ export async function checkForUpdate():
     return {
       available: false,
       currentVersion,
+      mandatory: false,
     };
   }
+
+  const notes = pendingUpdate.body ?? "";
+  const policy = parseUpdatePolicy(notes);
+  const belowMinimum = Boolean(
+    policy.minimumSupportedVersion &&
+      compareVersions(
+        currentVersion,
+        policy.minimumSupportedVersion,
+      ) < 0,
+  );
 
   return {
     available: true,
     currentVersion,
     nextVersion:
       pendingUpdate.version,
-    notes:
-      pendingUpdate.body ??
-      "",
+    notes: stripUpdatePolicy(notes),
     publishedAt:
       pendingUpdate.date ??
       "",
+    mandatory:
+      policy.mandatory || belowMinimum,
+    minimumSupportedVersion:
+      policy.minimumSupportedVersion,
+    message: policy.message,
   };
 }
 
