@@ -216,6 +216,46 @@ export function DailySoPage({
     };
   }, [success]);
 
+  useEffect(() => {
+    if (!warehouseManagerOpen) {
+      return;
+    }
+
+    const previousBodyOverflow =
+      document.body.style.overflow;
+    const previousRootOverflow =
+      document.documentElement.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+    document.documentElement.style.overflow =
+      "hidden";
+
+    const closeOnEscape = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        setWarehouseManagerOpen(false);
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      closeOnEscape,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousBodyOverflow;
+      document.documentElement.style.overflow =
+        previousRootOverflow;
+      window.removeEventListener(
+        "keydown",
+        closeOnEscape,
+      );
+    };
+  }, [warehouseManagerOpen]);
+
   const choosePdf = async () => {
     if (busy) {
       return;
@@ -341,17 +381,6 @@ export function DailySoPage({
 
     setWarehouseDraft(assignments);
     setWarehouseManagerOpen(true);
-
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById(
-          "warehouse-manager-panel",
-        )
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    });
   };
 
   const saveWarehouseAssignments = async () => {
@@ -588,7 +617,7 @@ export function DailySoPage({
       />
 
       {warehouseManagerOpen && preview && (
-        <WarehouseManagerPanel
+        <WarehouseManagerPopup
           groups={preview.groups}
           assignments={warehouseDraft}
           onChange={(warehouse, groupCode) => {
@@ -1432,7 +1461,7 @@ export function DailySoPage({
   );
 }
 
-function WarehouseManagerPanel({
+function WarehouseManagerPopup({
   groups,
   assignments,
   onChange,
@@ -1465,12 +1494,13 @@ function WarehouseManagerPanel({
 
   return (
     <section
-      id="warehouse-manager-panel"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="warehouse-manager-title"
-      className="mb-7 scroll-mt-6 overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-xl shadow-cyan-100/60"
+      className="fixed inset-0 z-[9999] bg-slate-50 p-4 sm:p-6"
     >
-      <div className="overflow-hidden">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-xl shadow-cyan-100/60">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-cyan-50 via-white to-violet-50 px-6 py-5">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-200 bg-white text-cyan-700 shadow-sm">
               <ArrowRightLeft size={21} />
@@ -1494,14 +1524,14 @@ function WarehouseManagerPanel({
           <button
             type="button"
             onClick={onClose}
-            aria-label="ปิดส่วนจัดการคลัง"
+            aria-label="ปิดหน้าจัดการคลัง"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
           >
             <X size={19} />
           </button>
         </div>
 
-        <div className="flex gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
+        <div className="flex shrink-0 gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
           <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
             Q19 · {q19Count} คลัง
           </span>
@@ -1510,7 +1540,7 @@ function WarehouseManagerPanel({
           </span>
         </div>
 
-        <div className="grid gap-3 p-6 md:grid-cols-2">
+        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-6 md:grid-cols-2">
           {warehouses.map(({ warehouse, currentGroup }) => {
             const selected = assignments[warehouse] ?? currentGroup;
 
@@ -1556,7 +1586,7 @@ function WarehouseManagerPanel({
           })}
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+        <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onRestore}
