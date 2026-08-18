@@ -99,13 +99,6 @@ export function IvNumberInput({
         />
       </div>
 
-      <p className="mt-3 text-xs leading-5 text-slate-500">
-        ระบบจะเรียง IV
-        ตามลำดับคลัง
-        และเรียงเลข PO
-        จากน้อยไปมาก
-      </p>
-
       {value && (
         <p className="mt-2 text-xs text-cyan-200">
           IV เริ่มต้น:{" "}

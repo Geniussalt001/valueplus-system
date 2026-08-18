@@ -5,12 +5,10 @@ import {
 
 interface LockedTemplateCardProps {
   templatePath: string;
-  baseFolder: string;
 }
 
 export function LockedTemplateCard({
   templatePath,
-  baseFolder,
 }: LockedTemplateCardProps) {
   const fileName =
     getFileName(
@@ -94,12 +92,6 @@ export function LockedTemplateCard({
         Excel Template
       </p>
 
-      <p className="relative mt-1 text-xs leading-5 text-slate-500">
-        ระบบเลือก Template
-        มาตรฐานให้อัตโนมัติ
-        และไม่อนุญาตให้เปลี่ยนไฟล์
-      </p>
-
       <p
         className="
           relative
@@ -115,25 +107,6 @@ export function LockedTemplateCard({
         {fileName ||
           "กำลังค้นหา Template..."}
       </p>
-
-      {baseFolder && (
-        <p
-          className="
-            relative
-            mt-2
-            truncate
-            text-[10px]
-            text-slate-600
-          "
-          title={
-            baseFolder
-          }
-        >
-          {
-            baseFolder
-          }
-        </p>
-      )}
     </div>
   );
 }

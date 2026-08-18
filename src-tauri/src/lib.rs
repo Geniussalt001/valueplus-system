@@ -22,6 +22,11 @@ use commands::connection_credentials::{
     save_connection_token,
 };
 
+use commands::dev_access::{
+    verify_dev_access,
+    DevAccessState,
+};
+
 use commands::doll_summary::{
     manage_doll_summary,
 };
@@ -87,6 +92,9 @@ fn greet(
 pub fn run() {
     let builder =
         tauri::Builder::default()
+            .manage(
+                DevAccessState::default(),
+            )
             .setup(|app| {
                 if let Err(error) =
                     default_files::install(
@@ -135,6 +143,7 @@ pub fn run() {
                 get_connection_token,
                 save_connection_token,
                 clear_connection_token,
+                verify_dev_access,
                 manage_product_catalog,
                 manage_doll_summary,
                 preview_po_documents,

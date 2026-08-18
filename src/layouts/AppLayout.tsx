@@ -3,6 +3,8 @@ import type {
   ReactNode,
 } from "react";
 import {
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -36,6 +38,10 @@ import {
 import {
   UpdateCenter,
 } from "../components/update/UpdateCenter";
+
+import {
+  DevTemplateCenter,
+} from "../components/dev/DevTemplateCenter";
 
 import {
   systemModules,
@@ -94,6 +100,52 @@ export function AppLayout({
   const [isUpdateOpen, setIsUpdateOpen] =
     useState(false);
 
+  const [isDevCenterOpen, setIsDevCenterOpen] =
+    useState(false);
+
+  const logoClickCount =
+    useRef(0);
+
+  const logoClickResetTimer =
+    useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logoClickResetTimer.current !== null) {
+        window.clearTimeout(
+          logoClickResetTimer.current,
+        );
+      }
+    };
+  }, []);
+
+  const handleBrandClick = () => {
+    logoClickCount.current += 1;
+
+    if (logoClickResetTimer.current !== null) {
+      window.clearTimeout(
+        logoClickResetTimer.current,
+      );
+    }
+
+    if (logoClickCount.current >= 5) {
+      logoClickCount.current = 0;
+      logoClickResetTimer.current = null;
+      setIsUpdateOpen(false);
+      setIsDevCenterOpen(true);
+      return;
+    }
+
+    logoClickResetTimer.current =
+      window.setTimeout(() => {
+        logoClickCount.current = 0;
+        logoClickResetTimer.current = null;
+      }, 1800);
+
+    setIsUpdateOpen(false);
+    onNavigate("dashboard");
+  };
+
   const currentModule =
     systemModules.find(
       (module) =>
@@ -127,12 +179,9 @@ export function AppLayout({
           <div className="top-utility-bar">
             <button
               type="button"
-              onClick={() => {
-                setIsUpdateOpen(false);
-                onNavigate("dashboard");
-              }}
+              onClick={handleBrandClick}
               className="top-brand-button"
-              aria-label="กลับหน้าแดชบอร์ด"
+              aria-label="โลโก้ ValuePlus — กลับหน้าแดชบอร์ด"
             >
               <BrandLogo size="medium" />
             </button>
@@ -267,6 +316,13 @@ export function AppLayout({
         <div key={currentRoute} className="page-motion top-layout-content">
           {children}
         </div>
+
+        <DevTemplateCenter
+          open={isDevCenterOpen}
+          onClose={() => {
+            setIsDevCenterOpen(false);
+          }}
+        />
       </section>
     </main>
   );
