@@ -54,7 +54,10 @@ import {
 
 interface SplitRenamePoPageProps {
   onBack: () => void;
-  onNextProcess: (pdfPath: string) => void;
+  onNextProcess: (
+    pdfPath: string,
+    startIvNumber: string,
+  ) => void;
 }
 
 export function SplitRenamePoPage({
@@ -555,6 +558,7 @@ export function SplitRenamePoPage({
             onClick={() => {
               onNextProcess(
                 processor.pdfPath,
+                processor.startIv,
               );
             }}
             className="
