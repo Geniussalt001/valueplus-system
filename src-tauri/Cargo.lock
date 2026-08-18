@@ -4741,7 +4741,7 @@ dependencies = [
 
 [[package]]
 name = "valueplus-system"
-version = "1.0.16"
+version = "1.0.17"
 dependencies = [
  "base64 0.22.1",
  "keyring",
