@@ -10,6 +10,9 @@ export interface SalesBillingItem {
   match_method: string;
   match_score: number;
   excluded: boolean;
+  original_quantity?: number;
+  adjusted?: boolean;
+  excluded_by_quantity?: boolean;
 }
 
 export interface SalesBillingOrder {

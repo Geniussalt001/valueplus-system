@@ -23,6 +23,7 @@ import {
   FileUp,
   MonitorDot,
   Octagon,
+  PackageMinus,
   PackagePlus,
   Play,
   ReceiptText,
@@ -46,6 +47,7 @@ import type {
 interface SalesBillingPageProps {
   onBack: () => void;
   initialPdfPath?: string;
+  initialIvNumber?: string;
   onInitialPdfConsumed?: () => void;
   onNextProcess: (pdfPath: string) => void;
 }
@@ -59,6 +61,7 @@ type Activity =
 export function SalesBillingPage({
   onBack,
   initialPdfPath,
+  initialIvNumber = "",
   onInitialPdfConsumed,
   onNextProcess,
 }: SalesBillingPageProps) {
@@ -103,6 +106,13 @@ export function SalesBillingPage({
     consumedPdfRef.current =
       initialPdfPath;
     setPdfPath(initialPdfPath);
+    if (initialIvNumber) {
+      setStartIv(
+        normalizeIvDigits(
+          initialIvNumber,
+        ),
+      );
+    }
     setPreview(null);
     setProgress(null);
     setError("");
@@ -112,6 +122,7 @@ export function SalesBillingPage({
     onInitialPdfConsumed?.();
   }, [
     initialPdfPath,
+    initialIvNumber,
     onInitialPdfConsumed,
   ]);
 
@@ -266,7 +277,7 @@ export function SalesBillingPage({
   }
 
   async function buildPreview() {
-    if (!pdfPath || !startIv.trim()) {
+    if (!pdfPath || !/^\d+$/.test(startIv)) {
       setError(
         "กรุณาเลือก PDF และระบุเลข IV เริ่มต้น",
       );
@@ -281,7 +292,7 @@ export function SalesBillingPage({
         await salesBillingService
           .preview(
             pdfPath,
-            startIv.trim(),
+            `VPR${startIv}`,
           );
       setPreview({
         ...result,
@@ -289,6 +300,16 @@ export function SalesBillingPage({
           (order) => ({
             ...order,
             selected: order.ready,
+            items: order.items.map(
+              (item) => ({
+                ...item,
+                original_quantity:
+                  item.quantity,
+                adjusted: false,
+                excluded_by_quantity:
+                  false,
+              }),
+            ),
           }),
         ),
       });
@@ -338,7 +359,7 @@ export function SalesBillingPage({
       const result =
         await salesBillingService.preview(
           pdfPath,
-          startIv.trim(),
+          `VPR${startIv}`,
         );
 
       setPreview({
@@ -347,6 +368,16 @@ export function SalesBillingPage({
           (order) => ({
             ...order,
             selected: order.ready,
+            items: order.items.map(
+              (item) => ({
+                ...item,
+                original_quantity:
+                  item.quantity,
+                adjusted: false,
+                excluded_by_quantity:
+                  false,
+              }),
+            ),
           }),
         ),
       });
@@ -519,6 +550,90 @@ export function SalesBillingPage({
                         ...item,
                         excluded:
                           !item.excluded,
+                        excluded_by_quantity:
+                          false,
+                      }
+                    : item,
+              ),
+            }
+          : order,
+      ),
+    );
+  }
+
+  function setItemQuantity(
+    poNumber: string,
+    itemIndex: number,
+    quantity: number,
+  ) {
+    if (
+      !Number.isFinite(quantity) ||
+      quantity < 0
+    ) {
+      return;
+    }
+
+    updateOrders((current) =>
+      current.map((order) =>
+        order.po_number === poNumber
+          ? {
+              ...order,
+              items: order.items.map(
+                (item, index) => {
+                  if (index !== itemIndex) {
+                    return item;
+                  }
+                  const original =
+                    item.original_quantity ??
+                    item.quantity;
+                  return {
+                    ...item,
+                    quantity,
+                    original_quantity:
+                      original,
+                    adjusted:
+                      quantity !== original,
+                    excluded:
+                      quantity === 0
+                        ? true
+                        : item.excluded_by_quantity
+                          ? false
+                          : item.excluded,
+                    excluded_by_quantity:
+                      quantity === 0,
+                  };
+                },
+              ),
+            }
+          : order,
+      ),
+    );
+  }
+
+  function restoreItemQuantity(
+    poNumber: string,
+    itemIndex: number,
+  ) {
+    updateOrders((current) =>
+      current.map((order) =>
+        order.po_number === poNumber
+          ? {
+              ...order,
+              items: order.items.map(
+                (item, index) =>
+                  index === itemIndex
+                    ? {
+                        ...item,
+                        quantity:
+                          item.original_quantity ??
+                          item.quantity,
+                        adjusted: false,
+                        excluded:
+                          item.excluded_by_quantity
+                            ? false
+                            : item.excluded,
+                        excluded_by_quantity:
+                          false,
                       }
                     : item,
               ),
@@ -609,19 +724,21 @@ export function SalesBillingPage({
           </label>
           <div className="mt-4 flex overflow-hidden rounded-xl border border-blue-200 bg-slate-50">
             <span className="border-r border-blue-200 bg-blue-50 px-4 py-3 font-semibold text-blue-700">
-              IV
+              VPR
             </span>
             <input
               value={startIv}
               disabled={busy}
               onChange={(event) => {
                 setStartIv(
-                  event.target.value
-                    .toUpperCase(),
+                  normalizeIvDigits(
+                    event.target.value,
+                  ),
                 );
                 setPreview(null);
               }}
-              placeholder="VPR6907001"
+              inputMode="numeric"
+              placeholder="6907001"
               className="min-w-0 flex-1 bg-transparent px-4 py-3 font-mono text-slate-800 outline-none"
             />
           </div>
@@ -635,7 +752,7 @@ export function SalesBillingPage({
             disabled={
               busy ||
               !pdfPath ||
-              !startIv.trim()
+              !/^\d+$/.test(startIv)
             }
             onClick={() => {
               void buildPreview();
@@ -850,7 +967,7 @@ export function SalesBillingPage({
                             : "bg-white"
                         }
                       >
-                        <div className="grid gap-3 px-4 py-4 lg:grid-cols-[42px_minmax(0,1fr)_130px_108px] lg:items-center">
+                        <div className="grid gap-3 px-4 py-4 lg:grid-cols-[42px_minmax(0,1fr)_130px_118px] lg:items-center">
                           <input
                             type="checkbox"
                             checked={
@@ -923,6 +1040,14 @@ export function SalesBillingPage({
                                 "-"
                               }
                             </p>
+                            {order.items.some(
+                              (item) =>
+                                item.adjusted,
+                            ) && (
+                              <p className="mt-1 text-[11px] font-semibold text-amber-700">
+                                ตัดยอดแล้ว {order.items.filter((item) => item.adjusted).length} รายการ
+                              </p>
+                            )}
                           </button>
                           <div className="vp-icon-button-group flex items-center gap-3">
                             <button
@@ -977,7 +1102,10 @@ export function SalesBillingPage({
                             }
                             className="flex items-center justify-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-xs font-medium text-blue-700"
                           >
-                            รายการ
+                            <PackageMinus
+                              size={15}
+                            />
+                            ตัดยอด
                             {expanded ? (
                               <ChevronUp
                                 size={15}
@@ -992,6 +1120,16 @@ export function SalesBillingPage({
 
                         {expanded && (
                           <div className="border-t border-cyan-100 bg-slate-50/70 px-4 py-3">
+                            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                              <div>
+                                <p className="text-sm font-semibold text-amber-900">
+                                  ตัดยอดรายสินค้า • {order.warehouse_group} {order.warehouse_sequence}
+                                </p>
+                                <p className="mt-1 text-[11px] text-amber-700">
+                                  กรอกยอดคงเหลือที่ต้องการส่งเข้า Express — ใส่ 0 เพื่อไม่ส่งรายการนั้น
+                                </p>
+                              </div>
+                            </div>
                             <div className="space-y-2">
                               {order.items.map(
                                 (
@@ -1000,7 +1138,11 @@ export function SalesBillingPage({
                                 ) => (
                                   <div
                                     key={`${item.cpall_code}-${itemIndex}`}
-                                    className="grid gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:grid-cols-[minmax(0,1fr)_110px_110px] sm:items-center"
+                                    className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_110px] sm:items-center ${
+                                      item.adjusted
+                                        ? "border-amber-300 ring-1 ring-amber-100"
+                                        : "border-slate-200"
+                                    }`}
                                   >
                                     <div className="min-w-0">
                                       <p className="truncate text-sm font-medium text-slate-800">
@@ -1018,9 +1160,43 @@ export function SalesBillingPage({
                                         {item.unit_price.toLocaleString()}
                                       </p>
                                     </div>
-                                    <p className="text-right font-semibold text-slate-800">
-                                      {item.quantity.toLocaleString()}
-                                    </p>
+                                    <div>
+                                      <label className="text-[10px] font-semibold text-slate-500">
+                                        ยอดคงเหลือ
+                                      </label>
+                                      <div className="mt-1 flex items-center gap-2">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={item.quantity}
+                                          disabled={busy}
+                                          onFocus={(event) => event.currentTarget.select()}
+                                          onChange={(event) =>
+                                            setItemQuantity(
+                                              order.po_number,
+                                              itemIndex,
+                                              Number(event.target.value),
+                                            )
+                                          }
+                                          className="min-w-0 flex-1 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2 text-right font-mono font-semibold text-slate-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                                        />
+                                        {item.adjusted && (
+                                          <button
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() => restoreItemQuantity(order.po_number, itemIndex)}
+                                            className="rounded-lg border border-slate-200 px-2 py-2 text-[10px] font-semibold text-slate-600 hover:bg-slate-50"
+                                            title="คืนยอดเดิม"
+                                          >
+                                            คืนค่า
+                                          </button>
+                                        )}
+                                      </div>
+                                      <p className="mt-1 text-right text-[10px] text-slate-400">
+                                        เดิม {(item.original_quantity ?? item.quantity).toLocaleString()}
+                                      </p>
+                                    </div>
                                     <button
                                       type="button"
                                       disabled={busy}
@@ -1248,6 +1424,15 @@ function normalizeExpressCode(
   return normalizeExpressCodeInput(
     value,
   );
+}
+
+function normalizeIvDigits(
+  value: string,
+): string {
+  return value
+    .toUpperCase()
+    .replace(/^VPR/, "")
+    .replace(/\D/g, "");
 }
 
 function SummaryCard({

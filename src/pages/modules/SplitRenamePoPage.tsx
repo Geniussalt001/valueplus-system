@@ -54,7 +54,10 @@ import {
 
 interface SplitRenamePoPageProps {
   onBack: () => void;
-  onNextProcess: (pdfPath: string) => void;
+  onNextProcess: (
+    pdfPath: string,
+    startIvNumber: string,
+  ) => void;
 }
 
 export function SplitRenamePoPage({
@@ -217,19 +220,6 @@ export function SplitRenamePoPage({
             ออกใบจัดรายวัน
           </h2>
 
-          <p
-            className="
-              mt-3
-              max-w-3xl
-              text-sm
-              leading-6
-              text-slate-400
-            "
-          >
-            อ่านข้อมูล PO จาก PDF
-            จับคู่สินค้ากับ Excel Template
-            และจัดทำใบจัดสินค้าอัตโนมัติ
-          </p>
         </div>
 
         <div
@@ -278,10 +268,6 @@ export function SplitRenamePoPage({
           templatePath={
             processor
               .templatePath
-          }
-          baseFolder={
-            processor
-              .baseFolder
           }
         />
 
@@ -412,6 +398,7 @@ export function SplitRenamePoPage({
           >
             <PencilLine
               size={18}
+              className="daily-picking-adjust-icon"
             />
 
             ตัดยอด
@@ -571,6 +558,7 @@ export function SplitRenamePoPage({
             onClick={() => {
               onNextProcess(
                 processor.pdfPath,
+                processor.startIv,
               );
             }}
             className="

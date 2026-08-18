@@ -21,8 +21,6 @@ import {
   ExternalLink,
   Check,
   LoaderCircle,
-  LockKeyhole,
-  PencilLine,
   RotateCcw,
   ScanSearch,
   TriangleAlert,
@@ -38,6 +36,10 @@ import {
 import {
   ProcessStatusOverlay,
 } from "../../components/common/ProcessStatusOverlay";
+
+import {
+  LockedTemplateCard,
+} from "../../components/split-rename-po/LockedTemplateCard";
 
 import type {
   DailySoGroup,
@@ -70,6 +72,9 @@ type WarehouseGroupCode =
 
 type WarehouseAssignments =
   Record<string, WarehouseGroupCode>;
+
+const warehouseAssignmentsStorageKey =
+  "valueplus.daily-so.warehouse-assignments.v1";
 
 export function DailySoPage({
   onBack,
@@ -143,7 +148,9 @@ export function DailySoPage({
   const [
     warehouseAssignments,
     setWarehouseAssignments,
-  ] = useState<WarehouseAssignments>({});
+  ] = useState<WarehouseAssignments>(
+    loadWarehouseAssignments,
+  );
 
   const [
     warehouseDraft,
@@ -157,11 +164,6 @@ export function DailySoPage({
 
   const busy =
     activity !== "idle";
-
-  const hasQuantityEdits =
-    Object.keys(
-      quantityEdits,
-    ).length > 0;
 
   const invalidQuantityEdit =
     Object.values(
@@ -298,7 +300,6 @@ export function DailySoPage({
         {},
       );
 
-      setWarehouseAssignments({});
       setWarehouseDraft({});
       setWarehouseManagerOpen(false);
     } catch (reason) {
@@ -406,10 +407,11 @@ export function DailySoPage({
 
       setPreview(result);
       setWarehouseAssignments(warehouseDraft);
+      persistWarehouseAssignments(warehouseDraft);
       setAdjusting(false);
       setQuantityEdits({});
       setSuccess(
-        "บันทึกการย้ายคลังแล้ว Preview Q19 และ Q20 ถูกคำนวณใหม่เรียบร้อย",
+        "บันทึกกลุ่มคลังเป็นค่ามาตรฐานแล้ว ระบบจะใช้ค่านี้อัตโนมัติในครั้งถัดไป",
       );
     } catch (reason) {
       setError(getErrorMessage(reason));
@@ -439,6 +441,7 @@ export function DailySoPage({
       setPreview(result);
       setWarehouseAssignments({});
       setWarehouseDraft({});
+      clearWarehouseAssignments();
       setAdjusting(false);
       setQuantityEdits({});
       setSuccess("คืนค่ากลุ่มคลัง Q19 และ Q20 ตามมาตรฐานแล้ว");
@@ -464,7 +467,6 @@ export function DailySoPage({
     setPreview(null);
     setAdjusting(false);
     setQuantityEdits({});
-    setWarehouseAssignments({});
     setWarehouseDraft({});
     setWarehouseManagerOpen(false);
     setActivity("preview");
@@ -477,7 +479,8 @@ export function DailySoPage({
       .preview({
         pdfPath: initialPdfPath,
         templatePath: paths.templatePath,
-        warehouseOverrides: {},
+        warehouseOverrides:
+          warehouseAssignments,
       })
       .then((result) => {
         setPreview(result);
@@ -500,6 +503,7 @@ export function DailySoPage({
     initialPdfPath,
     onInitialPdfConsumed,
     paths,
+    warehouseAssignments,
   ]);
 
   const exportFiles = async () => {
@@ -698,19 +702,6 @@ export function DailySoPage({
             ลงยอด SO รายวัน
           </h2>
 
-          <p
-            className="
-              mt-3
-              max-w-3xl
-              text-sm
-              leading-6
-              text-slate-400
-            "
-          >
-            อ่าน PO จาก PDF จับคู่สินค้ากับ
-            Data-SO.Import และรวมยอดแยกเป็น
-            Q19 กับ Q20
-          </p>
         </div>
 
         <div
@@ -824,98 +815,11 @@ export function DailySoPage({
           </div>
         </button>
 
-        <div
-          className="
-            vp-setup-card
-            flex
-            min-w-0
-            items-center
-            gap-4
-            rounded-2xl
-            border
-            border-slate-600/50
-            bg-slate-800/25
-            p-5
-          "
-        >
-          <div
-            className="
-              flex
-              h-12
-              w-12
-              shrink-0
-              items-center
-              justify-center
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800/60
-              text-slate-400
-            "
-          >
-            <LockKeyhole
-              size={19}
-            />
-          </div>
-
-          <div className="min-w-0">
-            <div
-              className="
-                flex
-                items-center
-                gap-2
-              "
-            >
-              <p
-                className="
-                  font-medium
-                  text-white
-                "
-              >
-                Excel Template
-              </p>
-
-              <span
-                className="
-                  rounded-full
-                  border
-                  border-sky-300/20
-                  px-2
-                  py-0.5
-                  text-[10px]
-                  font-semibold
-                  text-sky-300
-                "
-              >
-                LOCKED
-              </span>
-            </div>
-
-            <p
-              className="
-                mt-2
-                text-xs
-                text-slate-300
-              "
-            >
-              Data-SO.Import.xlsx
-            </p>
-
-            <p
-              className="
-                mt-1
-                truncate
-                text-[11px]
-                text-slate-600
-              "
-            >
-              {
-                paths?.templatePath ||
-                "กำลังตรวจสอบตำแหน่ง Template..."
-              }
-            </p>
-          </div>
-        </div>
+        <LockedTemplateCard
+          templatePath={
+            paths?.templatePath ?? ""
+          }
+        />
       </section>
 
       {error && (
@@ -1056,89 +960,6 @@ export function DailySoPage({
           >
             <ArrowRightLeft size={18} />
             จัดการคลัง
-          </button>
-        )}
-
-        {preview && (
-          <button
-            type="button"
-            disabled={
-              busy ||
-              invalidQuantityEdit
-            }
-            onClick={() => {
-              setAdjusting(
-                (current) =>
-                  !current,
-              );
-            }}
-            className={`
-              vp-action-button
-              vp-action-warning
-              flex
-              items-center
-              gap-2
-              rounded-xl
-              border
-              px-6
-              py-3
-              text-sm
-              font-medium
-              transition
-              disabled:cursor-not-allowed
-              disabled:opacity-35
-              ${
-                adjusting
-                  ? "border-amber-300/35 bg-amber-300/15 text-amber-200"
-                  : "border-amber-300/25 bg-amber-300/[0.08] text-amber-200"
-              }
-            `}
-          >
-            {adjusting ? (
-              <Check size={18} />
-            ) : (
-              <PencilLine
-                size={18}
-              />
-            )}
-
-            {adjusting
-              ? "ยืนยันยอดที่แก้ไข"
-              : "ตัดยอด"}
-          </button>
-        )}
-
-        {hasQuantityEdits && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              setQuantityEdits(
-                {},
-              );
-            }}
-            className="
-              vp-action-button
-              vp-action-secondary
-              flex
-              items-center
-              gap-2
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800/40
-              px-5
-              py-3
-              text-sm
-              text-slate-300
-              disabled:opacity-35
-            "
-          >
-            <RotateCcw
-              size={17}
-            />
-
-            คืนยอดเดิม
           </button>
         )}
 
@@ -1520,7 +1341,7 @@ function WarehouseManagerPopup({
                 จัดการคลัง Q19 / Q20
               </h3>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                เลือกกลุ่มปลายทางของแต่ละคลัง แล้วกดบันทึกเพื่อคำนวณ Preview และไฟล์ Excel ใหม่
+                ค่าที่บันทึกจะถูกใช้กับไฟล์ครั้งถัดไปโดยอัตโนมัติ
               </p>
             </div>
           </div>
@@ -2707,6 +2528,64 @@ function MessageBox({
         )}
       </div>
     </div>
+  );
+}
+
+function loadWarehouseAssignments(): WarehouseAssignments {
+  try {
+    const storedValue =
+      window.localStorage.getItem(
+        warehouseAssignmentsStorageKey,
+      );
+
+    if (!storedValue) {
+      return {};
+    }
+
+    const parsed: unknown =
+      JSON.parse(storedValue);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return {};
+    }
+
+    const assignments: WarehouseAssignments = {};
+
+    for (const [warehouse, groupCode]
+      of Object.entries(parsed)) {
+      const normalizedWarehouse =
+        warehouse.trim();
+
+      if (
+        normalizedWarehouse &&
+        (groupCode === "Q19" || groupCode === "Q20")
+      ) {
+        assignments[normalizedWarehouse] = groupCode;
+      }
+    }
+
+    return assignments;
+  } catch {
+    return {};
+  }
+}
+
+function persistWarehouseAssignments(
+  assignments: WarehouseAssignments,
+): void {
+  window.localStorage.setItem(
+    warehouseAssignmentsStorageKey,
+    JSON.stringify(assignments),
+  );
+}
+
+function clearWarehouseAssignments(): void {
+  window.localStorage.removeItem(
+    warehouseAssignmentsStorageKey,
   );
 }
 

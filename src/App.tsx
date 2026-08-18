@@ -132,6 +132,9 @@ function App() {
   const [nextProcessPdfPath, setNextProcessPdfPath] =
     useState("");
 
+  const [nextProcessIvNumber, setNextProcessIvNumber] =
+    useState("");
+
   const outboxSyncEnabled =
     startupCheckComplete &&
     Boolean(currentUser) &&
@@ -182,6 +185,7 @@ function App() {
 
   const handleLogout = () => {
     setNextProcessPdfPath("");
+    setNextProcessIvNumber("");
     setWorkspaceScope("retail");
     setCurrentUser(null);
     setRoute("login");
@@ -221,6 +225,7 @@ function App() {
   ) => {
     setWorkspaceScope(nextWorkspace);
     setNextProcessPdfPath("");
+    setNextProcessIvNumber("");
     setRoute("dashboard");
   };
 
@@ -228,8 +233,12 @@ function App() {
     setRoute("dashboard");
   };
 
-  const continueToDailySo = (pdfPath: string) => {
+  const continueToDailySo = (
+    pdfPath: string,
+    startIvNumber: string,
+  ) => {
     setNextProcessPdfPath(pdfPath);
+    setNextProcessIvNumber(startIvNumber);
     setRoute("daily-so");
   };
 
@@ -257,6 +266,11 @@ function App() {
     setNextProcessPdfPath("");
   };
 
+  const consumeSalesBillingInput = () => {
+    setNextProcessPdfPath("");
+    setNextProcessIvNumber("");
+  };
+
   const renderPage = () => {
     switch (route) {
       case "daily-picking":
@@ -282,7 +296,8 @@ function App() {
           <SalesBillingPage
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
-            onInitialPdfConsumed={consumeNextProcessPdf}
+            initialIvNumber={nextProcessIvNumber}
+            onInitialPdfConsumed={consumeSalesBillingInput}
             onNextProcess={continueToSplitRename}
           />
         );

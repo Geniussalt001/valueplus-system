@@ -15,7 +15,7 @@ on:
         description: "เวอร์ชันต่ำสุดที่ยังอนุญาตให้กดภายหลังได้"
         required: true
         type: string
-        default: "1.0.16"
+        default: "1.0.15"
       update_message:
         description: "ข้อความภาษาไทยที่แสดงบนหน้าอัปเดต"
         required: true
@@ -154,7 +154,7 @@ jobs:
 
             [update-policy]
             mandatory=${{ inputs.mandatory || 'false' }}
-            minimumSupportedVersion=${{ inputs.minimum_supported_version || '1.0.16' }}
+            minimumSupportedVersion=${{ inputs.minimum_supported_version || '1.0.15' }}
             message=${{ inputs.update_message || 'มี ValuePlus System เวอร์ชันใหม่พร้อมใช้งาน' }}
             [/update-policy]
           releaseDraft: false

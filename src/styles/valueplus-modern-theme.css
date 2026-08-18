@@ -577,6 +577,11 @@ body {
   background: #fff8e9 !important;
 }
 
+.daily-picking-workspace .daily-picking-adjust-icon {
+  color: #a76500 !important;
+  stroke-width: 2.2;
+}
+
 .dashboard button.vp-action-danger,
 .dashboard button[class*="bg-red-"] {
   border-color: #f2c6d0 !important;
