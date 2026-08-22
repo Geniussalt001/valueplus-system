@@ -19,12 +19,12 @@ import {
 } from "@tauri-apps/plugin-opener";
 
 import {
-  invoke,
-} from "@tauri-apps/api/core";
-
-import {
   dailySoService,
 } from "../../services/dailySoService";
+
+import {
+  devAccessService,
+} from "../../services/devAccessService";
 
 import {
   poProcessorService,
@@ -40,14 +40,6 @@ interface DevTemplateItem {
   title: string;
   fileName: string;
   path: string;
-}
-
-interface DevAccessResult {
-  success: boolean;
-  locked: boolean;
-  remainingAttempts: number;
-  retryAfterSeconds: number;
-  message: string;
 }
 
 export function DevTemplateCenter({
@@ -129,12 +121,9 @@ export function DevTemplateCenter({
 
     try {
       const verification =
-        await invoke<DevAccessResult>(
-          "verify_dev_access",
-          {
-            userName,
-            password,
-          },
+        await devAccessService.verify(
+          userName,
+          password,
         );
 
       if (!verification.success) {

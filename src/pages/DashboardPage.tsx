@@ -12,6 +12,10 @@ import {
 } from "../components/SystemCard";
 
 import {
+  ProductSpotlight,
+} from "../components/dashboard/ProductSpotlight";
+
+import {
   systemModules,
 } from "../data/systemModules";
 
@@ -95,7 +99,9 @@ export function DashboardPage({
         </p>
       </section>
 
-      <section className="dashboard-metric-grid grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <ProductSpotlight />
+
+      <section className="dashboard-metric-grid mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           icon={Boxes}
           value={String(availableModules.length)}

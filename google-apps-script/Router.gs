@@ -243,6 +243,14 @@ function doPost(event) {
           );
         break;
 
+      case "dev.login":
+        data =
+          verifyDevAccess(
+            request.data,
+            request.token,
+          );
+        break;
+
       case "receivables.saveMonthly":
         data =
           saveReceivablesMonthly(

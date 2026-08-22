@@ -1,7 +1,6 @@
 pub mod apps_script_outbox;
 pub mod connection_credentials;
 pub mod daily_so;
-pub mod dev_access;
 pub mod doll_summary;
 pub mod express_summary;
 pub mod google_sheet_editor;
