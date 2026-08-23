@@ -1,8 +1,10 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import {
   ArrowRight,
@@ -36,6 +38,8 @@ const categories: Array<"ทั้งหมด" | ProductShowcaseCategory> = [
 export function ProductSpotlight() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [mascotCheering, setMascotCheering] = useState(false);
+  const mascotTimerRef = useRef<number | null>(null);
   const [selectedProductId, setSelectedProductId] = useState(
     featuredProductShowcaseItems[0]?.id ?? productShowcaseItems[0].id,
   );
@@ -54,6 +58,12 @@ export function ProductSpotlight() {
     return () => window.clearInterval(timer);
   }, [catalogOpen]);
 
+  useEffect(() => () => {
+    if (mascotTimerRef.current !== null) {
+      window.clearTimeout(mascotTimerRef.current);
+    }
+  }, []);
+
   const activeProduct =
     featuredProductShowcaseItems[activeIndex] ?? productShowcaseItems[0];
 
@@ -68,6 +78,37 @@ export function ProductSpotlight() {
   const openCatalog = (productId = activeProduct.id) => {
     setSelectedProductId(productId);
     setCatalogOpen(true);
+  };
+
+  const handleStagePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const vertical = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+    event.currentTarget.style.setProperty("--spotlight-shift-x", `${horizontal * 15}px`);
+    event.currentTarget.style.setProperty("--spotlight-shift-y", `${vertical * 10}px`);
+    event.currentTarget.style.setProperty("--spotlight-rotate-x", `${vertical * -4}deg`);
+    event.currentTarget.style.setProperty("--spotlight-rotate-y", `${horizontal * 7}deg`);
+  };
+
+  const resetStagePointer = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.style.setProperty("--spotlight-shift-x", "0px");
+    event.currentTarget.style.setProperty("--spotlight-shift-y", "0px");
+    event.currentTarget.style.setProperty("--spotlight-rotate-x", "0deg");
+    event.currentTarget.style.setProperty("--spotlight-rotate-y", "0deg");
+  };
+
+  const cheerMascot = () => {
+    setMascotCheering(false);
+    window.requestAnimationFrame(() => setMascotCheering(true));
+
+    if (mascotTimerRef.current !== null) {
+      window.clearTimeout(mascotTimerRef.current);
+    }
+    mascotTimerRef.current = window.setTimeout(() => {
+      setMascotCheering(false);
+      mascotTimerRef.current = null;
+    }, 1500);
   };
 
   return (
@@ -123,20 +164,39 @@ export function ProductSpotlight() {
           </div>
         </div>
 
-        <div className="product-spotlight-stage" aria-hidden="true">
+        <div
+          className="product-spotlight-stage"
+          onPointerMove={handleStagePointerMove}
+          onPointerLeave={resetStagePointer}
+        >
           <span className="product-spotlight-glow" />
-          <img
-            key={activeProduct.id}
-            className="product-spotlight-product"
-            src={activeProduct.image}
-            alt=""
-          />
-          <img
-            className="product-spotlight-mascot"
-            src={mascotImage}
-            alt=""
-          />
-          <span className="product-spotlight-bubble">ลองรู้จักสินค้านี้กันนะ!</span>
+          <span className="product-spotlight-orbit product-spotlight-orbit-one" aria-hidden="true" />
+          <span className="product-spotlight-orbit product-spotlight-orbit-two" aria-hidden="true" />
+          <div key={activeProduct.id} className="product-spotlight-product-shell">
+            <span className="product-spotlight-shine" aria-hidden="true" />
+            <img
+              className="product-spotlight-product"
+              src={activeProduct.image}
+              alt={activeProduct.thaiName}
+            />
+          </div>
+          <button
+            type="button"
+            className={`product-spotlight-mascot-button ${mascotCheering ? "is-cheering" : ""}`}
+            onClick={cheerMascot}
+            aria-label="ทักทายน้อง Umi"
+          >
+            <span className="product-spotlight-mascot-sparkle sparkle-one" aria-hidden="true">✦</span>
+            <span className="product-spotlight-mascot-sparkle sparkle-two" aria-hidden="true">✦</span>
+            <img
+              className="product-spotlight-mascot"
+              src={mascotImage}
+              alt="น้อง Umi"
+            />
+          </button>
+          <span className={`product-spotlight-bubble ${mascotCheering ? "is-cheering" : ""}`}>
+            {mascotCheering ? "เย้! วันนี้ทำงานให้สนุกนะครับ!" : "กดทักทายน้อง Umi ได้นะ!"}
+          </span>
         </div>
 
         <div className="product-spotlight-controls">
@@ -205,7 +265,7 @@ function ProductShowcaseDialog({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="product-showcase-overlay" role="presentation" onMouseDown={onClose}>
       <section
         className="product-showcase-dialog"
@@ -280,6 +340,7 @@ function ProductShowcaseDialog({
           </aside>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

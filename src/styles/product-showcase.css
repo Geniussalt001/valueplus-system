@@ -139,9 +139,14 @@
 }
 
 .product-spotlight-stage {
+  --spotlight-shift-x: 0px;
+  --spotlight-shift-y: 0px;
+  --spotlight-rotate-x: 0deg;
+  --spotlight-rotate-y: 0deg;
   position: relative;
   z-index: 2;
   min-width: 0;
+  perspective: 900px;
 }
 
 .product-spotlight-glow {
@@ -154,31 +159,148 @@
   background: color-mix(in srgb, var(--spotlight-accent) 14%, #ffffff);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 70%);
   transform: translate(-50%, -50%);
+  animation: product-spotlight-glow 4.8s ease-in-out infinite;
 }
 
-.product-spotlight-product {
+.product-spotlight-orbit {
+  position: absolute;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--spotlight-accent) 24%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.product-spotlight-orbit::after {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  content: "";
+  background: var(--spotlight-accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--spotlight-accent) 55%, transparent);
+}
+
+.product-spotlight-orbit-one {
+  top: 50%;
+  left: 46%;
+  width: min(30vw, 420px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  animation: product-spotlight-orbit 15s linear infinite;
+}
+
+.product-spotlight-orbit-two {
+  top: 51%;
+  left: 46%;
+  width: min(24vw, 335px);
+  aspect-ratio: 1;
+  border-style: dashed;
+  opacity: 0.58;
+  transform: translate(-50%, -50%) rotate(115deg);
+  animation: product-spotlight-orbit-reverse 18s linear infinite;
+}
+
+.product-spotlight-product-shell {
   position: absolute;
   z-index: 3;
   top: 50%;
   left: 34%;
   width: min(25vw, 320px);
   max-height: 285px;
-  object-fit: contain;
-  filter: drop-shadow(0 22px 18px rgb(36 50 71 / 16%));
-  transform: translate(-50%, -50%);
+  overflow: hidden;
+  transform: translate(-50%, -50%)
+    translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0)
+    rotateX(var(--spotlight-rotate-x)) rotateY(var(--spotlight-rotate-y));
+  transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
   animation: product-spotlight-arrive 420ms ease-out both;
+  pointer-events: none;
 }
 
-.product-spotlight-mascot {
+.product-spotlight-product {
+  display: block;
+  width: 100%;
+  max-height: 285px;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 18px rgb(36 50 71 / 16%));
+  animation: product-spotlight-float 4.2s ease-in-out 450ms infinite;
+}
+
+.product-spotlight-shine {
   position: absolute;
   z-index: 2;
+  top: -35%;
+  left: -85%;
+  width: 42%;
+  height: 170%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 68%), transparent);
+  filter: blur(2px);
+  opacity: 0;
+  transform: rotate(18deg);
+  animation: product-spotlight-shine 5.2s ease-in-out 1.2s infinite;
+}
+
+.product-spotlight-mascot-button {
+  position: absolute;
+  z-index: 3;
   right: -3%;
   bottom: -25%;
   width: min(20vw, 265px);
+  border: 0;
+  border-radius: 48%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transform-origin: 50% 85%;
+  animation: product-spotlight-mascot-idle 3.4s ease-in-out infinite;
+}
+
+.product-spotlight-mascot-button:hover {
+  filter: brightness(1.035);
+}
+
+.product-spotlight-mascot-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--spotlight-accent) 45%, #ffffff);
+  outline-offset: -12px;
+}
+
+.product-spotlight-mascot-button.is-cheering {
+  animation: product-spotlight-mascot-cheer 720ms cubic-bezier(0.2, 0.8, 0.25, 1) 2;
+}
+
+.product-spotlight-mascot {
+  display: block;
+  width: 100%;
   border-radius: 48%;
   object-fit: cover;
   mix-blend-mode: multiply;
   filter: drop-shadow(0 18px 18px rgb(37 47 67 / 13%));
+}
+
+.product-spotlight-mascot-sparkle {
+  position: absolute;
+  z-index: 4;
+  color: var(--spotlight-accent);
+  font-size: 20px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.product-spotlight-mascot-button.is-cheering .product-spotlight-mascot-sparkle {
+  animation: product-spotlight-sparkle 700ms ease-out 2;
+}
+
+.product-spotlight-mascot-sparkle.sparkle-one {
+  top: 12%;
+  left: 9%;
+}
+
+.product-spotlight-mascot-sparkle.sparkle-two {
+  top: 3%;
+  right: 20%;
+  animation-delay: 120ms;
 }
 
 .product-spotlight-bubble {
@@ -197,6 +319,15 @@
   font-weight: 700;
   text-align: center;
   backdrop-filter: blur(8px);
+  transition: color 180ms ease, transform 180ms ease, background 180ms ease;
+  animation: product-spotlight-bubble 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.product-spotlight-bubble.is-cheering {
+  color: color-mix(in srgb, var(--spotlight-accent) 78%, #14233c);
+  background: rgb(255 255 255 / 96%);
+  transform: translateY(-3px) scale(1.04);
 }
 
 .product-spotlight-controls {
@@ -228,10 +359,11 @@
 
 .product-showcase-overlay {
   position: fixed;
-  z-index: 100;
+  z-index: 1000;
   inset: 0;
   display: grid;
   place-items: center;
+  overflow: hidden;
   padding: 22px;
   background: rgb(18 33 55 / 42%);
   backdrop-filter: blur(12px);
@@ -241,7 +373,10 @@
 .product-showcase-dialog {
   display: flex;
   width: min(1500px, 96vw);
-  max-height: min(900px, 94vh);
+  height: min(900px, calc(100vh - 44px));
+  height: min(900px, calc(100dvh - 44px));
+  max-height: calc(100vh - 44px);
+  max-height: calc(100dvh - 44px);
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgb(214 225 237 / 95%);
@@ -528,8 +663,63 @@
 }
 
 @keyframes product-spotlight-arrive {
-  from { opacity: 0; transform: translate(-47%, -50%) scale(0.94); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  from {
+    opacity: 0;
+    transform: translate(-47%, -50%) translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0) rotateX(var(--spotlight-rotate-x)) rotateY(var(--spotlight-rotate-y)) scale(1);
+  }
+}
+
+@keyframes product-spotlight-float {
+  0%, 100% { transform: translateY(0) rotate(-0.35deg); }
+  50% { transform: translateY(-9px) rotate(0.55deg); }
+}
+
+@keyframes product-spotlight-shine {
+  0%, 60% { left: -85%; opacity: 0; }
+  66% { opacity: 0.62; }
+  82% { left: 135%; opacity: 0; }
+  100% { left: 135%; opacity: 0; }
+}
+
+@keyframes product-spotlight-glow {
+  0%, 100% { opacity: 0.74; transform: translate(-50%, -50%) scale(0.96); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.035); }
+}
+
+@keyframes product-spotlight-orbit {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes product-spotlight-orbit-reverse {
+  from { transform: translate(-50%, -50%) rotate(115deg); }
+  to { transform: translate(-50%, -50%) rotate(-245deg); }
+}
+
+@keyframes product-spotlight-mascot-idle {
+  0%, 100% { transform: translateY(0) rotate(-0.7deg); }
+  50% { transform: translateY(-7px) rotate(0.9deg); }
+}
+
+@keyframes product-spotlight-mascot-cheer {
+  0%, 100% { transform: translateY(0) rotate(0) scale(1); }
+  35% { transform: translateY(-17px) rotate(-4deg) scale(1.035); }
+  70% { transform: translateY(-5px) rotate(3deg) scale(1.02); }
+}
+
+@keyframes product-spotlight-sparkle {
+  0% { opacity: 0; transform: translateY(8px) scale(0.45) rotate(0); }
+  45% { opacity: 1; transform: translateY(-8px) scale(1.15) rotate(90deg); }
+  100% { opacity: 0; transform: translateY(-18px) scale(0.65) rotate(180deg); }
+}
+
+@keyframes product-spotlight-bubble {
+  0%, 100% { box-shadow: 0 9px 25px rgb(53 72 99 / 10%); }
+  50% { box-shadow: 0 12px 30px color-mix(in srgb, var(--spotlight-accent) 14%, transparent); }
 }
 
 @keyframes product-showcase-fade {
@@ -568,12 +758,16 @@
   }
 
   .product-spotlight-product {
+    max-height: 225px;
+  }
+
+  .product-spotlight-product-shell {
     left: 43%;
     width: min(47vw, 310px);
     max-height: 225px;
   }
 
-  .product-spotlight-mascot {
+  .product-spotlight-mascot-button {
     right: 3%;
     bottom: -30%;
     width: min(31vw, 230px);
@@ -599,7 +793,10 @@
 
   .product-showcase-dialog {
     width: 100%;
-    max-height: 98vh;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
     border-radius: 20px;
   }
 
@@ -642,11 +839,58 @@
   }
 }
 
+@media (max-height: 760px) and (min-width: 701px) {
+  .product-showcase-overlay {
+    padding: 12px;
+  }
+
+  .product-showcase-dialog {
+    height: calc(100vh - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+
+  .product-showcase-header {
+    padding: 16px 22px 14px;
+  }
+
+  .product-showcase-header h2 {
+    font-size: 23px;
+  }
+
+  .product-showcase-filters {
+    padding: 10px 22px;
+  }
+
+  .product-showcase-body {
+    padding: 14px;
+  }
+
+  .product-showcase-detail-visual {
+    min-height: 195px;
+  }
+
+  .product-showcase-detail-visual img {
+    max-height: 185px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .product-spotlight-glow,
+  .product-spotlight-orbit,
+  .product-spotlight-product-shell,
   .product-spotlight-product,
+  .product-spotlight-mascot-button,
+  .product-spotlight-mascot-sparkle,
+  .product-spotlight-bubble,
   .product-showcase-overlay,
   .product-showcase-dialog {
     animation: none;
   }
-}
 
+  .product-spotlight-product-shell {
+    transform: translate(-50%, -50%);
+    transition: none;
+  }
+}
