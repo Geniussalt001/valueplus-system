@@ -347,7 +347,7 @@
   --mascot-y: 0%;
   display: block;
   aspect-ratio: 1;
-  background-image: url("/images/product-showcase/umi-umi-mascot-outfits-v2.png");
+  background-image: url("/images/product-showcase/umi-umi-mascot-outfits-v2.webp");
   background-repeat: no-repeat;
   background-position: var(--mascot-x) var(--mascot-y);
   background-size: 400% 400%;
