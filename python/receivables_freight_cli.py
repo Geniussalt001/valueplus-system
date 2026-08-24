@@ -5,6 +5,7 @@ import re
 import sys
 import tempfile
 import urllib.request
+from datetime import date as calendar_date
 from pathlib import Path
 
 
@@ -59,6 +60,34 @@ def parse_number(value):
         return float(cleaned)
     except ValueError:
         return None
+
+
+def normalize_gregorian_date(value):
+    match = re.fullmatch(
+        r"(\d{1,2})/(\d{1,2})/(\d{4})",
+        str(value or "").strip(),
+    )
+    if not match:
+        raise ValueError("รูปแบบวันที่ไม่ถูกต้อง")
+
+    day, month, source_year = (int(part) for part in match.groups())
+    gregorian_year = (
+        source_year - 543
+        if source_year >= 2400
+        else source_year
+    )
+    calendar_date(gregorian_year, month, day)
+
+    return f"{day:02d}/{month:02d}/{gregorian_year:04d}"
+
+
+def normalize_credit_note_invoice(value):
+    compact = re.sub(
+        r"\s+",
+        "",
+        str(value or "").strip().upper(),
+    )
+    return re.sub(r"^IV(?=VPR)", "", compact)
 
 
 def normalize_warehouse(value):
@@ -126,7 +155,13 @@ def parse_records(csv_path, template_url):
         row = rows[index]
         source_invoice = cell(row, 6)
         invoice = match.group(1).upper()
-        date = cell(row, 7)
+        source_date = cell(row, 7)
+        try:
+            date = normalize_gregorian_date(source_date)
+            date_error = False
+        except (TypeError, ValueError):
+            date = source_date
+            date_error = True
         warehouse, source_customer = contexts[index]
         exc_vat = parse_number(cell(row, 11))
         quantity = 0.0
@@ -153,7 +188,7 @@ def parse_records(csv_path, template_url):
 
         customer, destination, status, message = resolve_customer(source_customer, warehouse)
         issues = []
-        if not DATE_PATTERN.match(date):
+        if date_error:
             issues.append("วันที่ไม่ถูกต้อง")
         if exc_vat is None:
             issues.append("ไม่พบราคา Exc-vat")
@@ -248,8 +283,16 @@ def parse_credit_note_records(csv_path, template_url):
         )
         row = rows[index]
         source_customer, customer = contexts[index]
-        date = cell(row, 6)
-        reference_invoice = cell(row, 8).upper()
+        source_date = cell(row, 6)
+        try:
+            date = normalize_gregorian_date(source_date)
+            date_error = False
+        except (TypeError, ValueError):
+            date = source_date
+            date_error = True
+        reference_invoice = normalize_credit_note_invoice(
+            cell(row, 8)
+        )
         amount = parse_number(cell(row, 13))
         applied_invoices = []
 
@@ -260,14 +303,16 @@ def parse_credit_note_records(csv_path, template_url):
             if not match:
                 continue
 
-            applied_invoice = match.group(1).upper()
+            applied_invoice = normalize_credit_note_invoice(
+                match.group(0)
+            )
             if applied_invoice not in applied_invoices:
                 applied_invoices.append(applied_invoice)
 
         issues = []
         status = "ready"
 
-        if not DATE_PATTERN.fullmatch(date):
+        if date_error:
             issues.append("วันที่ไม่ถูกต้อง")
         if amount is None:
             issues.append("ไม่พบยอดลดหนี้ในคอลัมน์ N")
@@ -291,11 +336,7 @@ def parse_credit_note_records(csv_path, template_url):
             "customer": customer,
             "amount": amount or 0,
             "reference_invoice": reference_invoice,
-            "applied_invoice": (
-                applied_invoices[0]
-                if applied_invoices
-                else ""
-            ),
+            "applied_invoice": reference_invoice,
             "status": status,
             "message": ", ".join(issues),
         })
@@ -409,7 +450,8 @@ def export_credit_note_workbook(result, template_url, output_path):
                 record["customer"],
                 record["amount"],
                 record["reference_invoice"],
-                record["applied_invoice"],
+                record["reference_invoice"],
+                -abs(record["amount"]),
             )
 
             for column, value in enumerate(values, start=1):
