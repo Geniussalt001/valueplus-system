@@ -9,6 +9,7 @@ import "./styles/blue-dashboard-theme.css";
 import "./styles/valueplus-red-theme.css";
 import "./styles/valueplus-modern-theme.css";
 import "./styles/product-showcase.css";
+import "./styles/showcase-system-theme.css";
 
 import App from "./App";
 
@@ -26,3 +27,4 @@ ReactDOM.createRoot(rootElement).render(
     <App />
   </React.StrictMode>,
 );
+

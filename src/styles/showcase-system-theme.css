@@ -1,0 +1,457 @@
+/*
+ * ValuePlus Showcase System Theme
+ * A single finishing layer that brings every work surface into the same
+ * visual family as the Umi Umi Product Spotlight.
+ */
+
+:root {
+  --vp-canvas: #f5f6fa;
+  --vp-canvas-warm: #faf8f6;
+  --vp-surface: #ffffff;
+  --vp-surface-soft: #f8fafc;
+  --vp-surface-warm: #fffaf5;
+  --vp-ink: #14233c;
+  --vp-muted: #68768a;
+  --vp-subtle: #8a96a8;
+  --vp-line: #dde4ed;
+  --vp-line-soft: #e9edf3;
+  --vp-brand: #b51632;
+  --vp-brand-soft: #fff2f4;
+  --vp-primary: #2369d8;
+  --vp-primary-deep: #173f82;
+  --vp-primary-soft: #edf4ff;
+  --vp-mint: #0aa985;
+  --vp-amber: #dda01e;
+  --vp-red: #d53a50;
+  --vp-violet: #7565c9;
+  --vp-shadow-sm: 0 8px 24px rgb(20 35 60 / 6%);
+  --vp-shadow-md: 0 18px 45px rgb(20 35 60 / 9%);
+  --vp-shadow-lg: 0 28px 70px rgb(20 35 60 / 12%);
+}
+
+body {
+  color: var(--vp-ink);
+  background:
+    radial-gradient(circle at 92% 5%, rgb(181 22 50 / 4%), transparent 25%),
+    radial-gradient(circle at 8% 92%, rgb(35 105 216 / 5%), transparent 30%),
+    linear-gradient(145deg, #fbfcfe, var(--vp-canvas));
+}
+
+* {
+  scrollbar-color: #bdc9d8 #f1f4f8;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f4f8;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #f1f4f8;
+  border-radius: 999px;
+  background: #bdc9d8;
+}
+
+::selection {
+  color: #ffffff;
+  background: var(--vp-primary);
+}
+
+/* Main shell */
+.dashboard {
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 88% 5%, rgb(181 22 50 / 4%), transparent 25%),
+    radial-gradient(circle at 10% 92%, rgb(35 105 216 / 5%), transparent 30%),
+    linear-gradient(145deg, #fbfcfe, #f5f6fa 58%, #f8f5f7) !important;
+}
+
+.dashboard::before {
+  opacity: 0.3 !important;
+}
+
+.dashboard > .tron-grid {
+  opacity: 0.1 !important;
+}
+
+.dashboard-sidebar {
+  border-right: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(250 251 253 / 98%)) !important;
+  box-shadow: 16px 0 48px rgb(20 35 60 / 5%) !important;
+}
+
+.sidebar-brand-button {
+  border: 1px solid var(--vp-line-soft) !important;
+  background: #ffffff !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.sidebar-brand-button::after {
+  background: linear-gradient(90deg, var(--vp-brand), #d53a50) !important;
+}
+
+.sidebar-user-card,
+.workspace-switcher,
+.dashboard-sidebar .update-center-panel {
+  border: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgb(20 35 60 / 5%) !important;
+}
+
+.sidebar-user-card [class*="text-"],
+.dashboard-sidebar .update-center-panel [class*="text-"] {
+  color: inherit !important;
+}
+
+.sidebar-user-card > span:nth-child(2) > span:last-child,
+.dashboard-sidebar > div:last-child > p {
+  color: var(--vp-muted) !important;
+}
+
+.sidebar-user-icon {
+  border-color: rgb(35 105 216 / 18%) !important;
+  color: var(--vp-primary) !important;
+  background: var(--vp-primary-soft) !important;
+}
+
+.sidebar-item {
+  border-color: transparent !important;
+  color: var(--vp-muted) !important;
+  background: transparent !important;
+}
+
+.sidebar-item:hover {
+  border-color: var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+}
+
+.sidebar-item-active,
+.sidebar-item-active:not([style]) {
+  border-color: rgb(35 105 216 / 20%) !important;
+  color: var(--vp-primary) !important;
+  background: linear-gradient(135deg, #f2f6ff, #edf4ff) !important;
+  box-shadow: inset 3px 0 0 var(--vp-primary) !important;
+}
+
+.dashboard .workspace-retail-active {
+  border-color: rgb(35 105 216 / 24%) !important;
+  color: var(--vp-primary-deep) !important;
+  background: var(--vp-primary-soft) !important;
+}
+
+.dashboard .workspace-head-office-active {
+  border-color: rgb(117 101 201 / 24%) !important;
+  color: #5747aa !important;
+  background: #f3f0ff !important;
+}
+
+/* Header and top navigation */
+.dashboard main > header {
+  border-bottom: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: rgb(255 255 255 / 96%) !important;
+  box-shadow: 0 8px 28px rgb(20 35 60 / 5%) !important;
+  backdrop-filter: blur(18px);
+}
+
+.app-red-header [class*="text-"],
+.app-red-header > div:first-child p {
+  color: inherit !important;
+}
+
+.app-red-header > div:first-child p,
+.top-module-label {
+  color: var(--vp-muted) !important;
+}
+
+.app-red-header .user-context-chip,
+.app-red-header .logout-button {
+  border-color: var(--vp-line) !important;
+  color: var(--vp-muted) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.app-red-header .logout-button:hover {
+  border-color: rgb(213 58 80 / 24%) !important;
+  color: var(--vp-red) !important;
+  background: #fff4f5 !important;
+}
+
+.top-module-button {
+  border-color: transparent !important;
+  color: var(--vp-muted) !important;
+  background: transparent !important;
+}
+
+.top-module-button:hover {
+  border-color: var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+}
+
+.top-module-button-active {
+  border-color: rgb(35 105 216 / 20%) !important;
+  color: var(--vp-primary) !important;
+  background: var(--vp-primary-soft) !important;
+  box-shadow: inset 0 -3px 0 var(--vp-primary) !important;
+}
+
+.top-module-icon {
+  border-color: currentColor !important;
+  background: rgb(255 255 255 / 68%) !important;
+}
+
+/* Dashboard home */
+.dashboard-home,
+.dashboard-module-panel {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard-heading h2,
+.dashboard-module-header h2 {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard-heading p,
+.dashboard-module-header > div > p {
+  color: var(--vp-muted) !important;
+}
+
+.dashboard-readiness {
+  border-color: rgb(10 169 133 / 18%) !important;
+  color: #087e65 !important;
+  background: #edf9f5 !important;
+}
+
+.dashboard-metric {
+  border: 1px solid color-mix(in srgb, var(--metric-accent, var(--vp-primary)) 18%, var(--vp-line)) !important;
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--metric-accent, var(--vp-primary)) 10%, transparent), transparent 38%),
+    #ffffff !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.dashboard-metric-violet { --metric-accent: var(--vp-violet); }
+.dashboard-metric-teal { --metric-accent: var(--vp-mint); }
+.dashboard-metric-pink { --metric-accent: #df668c; }
+.dashboard-metric-cyan { --metric-accent: var(--vp-primary); }
+
+.dashboard-metric:hover {
+  border-color: color-mix(in srgb, var(--metric-accent) 36%, var(--vp-line)) !important;
+  box-shadow: var(--vp-shadow-md) !important;
+  transform: translateY(-3px);
+}
+
+.dashboard-metric [class*="text-"],
+.dashboard-metric p:nth-of-type(2) {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard-metric p:nth-of-type(3) {
+  color: var(--vp-muted) !important;
+}
+
+.dashboard-metric-icon {
+  border-color: color-mix(in srgb, var(--metric-accent) 22%, var(--vp-line)) !important;
+  color: var(--metric-accent) !important;
+  background: color-mix(in srgb, var(--metric-accent) 10%, #ffffff) !important;
+}
+
+.dashboard-module-panel {
+  border: 1px solid var(--vp-line) !important;
+  background: rgb(255 255 255 / 72%) !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.module-card {
+  border: 1px solid color-mix(in srgb, var(--accent-color) 22%, var(--vp-line)) !important;
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 40%),
+    linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--accent-color) 4%, #ffffff)) !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.module-card::after {
+  background: linear-gradient(90deg, var(--accent-color), transparent) !important;
+  opacity: 0.72 !important;
+}
+
+.module-card:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 42%, var(--vp-line)) !important;
+  box-shadow: var(--vp-shadow-md) !important;
+  transform: translateY(-4px) !important;
+}
+
+.module-card h3 {
+  color: var(--vp-ink) !important;
+}
+
+.module-card p:not([style]) {
+  color: var(--vp-muted) !important;
+}
+
+.module-icon,
+.module-open-button {
+  border-color: color-mix(in srgb, var(--accent-color) 24%, var(--vp-line)) !important;
+  color: var(--accent-color) !important;
+  background: color-mix(in srgb, var(--accent-color) 9%, #ffffff) !important;
+  box-shadow: none !important;
+}
+
+/* Work pages and shared surfaces */
+.vp-page-header {
+  border: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(181 22 50 / 5%), transparent 34%),
+    linear-gradient(145deg, #ffffff, #fafbfc) !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.vp-page-header::before {
+  background: linear-gradient(180deg, var(--vp-brand), var(--vp-primary)) !important;
+}
+
+.vp-page-icon {
+  border-color: rgb(35 105 216 / 18%) !important;
+  color: var(--vp-primary) !important;
+  background: var(--vp-primary-soft) !important;
+}
+
+.dashboard [class*="rounded-"][class*="border-"][class*="bg-white"],
+.dashboard .vp-content-card,
+.dashboard .vp-work-panel,
+.dashboard .vp-modal-card {
+  border-color: var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.dashboard input,
+.dashboard select,
+.dashboard textarea {
+  border-color: var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.dashboard input::placeholder,
+.dashboard textarea::placeholder {
+  color: var(--vp-subtle) !important;
+}
+
+.dashboard input:focus,
+.dashboard select:focus,
+.dashboard textarea:focus {
+  border-color: rgb(35 105 216 / 55%) !important;
+  box-shadow: 0 0 0 3px rgb(35 105 216 / 9%) !important;
+}
+
+.dashboard table {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard table thead,
+.dashboard thead[class*="bg-"] {
+  color: var(--vp-muted) !important;
+  background: #f4f7fb !important;
+}
+
+.dashboard tbody tr:hover {
+  background: #f7faff !important;
+}
+
+.dashboard hr,
+.dashboard [class*="border-white"],
+.dashboard [class*="border-slate-"] {
+  border-color: var(--vp-line) !important;
+}
+
+/* Actions: one primary family, semantic colors only where meaning matters. */
+.dashboard button[class*="bg-cyan-"],
+.dashboard button[class*="bg-sky-"],
+.dashboard button[class*="bg-blue-"] {
+  border-color: var(--vp-primary-deep) !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--vp-primary-deep), var(--vp-primary)) !important;
+  box-shadow: 0 9px 22px rgb(35 105 216 / 17%) !important;
+}
+
+.dashboard button[class*="bg-cyan-"]:hover,
+.dashboard button[class*="bg-sky-"]:hover,
+.dashboard button[class*="bg-blue-"]:hover {
+  background: linear-gradient(135deg, #12366f, #1f5fc5) !important;
+  box-shadow: 0 13px 28px rgb(35 105 216 / 22%) !important;
+}
+
+.dashboard button[class*="bg-emerald-"] {
+  border-color: #078b70 !important;
+  background: linear-gradient(135deg, #078b70, var(--vp-mint)) !important;
+}
+
+.dashboard button[class*="bg-amber-"] {
+  border-color: #bd8012 !important;
+  background: linear-gradient(135deg, #bd8012, var(--vp-amber)) !important;
+}
+
+.dashboard button[class*="bg-red-"] {
+  border-color: #ba2b40 !important;
+  background: linear-gradient(135deg, #ba2b40, var(--vp-red)) !important;
+}
+
+.dashboard button[class*="bg-violet-"] {
+  border-color: #5d4db2 !important;
+  background: linear-gradient(135deg, #5d4db2, var(--vp-violet)) !important;
+}
+
+.dashboard [class*="bg-emerald-"]:not(button) {
+  background-color: #edf9f5 !important;
+}
+
+.dashboard [class*="bg-amber-"]:not(button) {
+  background-color: #fff8e8 !important;
+}
+
+.dashboard [class*="bg-red-"]:not(button) {
+  background-color: #fff2f4 !important;
+}
+
+.dashboard button:focus-visible {
+  outline: 3px solid rgb(35 105 216 / 20%) !important;
+  outline-offset: 3px;
+}
+
+.dashboard button:disabled {
+  box-shadow: none !important;
+  filter: grayscale(0.18);
+  opacity: 0.5 !important;
+}
+
+/* Product Spotlight remains the visual reference and keeps its product color. */
+.product-spotlight,
+.product-showcase-dialog {
+  color: #14233c;
+}
+
+@media (max-width: 900px) {
+  .dashboard-sidebar {
+    box-shadow: 10px 0 34px rgb(20 35 60 / 7%) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-metric,
+  .module-card,
+  .sidebar-item,
+  .top-module-button {
+    transition: none !important;
+  }
+}
