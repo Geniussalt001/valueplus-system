@@ -70,6 +70,10 @@ use commands::sales_billing::{
     save_sales_billing_product,
 };
 
+use commands::sales_cn_summary::{
+    process_sales_cn_summary,
+};
+
 #[tauri::command]
 fn greet(
     name: &str,
@@ -155,6 +159,7 @@ pub fn run() {
                 run_sales_billing,
                 control_sales_billing,
                 save_sales_billing_product,
+                process_sales_cn_summary,
             ],
         )
         .run(
