@@ -22,7 +22,7 @@ import type {
   ProductShowcaseCategory,
 } from "../../data/productShowcase";
 
-const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits.webp";
+const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits-v2.png";
 
 const mascotSpriteStyle = (position: number) => ({
   "--mascot-x": `${((position % 4) / 3) * 100}%`,
@@ -157,7 +157,11 @@ export function ProductSpotlight() {
                 onClick={() => setActiveIndex(index)}
                 aria-label={`แสดง ${product.thaiName}`}
                 aria-current={index === activeIndex}
-              />
+                title={`${index + 1}. ${product.thaiName}`}
+              >
+                <img src={product.image} alt="" aria-hidden="true" />
+                <span>{index + 1}</span>
+              </button>
             ))}
           </div>
         </div>
