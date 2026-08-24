@@ -247,31 +247,40 @@ function normalizeCreditNoteRecord(
     );
   }
 
+  const referenceInvoice =
+    normalizeCreditNoteInvoice(
+      record.reference_invoice ||
+        record.applied_invoice,
+    );
+
   return {
-    date: date,
+    date:
+      parsedDate.gregorianDate,
     creditNoteNumber:
       creditNoteNumber,
     customer: customer,
     amount: amount,
     referenceInvoice:
-      String(
-        record.reference_invoice ||
-          "",
-      )
-        .trim()
-        .toUpperCase(),
+      referenceInvoice,
     appliedInvoice:
-      String(
-        record.applied_invoice ||
-          "",
-      )
-        .trim()
-        .toUpperCase()
-        .replace(/^IV(?=VPR)/, ""),
+      referenceInvoice,
     month: parsedDate.month,
     buddhistYear:
       parsedDate.buddhistYear,
   };
+}
+
+function normalizeCreditNoteInvoice(
+  value,
+) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(
+      /^IV(?:\s*[:./_-]\s*|\s+)?(?=VPR)/,
+      "",
+    )
+    .replace(/\s+/g, "");
 }
 
 function readExistingCreditNotes(
@@ -293,7 +302,7 @@ function readExistingCreditNotes(
       startRow,
       1,
       lastRow - startRow + 1,
-      6,
+      7,
     )
     .getDisplayValues()
     .filter(function (row) {
@@ -305,7 +314,10 @@ function readExistingCreditNotes(
     })
     .map(function (row) {
       return {
-        date: row[0],
+        date:
+          parseReceivablesDate(
+            row[0],
+          ).gregorianDate,
         creditNoteNumber:
           String(row[1] || "")
             .trim()
@@ -316,17 +328,13 @@ function readExistingCreditNotes(
             row[3],
           ),
         referenceInvoice:
-          String(row[4] || "")
-            .trim()
-            .toUpperCase(),
+          normalizeCreditNoteInvoice(
+            row[4] || row[5],
+          ),
         appliedInvoice:
-          String(row[5] || "")
-            .trim()
-            .toUpperCase()
-            .replace(
-              /^IV(?=VPR)/,
-              "",
-            ),
+          normalizeCreditNoteInvoice(
+            row[4] || row[5],
+          ),
       };
     });
 }
@@ -396,7 +404,7 @@ function writeCreditNoteRows(
       startRow,
       1,
       clearRowCount,
-      6,
+      7,
     )
     .clearContent();
 
@@ -405,7 +413,7 @@ function writeCreditNoteRows(
       startRow,
       1,
       records.length,
-      6,
+      7,
     )
     .setValues(
       records.map(
@@ -416,7 +424,8 @@ function writeCreditNoteRows(
             record.customer,
             record.amount,
             record.referenceInvoice,
-            record.appliedInvoice,
+            record.referenceInvoice,
+            -Math.abs(record.amount),
           ];
         },
       ),
@@ -450,6 +459,17 @@ function writeCreditNoteRows(
       2,
     )
     .setNumberFormat("@");
+
+  sheet
+    .getRange(
+      startRow,
+      7,
+      records.length,
+      1,
+    )
+    .setNumberFormat(
+      "#,##0.00;-#,##0.00",
+    );
 }
 
 function saveReceivablesMonthly(input) {
@@ -647,7 +667,8 @@ function normalizeReceivablesRecord(
     );
 
   return {
-    date: date,
+    date:
+      parsedDate.gregorianDate,
     invoice: invoice,
     prefix: invoiceParts[1],
     sequence: Number(
@@ -688,29 +709,61 @@ function parseReceivablesDate(value) {
     );
   }
 
+  const day =
+    Number(match[1]);
+
   const month =
     Number(match[2]);
 
-  let year =
+  const sourceYear =
     Number(match[3]);
 
+  const gregorianYear =
+    sourceYear >= 2400
+      ? sourceYear - 543
+      : sourceYear;
+
+  const date =
+    new Date(
+      gregorianYear,
+      month - 1,
+      day,
+    );
+
   if (
+    day < 1 ||
     month < 1 ||
-    month > 12
+    month > 12 ||
+    date.getFullYear() !==
+      gregorianYear ||
+    date.getMonth() !==
+      month - 1 ||
+    date.getDate() !== day
   ) {
     throw new Error(
-      "เดือนไม่ถูกต้อง: " +
+      "วันที่ไม่ถูกต้อง: " +
         value,
     );
   }
 
-  if (year < 2400) {
-    year += 543;
-  }
-
   return {
     month: month,
-    buddhistYear: year,
+    buddhistYear:
+      gregorianYear + 543,
+    gregorianYear:
+      gregorianYear,
+    gregorianDate:
+      String(day).padStart(
+        2,
+        "0",
+      ) +
+      "/" +
+      String(month).padStart(
+        2,
+        "0",
+      ) +
+      "/" +
+      gregorianYear,
   };
 }
 
@@ -871,7 +924,10 @@ function readExistingReceivables(
       }
 
       return {
-        date: row[0],
+        date:
+          parseReceivablesDate(
+            row[0],
+          ).gregorianDate,
         invoice: invoice,
         prefix: match[1],
         sequence: Number(

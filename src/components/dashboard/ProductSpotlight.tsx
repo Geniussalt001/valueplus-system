@@ -22,7 +22,7 @@ import type {
   ProductShowcaseCategory,
 } from "../../data/productShowcase";
 
-const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits.webp";
+const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits-v2.webp";
 
 const mascotSpriteStyle = (position: number) => ({
   "--mascot-x": `${((position % 4) / 3) * 100}%`,
@@ -123,7 +123,7 @@ export function ProductSpotlight() {
             key={activeProduct.id}
             className="product-spotlight-copy-content"
           >
-            <p className="product-spotlight-greeting">น้อง Umi ขอแนะนำ</p>
+            <p className="product-spotlight-greeting">น้องมีปังขอแนะนำ</p>
             <h2>{activeProduct.name}</h2>
             <p className="product-spotlight-thai-name">{activeProduct.thaiName}</p>
             <p className="product-spotlight-description">{activeProduct.description}</p>
@@ -157,7 +157,11 @@ export function ProductSpotlight() {
                 onClick={() => setActiveIndex(index)}
                 aria-label={`แสดง ${product.thaiName}`}
                 aria-current={index === activeIndex}
-              />
+                title={`${index + 1}. ${product.thaiName}`}
+              >
+                <img src={product.image} alt="" aria-hidden="true" />
+                <span>{index + 1}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -178,7 +182,7 @@ export function ProductSpotlight() {
             type="button"
             className={`product-spotlight-mascot-button ${mascotCheering ? "is-cheering" : ""}`}
             onClick={cheerMascot}
-            aria-label="ทักทายน้อง Umi"
+            aria-label="ทักทายน้องมีปัง"
           >
             <span className="product-spotlight-mascot-sparkle sparkle-one" aria-hidden="true">✦</span>
             <span className="product-spotlight-mascot-sparkle sparkle-two" aria-hidden="true">✦</span>
@@ -188,7 +192,7 @@ export function ProductSpotlight() {
                 className="product-spotlight-mascot product-showcase-mascot-sprite"
                 style={mascotSpriteStyle(activeProduct.mascotPosition)}
                 role="img"
-                aria-label={`น้อง Umi ในชุด ${activeProduct.thaiName}`}
+                aria-label={`น้องมีปังในชุด ${activeProduct.thaiName}`}
               />
             </span>
           </button>
@@ -273,7 +277,7 @@ function ProductShowcaseDialog({
           <div>
             <span><PackageSearch size={16} /> VALUEPLUS PRODUCT SHOWCASE</span>
             <h2>สินค้า Umi Umi</h2>
-            <p>รู้จักสินค้าเบเกอรี่ทั้งหมดผ่านน้อง Umi</p>
+            <p>รู้จักสินค้าเบเกอรี่ทั้งหมดผ่านน้องมีปัง</p>
           </div>
           <button type="button" onClick={onClose} aria-label="ปิดหน้าสินค้า">
             <X size={20} />
@@ -347,9 +351,9 @@ function ProductShowcaseDialog({
                 className="product-showcase-mascot-sprite"
                 style={mascotSpriteStyle(selectedProduct.mascotPosition)}
                 role="img"
-                aria-label={`น้อง Umi ในชุด ${selectedProduct.thaiName}`}
+                aria-label={`น้องมีปังในชุด ${selectedProduct.thaiName}`}
               />
-              <span>น้อง Umi พร้อมช่วยแนะนำสินค้าให้ทุกคนรู้จักมากขึ้นครับ!</span>
+              <span>น้องมีปังพร้อมช่วยแนะนำสินค้าให้ทุกคนรู้จักมากขึ้นครับ!</span>
             </div>
           </aside>
         </div>
