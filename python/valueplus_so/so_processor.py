@@ -14,6 +14,9 @@ import pdfplumber
 from openpyxl import load_workbook
 
 from valueplus_common import (
+    CPALL_CODE_BARCODES,
+    normalize_cpall_document_date,
+    normalize_cpall_pdf_text,
     normalize_wrapped_item_quantities,
 )
 
@@ -23,7 +26,7 @@ PO_PATTERN = re.compile(
 )
 
 DATE_PATTERN = re.compile(
-    r"วันที่\s*:\s*(\d{2}/\d{2}/\d{4})",
+    r"วันที่\s*:\s*(\d{1,2}/\d{1,2}/(?:\d{4}|\d{2}))",
 )
 
 WAREHOUSE_PATTERN = re.compile(
@@ -39,6 +42,17 @@ ITEM_PATTERN = re.compile(
     r"([\d,]+\.(?:\d{2})?)\s+"
     r"0\s+"
     r"([\d,]+\.\d{2})\s+",
+    re.MULTILINE,
+)
+
+COMPACT_ITEM_PATTERN = re.compile(
+    r"^\s*(\d+)\s+"
+    r"(6\d{6})\s+"
+    r"(.+?)\s+"
+    r"1\s+"
+    r"([\d,]+(?:\.\d+)?)\s+"
+    r"0\s+"
+    r"([\d,]+(?:\.\d+)?)\s+",
     re.MULTILINE,
 )
 
@@ -329,8 +343,10 @@ def _parse_pdf(
             )
 
             text = (
-                normalize_wrapped_item_quantities(
-                    text,
+                normalize_cpall_pdf_text(
+                    normalize_wrapped_item_quantities(
+                        text,
+                    ),
                 )
             )
 
@@ -360,7 +376,9 @@ def _parse_pdf(
                     PdfDocument(
                         po_number=po_number,
                         document_date=(
-                            date_match.group(1)
+                            normalize_cpall_document_date(
+                                date_match.group(1),
+                            )
                             if date_match
                             else ""
                         ),
@@ -387,7 +405,9 @@ def _parse_pdf(
                 and date_match
             ):
                 document.document_date = (
-                    date_match.group(1)
+                    normalize_cpall_document_date(
+                        date_match.group(1),
+                    )
                 )
 
             if (
@@ -420,6 +440,29 @@ def _parse_pdf(
                         page_number=(
                             page_number
                         ),
+                    ),
+                )
+
+            for match in COMPACT_ITEM_PATTERN.finditer(
+                text,
+            ):
+                cpall_code = match.group(2)
+                document.items.append(
+                    PdfItem(
+                        barcode=CPALL_CODE_BARCODES.get(
+                            cpall_code,
+                            "",
+                        ),
+                        pdf_name=" ".join(
+                            match.group(3).split(),
+                        ),
+                        quantity=_parse_number(
+                            match.group(4),
+                        ),
+                        price=_parse_number(
+                            match.group(5),
+                        ),
+                        page_number=page_number,
                     ),
                 )
 

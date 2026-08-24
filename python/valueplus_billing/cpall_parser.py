@@ -8,6 +8,9 @@ from pathlib import Path
 import pdfplumber
 
 from valueplus_common.cpall_pdf import (
+    CPALL_CODE_BARCODES,
+    normalize_cpall_document_date,
+    normalize_cpall_pdf_text,
     normalize_wrapped_item_quantities,
 )
 
@@ -17,7 +20,9 @@ from .product_database import ProductDatabase
 
 
 PO_PATTERN = re.compile(r"\bB\d{9}\b")
-DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/\d{4})")
+DATE_PATTERN = re.compile(
+    r"วันที่\s*:\s*(\d{1,2}/\d{1,2}/(?:\d{4}|\d{2}))",
+)
 WAREHOUSE_PATTERN = re.compile(
     r"นำส่ง\s*:\s*(WB\d+)\s+(.+?)(?:\s{2,}อ้างถึง|\n)"
 )
@@ -27,6 +32,10 @@ ITEM_PATTERN = re.compile(
     r"\s*\d+\s+(\d{13})\s+(.+?)\s+"
     rf"{NUMBER_PATTERN}\s+({NUMBER_PATTERN})\s+"
     rf"{NUMBER_PATTERN}\s+({NUMBER_PATTERN})\s+"
+)
+COMPACT_ITEM_PATTERN = re.compile(
+    r"(?m)^\s*\d+\s+(6\d{6})\s+(.+?)\s+"
+    rf"1\s+({NUMBER_PATTERN})\s+0\s+({NUMBER_PATTERN})\s+",
 )
 
 
@@ -57,6 +66,7 @@ def parse_pdf(
             text = normalize_wrapped_item_quantities(
                 page.extract_text(x_tolerance=2, y_tolerance=3) or "",
             )
+            text = normalize_cpall_pdf_text(text)
             po_match = PO_PATTERN.search(text)
             if not po_match:
                 continue
@@ -69,7 +79,11 @@ def parse_pdf(
         date_match = DATE_PATTERN.search(first_page)
         warehouse_match = WAREHOUSE_PATTERN.search(first_page)
 
-        po_date = date_match.group(1) if date_match else ""
+        po_date = (
+            normalize_cpall_document_date(date_match.group(1))
+            if date_match
+            else ""
+        )
         warehouse_code = warehouse_match.group(1) if warehouse_match else ""
         warehouse_text = (
             _clean_name(warehouse_match.group(2)) if warehouse_match else ""
@@ -95,6 +109,18 @@ def parse_pdf(
                 pdf_name=_clean_name(match.group(3)),
                 quantity=_parse_number(match.group(4)),
                 unit_price=_parse_number(match.group(5)),
+            )
+            product_database.apply(item)
+            order.items.append(item)
+
+        for match in COMPACT_ITEM_PATTERN.finditer(full_text):
+            cpall_code = match.group(1)
+            item = ProductItem(
+                cpall_code=cpall_code,
+                barcode=CPALL_CODE_BARCODES.get(cpall_code, ""),
+                pdf_name=_clean_name(match.group(2)),
+                quantity=_parse_number(match.group(3)),
+                unit_price=_parse_number(match.group(4)),
             )
             product_database.apply(item)
             order.items.append(item)

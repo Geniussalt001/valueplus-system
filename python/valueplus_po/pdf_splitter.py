@@ -7,15 +7,27 @@ from typing import Callable
 import pdfplumber
 from pypdf import PdfReader, PdfWriter
 
+from valueplus_common.cpall_pdf import (
+    normalize_cpall_document_date,
+    normalize_cpall_pdf_text,
+)
+
 PO_PATTERN = re.compile(r"เลขที่\s*:\s*([A-Z]\d+)")
-DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{1,2})/(\d{1,2})/(\d{4})")
+DATE_PATTERN = re.compile(
+    r"วันที่\s*:\s*(\d{1,2}/\d{1,2}/(?:\d{4}|\d{2}))",
+)
 WAREHOUSE_PATTERN = re.compile(
     r"(?:คลัง|ศูนย์กระจายสินค้า)\s+BDC\s+(.+?)(?:\s+คลังดี|\s+อ้างถึง|\n)",
 )
-PRODUCT_CODE_PATTERN = re.compile(r"\b6\d{6}\s*/")
+PRODUCT_CODE_PATTERN = re.compile(r"\b6\d{6}\b")
 BARCODE_PATTERN = re.compile(r"\b\d{13}\b")
 ITEM_ROW_PATTERN = re.compile(
     r"^\s*\d+\s+\d{13}\s+.+$",
+    re.MULTILINE,
+)
+COMPACT_ITEM_ROW_PATTERN = re.compile(
+    r"^\s*\d+\s+6\d{6}\s+.+?\s+1\s+"
+    r"\d[\d,]*(?:\.\d+)?\s+0\s+",
     re.MULTILINE,
 )
 
@@ -217,7 +229,9 @@ def _inspect_pages(
                 f"กำลังอ่านไฟล์ {page_number} / {total_pages}",
             )
 
-            text = page.extract_text(layout=True) or ""
+            text = normalize_cpall_pdf_text(
+                page.extract_text(layout=True) or "",
+            )
             po_match = PO_PATTERN.search(text)
 
             if not po_match:
@@ -233,8 +247,9 @@ def _inspect_pages(
             )
 
             if not document.document_date and date_match:
-                day, month, year = date_match.groups()
-                document.document_date = f"{int(day):02d}/{int(month):02d}/{year}"
+                document.document_date = normalize_cpall_document_date(
+                    date_match.group(1),
+                )
 
             if not document.warehouse and warehouse_match:
                 document.warehouse = _normalize_warehouse_name(
@@ -254,6 +269,10 @@ def _count_item_rows(text: str) -> int:
     row_matches = ITEM_ROW_PATTERN.findall(text)
     if row_matches:
         return len(row_matches)
+
+    compact_rows = COMPACT_ITEM_ROW_PATTERN.findall(text)
+    if compact_rows:
+        return len(compact_rows)
 
     product_codes = PRODUCT_CODE_PATTERN.findall(text)
     barcodes = BARCODE_PATTERN.findall(text)

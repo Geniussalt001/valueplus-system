@@ -6,6 +6,7 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 
 from valueplus_so.so_processor import (
+    COMPACT_ITEM_PATTERN,
     ITEM_PATTERN,
     PdfDocument,
     PdfItem,
@@ -20,6 +21,19 @@ from valueplus_common import (
 
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_reads_compact_item_quantity_and_price(self):
+        text = (
+            "1 6002424 Hมิลค์เค้กUM 55 G. "
+            "1 130.00 0 10.30 0.00 0.00 0.00 0.00 1,339.00"
+        )
+        match = COMPACT_ITEM_PATTERN.search(text)
+
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match.group(2), "6002424")
+        self.assertEqual(float(match.group(4)), 130.0)
+        self.assertEqual(float(match.group(5)), 10.3)
+
     def test_reads_large_quantities_wrapped_by_cpall_pdf(self):
         cases = [
             ("13,330", ".00", 13330.0),
