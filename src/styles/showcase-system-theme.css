@@ -152,6 +152,113 @@ body {
 }
 
 /* Header and top navigation */
+.top-navigation-shell {
+  border-bottom: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: rgb(255 255 255 / 97%) !important;
+  box-shadow: 0 10px 30px rgb(20 35 60 / 7%) !important;
+}
+
+.top-utility-bar {
+  border-top: 4px solid transparent !important;
+  border-image: linear-gradient(90deg, var(--vp-brand) 0 72%, var(--vp-blue-deep)) 1 !important;
+  background: #ffffff !important;
+}
+
+.top-brand-button {
+  border-color: var(--vp-line) !important;
+  background: #ffffff !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.top-brand-button:hover {
+  border-color: rgb(181 22 50 / 26%) !important;
+  box-shadow: 0 10px 26px rgb(181 22 50 / 9%) !important;
+}
+
+.top-workspace-switcher {
+  border-color: var(--vp-line) !important;
+  background: #f7f8fa !important;
+}
+
+.top-workspace-button {
+  color: var(--vp-muted) !important;
+}
+
+.top-workspace-button:hover {
+  color: var(--vp-ink) !important;
+  background: #ffffff !important;
+}
+
+.top-workspace-button.workspace-retail-active {
+  border-color: rgb(35 105 216 / 22%) !important;
+  color: var(--vp-blue-deep) !important;
+  background: var(--vp-blue-soft) !important;
+  box-shadow: 0 5px 14px rgb(35 105 216 / 9%) !important;
+}
+
+.top-workspace-button.workspace-head-office-active {
+  border-color: rgb(181 22 50 / 22%) !important;
+  color: var(--vp-brand) !important;
+  background: var(--vp-brand-soft) !important;
+  box-shadow: 0 5px 14px rgb(181 22 50 / 8%) !important;
+}
+
+.top-page-context p {
+  color: var(--vp-brand) !important;
+}
+
+.top-page-context h1 {
+  color: var(--vp-ink) !important;
+}
+
+.top-module-navigation {
+  border-top-color: var(--vp-line-soft) !important;
+  background: #ffffff !important;
+}
+
+.top-module-tab {
+  --menu-accent: var(--vp-brand) !important;
+  color: var(--vp-muted) !important;
+}
+
+.top-module-tab::after {
+  background: var(--vp-brand) !important;
+}
+
+.top-module-tab:not(.top-module-tab-active) .top-module-icon {
+  border-color: var(--vp-line) !important;
+  color: #68768a !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.top-module-tab:hover:not(:disabled) {
+  color: var(--vp-brand) !important;
+  background: #fff7f8 !important;
+}
+
+.top-module-tab:hover:not(:disabled) .top-module-icon,
+.top-module-tab-active .top-module-icon {
+  border-color: rgb(181 22 50 / 20%) !important;
+  color: var(--vp-brand) !important;
+  background: var(--vp-brand-soft) !important;
+  box-shadow: 0 6px 16px rgb(181 22 50 / 10%) !important;
+}
+
+.top-module-tab-active {
+  color: var(--vp-brand) !important;
+  background: linear-gradient(180deg, #ffffff, #fff4f6) !important;
+}
+
+.top-module-tab-active .top-module-label {
+  color: var(--vp-brand) !important;
+}
+
+.top-module-label {
+  color: inherit !important;
+}
+
 .dashboard main > header {
   border-bottom: 1px solid var(--vp-line) !important;
   color: var(--vp-ink) !important;
@@ -224,6 +331,11 @@ body {
   color: var(--vp-muted) !important;
 }
 
+.dashboard-heading > p:first-child,
+.dashboard-module-header > div > p:first-child {
+  color: var(--vp-brand) !important;
+}
+
 .dashboard-readiness {
   border-color: rgb(10 169 133 / 18%) !important;
   color: #087e65 !important;
@@ -239,10 +351,10 @@ body {
   box-shadow: var(--vp-shadow-sm) !important;
 }
 
-.dashboard-metric-violet { --metric-accent: var(--vp-violet); }
-.dashboard-metric-teal { --metric-accent: var(--vp-mint); }
-.dashboard-metric-pink { --metric-accent: #df668c; }
-.dashboard-metric-cyan { --metric-accent: var(--vp-primary); }
+.dashboard-metric-violet { --metric-accent: #8f2941; }
+.dashboard-metric-teal { --metric-accent: #0a987c; }
+.dashboard-metric-pink { --metric-accent: var(--vp-brand); }
+.dashboard-metric-cyan { --metric-accent: var(--vp-blue-deep); }
 
 .dashboard-metric:hover {
   border-color: color-mix(in srgb, var(--metric-accent) 36%, var(--vp-line)) !important;
@@ -265,6 +377,25 @@ body {
   background: color-mix(in srgb, var(--metric-accent) 10%, #ffffff) !important;
 }
 
+.dashboard-metric-orb {
+  background: var(--metric-accent) !important;
+  opacity: 0.055 !important;
+}
+
+.dashboard-metric p,
+.dashboard-metric [class*="text-"] {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard-metric p:nth-of-type(2) {
+  color: var(--metric-accent) !important;
+}
+
+.dashboard-metric p:nth-of-type(1),
+.dashboard-metric p:nth-of-type(3) {
+  color: var(--vp-muted) !important;
+}
+
 .dashboard-module-panel {
   border: 1px solid var(--vp-line) !important;
   background: rgb(255 255 255 / 72%) !important;
@@ -272,22 +403,24 @@ body {
 }
 
 .module-card {
-  border: 1px solid color-mix(in srgb, var(--accent-color) 22%, var(--vp-line)) !important;
+  --accent-color: var(--vp-brand) !important;
+  border: 1px solid rgb(181 22 50 / 16%) !important;
   color: var(--vp-ink) !important;
   background:
-    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--accent-color) 10%, transparent), transparent 40%),
-    linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--accent-color) 4%, #ffffff)) !important;
+    radial-gradient(circle at 100% 0, rgb(181 22 50 / 6%), transparent 40%),
+    linear-gradient(145deg, #ffffff, #fffafb) !important;
   box-shadow: var(--vp-shadow-sm) !important;
 }
 
 .module-card::after {
-  background: linear-gradient(90deg, var(--accent-color), transparent) !important;
+  background: linear-gradient(90deg, var(--vp-brand), rgb(181 22 50 / 8%)) !important;
   opacity: 0.72 !important;
 }
 
 .module-card:hover {
-  border-color: color-mix(in srgb, var(--accent-color) 42%, var(--vp-line)) !important;
-  box-shadow: var(--vp-shadow-md) !important;
+  border-color: rgb(181 22 50 / 34%) !important;
+  background: linear-gradient(145deg, #ffffff, #fff6f7) !important;
+  box-shadow: 0 18px 42px rgb(181 22 50 / 10%) !important;
   transform: translateY(-4px) !important;
 }
 
@@ -299,12 +432,23 @@ body {
   color: var(--vp-muted) !important;
 }
 
+.module-card p[style] {
+  color: var(--vp-brand) !important;
+}
+
 .module-icon,
 .module-open-button {
-  border-color: color-mix(in srgb, var(--accent-color) 24%, var(--vp-line)) !important;
-  color: var(--accent-color) !important;
-  background: color-mix(in srgb, var(--accent-color) 9%, #ffffff) !important;
+  border-color: rgb(181 22 50 / 20%) !important;
+  color: var(--vp-brand) !important;
+  background: var(--vp-brand-soft) !important;
   box-shadow: none !important;
+}
+
+.module-open-button {
+  border-color: var(--vp-brand) !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--vp-primary-deep), var(--vp-brand)) !important;
+  box-shadow: 0 8px 18px rgb(181 22 50 / 16%) !important;
 }
 
 /* Work pages and shared surfaces */
