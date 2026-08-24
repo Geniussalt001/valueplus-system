@@ -442,10 +442,19 @@ def generate_workbook(state, output_path):
         sheet.column_dimensions["C"].width = 48
         for index in range(4, sheet.max_column + 1):
             sheet.column_dimensions[get_column_letter(index)].width = 16
-        for row in sheet.iter_rows(min_row=2, min_col=4):
-            for cell in row:
-                if cell.column in (7, 8, 10): cell.number_format = "0.00%"
-                else: cell.number_format = "#,##0.00" if sheet.title == "ฐานข้อมูลสรุป" and cell.column == 9 else "#,##0"
+        if sheet.title == "ฐานข้อมูลสรุป":
+            for cell in sheet["H"][1:]:
+                cell.number_format = "#,##0"
+            for cell in sheet["I"][1:]:
+                cell.number_format = "#,##0.00"
+        else:
+            for row in sheet.iter_rows(min_row=2, min_col=4):
+                for cell in row:
+                    cell.number_format = (
+                        "0.00%"
+                        if cell.column in (7, 8, 10)
+                        else "#,##0"
+                    )
 
     with tempfile.TemporaryDirectory(prefix="valueplus-monthly-sales-") as folder:
         temp_path = Path(folder) / output.name
