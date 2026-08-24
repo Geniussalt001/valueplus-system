@@ -125,7 +125,9 @@
 
 .product-spotlight-pagination {
   display: flex;
-  gap: 7px;
+  max-width: 260px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 23px;
 }
 
@@ -214,7 +216,7 @@
   width: min(25vw, 320px);
   height: 285px;
   max-height: 285px;
-  overflow: hidden;
+  overflow: visible;
   transform: translate3d(-50%, -50%, 0);
   animation: product-spotlight-arrive 520ms cubic-bezier(0.22, 0.75, 0.28, 1) both;
   pointer-events: none;
@@ -228,6 +230,7 @@
   height: 100%;
   max-height: 285px;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 22px 18px rgb(36 50 71 / 16%));
   animation: product-spotlight-float 6.4s ease-in-out 520ms infinite;
   backface-visibility: hidden;
@@ -252,7 +255,7 @@
   position: absolute;
   z-index: 3;
   right: -3%;
-  bottom: -25%;
+  bottom: -18%;
   width: min(20vw, 265px);
   border: 0;
   border-radius: 48%;
@@ -287,10 +290,22 @@
 .product-spotlight-mascot {
   display: block;
   width: 100%;
-  border-radius: 48%;
-  object-fit: cover;
-  mix-blend-mode: multiply;
+  aspect-ratio: 1;
   filter: drop-shadow(0 18px 18px rgb(37 47 67 / 13%));
+  animation: product-spotlight-mascot-outfit-enter 420ms cubic-bezier(0.22, 0.75, 0.28, 1) both;
+}
+
+.product-showcase-mascot-sprite {
+  --mascot-column: 0;
+  --mascot-row: 0;
+  display: block;
+  aspect-ratio: 1;
+  background-image: url("/images/product-showcase/umi-umi-mascot-outfits.webp");
+  background-repeat: no-repeat;
+  background-position:
+    calc(var(--mascot-column) * 100% / 3)
+    calc(var(--mascot-row) * 100% / 3);
+  background-size: 400% 400%;
 }
 
 .product-spotlight-mascot-sparkle {
@@ -315,32 +330,6 @@
   top: 3%;
   right: 20%;
   animation-delay: 120ms;
-}
-
-.product-spotlight-bubble {
-  position: absolute;
-  z-index: 4;
-  top: 24px;
-  right: 24px;
-  max-width: 165px;
-  border: 1px solid rgb(255 255 255 / 80%);
-  border-radius: 15px 15px 4px 15px;
-  padding: 10px 13px;
-  color: #4f5e72;
-  background: rgb(255 255 255 / 88%);
-  box-shadow: 0 9px 25px rgb(53 72 99 / 10%);
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
-  backdrop-filter: blur(8px);
-  transition: color 180ms ease, transform 180ms ease, background 180ms ease;
-  pointer-events: none;
-}
-
-.product-spotlight-bubble.is-cheering {
-  color: color-mix(in srgb, var(--spotlight-accent) 78%, #14233c);
-  background: rgb(255 255 255 / 96%);
-  transform: translateY(-3px) scale(1.04);
 }
 
 .product-spotlight-controls {
@@ -486,7 +475,7 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 350px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 410px);
   gap: 18px;
   overflow: hidden;
   padding: 20px;
@@ -534,7 +523,7 @@
 .product-showcase-card-image {
   display: grid;
   width: 100%;
-  aspect-ratio: 1.45;
+  aspect-ratio: 1.08;
   place-items: center;
   overflow: hidden;
   border-radius: 13px;
@@ -542,9 +531,12 @@
 }
 
 .product-showcase-card-image img {
-  width: 92%;
-  height: 92%;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 9px 9px rgb(45 58 76 / 10%));
 }
 
@@ -591,7 +583,7 @@
 .product-showcase-detail-visual {
   position: relative;
   display: grid;
-  min-height: 250px;
+  min-height: 220px;
   place-items: center;
   overflow: hidden;
   border-radius: 17px;
@@ -600,9 +592,12 @@
 }
 
 .product-showcase-detail-visual img {
-  width: 92%;
-  max-height: 235px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 220px;
+  padding: 12px;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 18px 15px rgb(40 54 73 / 13%));
 }
 
@@ -651,6 +646,32 @@
   line-height: 1.65;
 }
 
+.product-showcase-detail-facts {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.product-showcase-detail-facts > div {
+  border-left: 3px solid color-mix(in srgb, var(--product-accent) 48%, #dfe7ef);
+  border-radius: 0 10px 10px 0;
+  padding: 8px 10px;
+  background: rgb(255 255 255 / 68%);
+}
+
+.product-showcase-detail-facts dt {
+  color: #314259;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.product-showcase-detail-facts dd {
+  margin: 3px 0 0;
+  color: #68768a;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
 .product-showcase-mascot-note {
   display: grid;
   grid-template-columns: 68px 1fr;
@@ -673,6 +694,11 @@
   border-radius: 50%;
   object-fit: cover;
   mix-blend-mode: multiply;
+}
+
+.product-showcase-mascot-note > .product-showcase-mascot-sprite {
+  width: 66px;
+  border-radius: 50%;
 }
 
 @keyframes product-spotlight-arrive {
@@ -727,6 +753,11 @@
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0) scale(1); }
   38% { transform: translate3d(0, -11px, 0) rotate(-2.2deg) scale(1.025); }
   72% { transform: translate3d(0, -3px, 0) rotate(1.4deg) scale(1.012); }
+}
+
+@keyframes product-spotlight-mascot-outfit-enter {
+  from { opacity: 0; transform: translate3d(8px, 5px, 0) scale(0.97); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @keyframes product-spotlight-sparkle {
@@ -791,10 +822,6 @@
     right: 3%;
     bottom: -30%;
     width: min(31vw, 230px);
-  }
-
-  .product-spotlight-bubble {
-    top: 4px;
   }
 
   .product-showcase-body {
@@ -905,7 +932,6 @@
   .product-spotlight-mascot-button,
   .product-spotlight-mascot-motion,
   .product-spotlight-mascot-sparkle,
-  .product-spotlight-bubble,
   .product-showcase-overlay,
   .product-showcase-dialog {
     animation: none;

@@ -16,16 +16,18 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  featuredProductShowcaseItems,
-  productShowcaseItems,
-} from "../../data/productShowcase";
+import { productShowcaseItems } from "../../data/productShowcase";
 
 import type {
   ProductShowcaseCategory,
 } from "../../data/productShowcase";
 
-const mascotImage = "/images/product-showcase/umi-umi-mascot.webp";
+const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits.webp";
+
+const mascotSpriteStyle = (position: number) => ({
+  "--mascot-column": position % 4,
+  "--mascot-row": Math.floor(position / 4),
+} as React.CSSProperties);
 
 const categories: Array<"ทั้งหมด" | ProductShowcaseCategory> = [
   "ทั้งหมด",
@@ -40,9 +42,7 @@ export function ProductSpotlight() {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [mascotCheering, setMascotCheering] = useState(false);
   const mascotTimerRef = useRef<number | null>(null);
-  const [selectedProductId, setSelectedProductId] = useState(
-    featuredProductShowcaseItems[0]?.id ?? productShowcaseItems[0].id,
-  );
+  const [selectedProductId, setSelectedProductId] = useState(productShowcaseItems[0].id);
 
   useEffect(() => {
     if (catalogOpen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -51,7 +51,7 @@ export function ProductSpotlight() {
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) =>
-        (current + 1) % featuredProductShowcaseItems.length,
+        (current + 1) % productShowcaseItems.length,
       );
     }, 8000);
 
@@ -66,8 +66,8 @@ export function ProductSpotlight() {
 
   useEffect(() => {
     const imageSources = [
-      mascotImage,
-      ...featuredProductShowcaseItems.map((product) => product.image),
+      mascotSprite,
+      ...productShowcaseItems.map((product) => product.image),
     ];
 
     imageSources.forEach((source) => {
@@ -77,14 +77,12 @@ export function ProductSpotlight() {
     });
   }, []);
 
-  const activeProduct =
-    featuredProductShowcaseItems[activeIndex] ?? productShowcaseItems[0];
+  const activeProduct = productShowcaseItems[activeIndex] ?? productShowcaseItems[0];
 
   const moveSlide = (direction: -1 | 1) => {
     setActiveIndex((current) => {
       const next = current + direction;
-      return (next + featuredProductShowcaseItems.length) %
-        featuredProductShowcaseItems.length;
+      return (next + productShowcaseItems.length) % productShowcaseItems.length;
     });
   };
 
@@ -150,8 +148,8 @@ export function ProductSpotlight() {
             </button>
           </div>
 
-          <div className="product-spotlight-pagination" aria-label="เลือกสินค้าเด่น">
-            {featuredProductShowcaseItems.map((product, index) => (
+          <div className="product-spotlight-pagination" aria-label="เลือกสินค้าทั้งหมด">
+            {productShowcaseItems.map((product, index) => (
               <button
                 key={product.id}
                 type="button"
@@ -185,16 +183,15 @@ export function ProductSpotlight() {
             <span className="product-spotlight-mascot-sparkle sparkle-one" aria-hidden="true">✦</span>
             <span className="product-spotlight-mascot-sparkle sparkle-two" aria-hidden="true">✦</span>
             <span className="product-spotlight-mascot-motion">
-              <img
-                className="product-spotlight-mascot"
-                src={mascotImage}
-                alt="น้อง Umi"
+              <span
+                key={activeProduct.id}
+                className="product-spotlight-mascot product-showcase-mascot-sprite"
+                style={mascotSpriteStyle(activeProduct.mascotPosition)}
+                role="img"
+                aria-label={`น้อง Umi ในชุด ${activeProduct.thaiName}`}
               />
             </span>
           </button>
-          <span className={`product-spotlight-bubble ${mascotCheering ? "is-cheering" : ""}`}>
-            {mascotCheering ? "เย้! วันนี้ทำงานให้สนุกนะครับ!" : "กดทักทายน้อง Umi ได้นะ!"}
-          </span>
         </div>
 
         <div className="product-spotlight-controls">
@@ -331,8 +328,27 @@ function ProductShowcaseDialog({
             <h3>{selectedProduct.name}</h3>
             <h4>{selectedProduct.thaiName}</h4>
             <p>{selectedProduct.description}</p>
+            <dl className="product-showcase-detail-facts">
+              <div>
+                <dt>น้ำหนักสุทธิ</dt>
+                <dd>{selectedProduct.netWeight}</dd>
+              </div>
+              <div>
+                <dt>ข้อมูลสำหรับผู้แพ้อาหาร</dt>
+                <dd>{selectedProduct.allergens}</dd>
+              </div>
+              <div>
+                <dt>การเก็บรักษา</dt>
+                <dd>{selectedProduct.storage}</dd>
+              </div>
+            </dl>
             <div className="product-showcase-mascot-note">
-              <img src={mascotImage} alt="น้อง Umi" />
+              <span
+                className="product-showcase-mascot-sprite"
+                style={mascotSpriteStyle(selectedProduct.mascotPosition)}
+                role="img"
+                aria-label={`น้อง Umi ในชุด ${selectedProduct.thaiName}`}
+              />
               <span>น้อง Umi พร้อมช่วยแนะนำสินค้าให้ทุกคนรู้จักมากขึ้นครับ!</span>
             </div>
           </aside>
