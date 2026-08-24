@@ -193,11 +193,15 @@ def load_state(data_dir, seed_path):
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     state_path = data_dir / "monthly_sales.json"
-    if state_path.is_file():
-        return json.loads(state_path.read_text(encoding="utf-8")), state_path
+    seed = empty_state()
     if seed_path and Path(seed_path).is_file():
-        return json.loads(Path(seed_path).read_text(encoding="utf-8")), state_path
-    return empty_state(), state_path
+        seed = json.loads(Path(seed_path).read_text(encoding="utf-8"))
+    if state_path.is_file():
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        for key, month in seed.get("months", {}).items():
+            state.setdefault("months", {}).setdefault(key, month)
+        return state, state_path
+    return seed, state_path
 
 
 def save_json_atomic(path, payload):
@@ -233,6 +237,11 @@ def enrich_product(item, month_sales, previous=None):
 
 
 def build_summary(state, selected_month=None, workbook_path=""):
+    workbook_path = (
+        workbook_path
+        if workbook_path and Path(workbook_path).is_file()
+        else ""
+    )
     month_keys = sorted(state.get("months", {}))
     if not month_keys:
         return {"months": [], "selectedMonth": None, "totals": {"sales": 0, "cn": 0, "net": 0}, "products": [], "history": [], "workbookPath": workbook_path}
@@ -403,7 +412,10 @@ def generate_workbook(state, output_path):
             database.append([month["year"], month["month"], month.get("monthName", MONTH_NAMES[month["month"]]), "CN", item["productCode"], item.get("sourceCode", ""), item["name"], item.get("cn", 0), item.get("cnAmount", 0)])
 
     for month in months:
-        sheet = workbook.create_sheet(month.get("monthName", MONTH_NAMES[month["month"]]))
+        sheet_name = month.get("monthName", MONTH_NAMES[month["month"]])
+        if sheet_name in workbook.sheetnames:
+            sheet_name = f'{sheet_name} {month["year"]}'
+        sheet = workbook.create_sheet(sheet_name)
         sheet.sheet_view.showGridLines = False
         sheet.append(["รหัสสินค้า", "รหัสต้นทาง", "รายการสินค้า", "ยอดขาย", "CN", "ยอดสุทธิ", "% CN", "สัดส่วนยอดขาย", "ต่างจากเดือนก่อน", "% เปลี่ยนแปลง"])
         sales, _, _ = month_totals(month)
