@@ -31,7 +31,8 @@
                                        "binaries/valueplus-engine"
                                    ],
                    "resources":  [
-                                     "resources/templates/*.xlsx"
+                                     "resources/templates/*.xlsx",
+                                     "resources/data/*.json"
                                  ],
                    "targets":  [
                                    "nsis"
