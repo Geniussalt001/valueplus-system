@@ -441,9 +441,232 @@ body {
   color: #14233c;
 }
 
+/* Login, splash and updater use the same warm surface and brand language. */
+.login-hybrid {
+  color: var(--vp-ink) !important;
+  background-color: #f7f6f8 !important;
+  background-position: center !important;
+}
+
+.login-hybrid-vignette {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(255 255 255 / 2%) 0%,
+      rgb(250 248 246 / 5%) 42%,
+      rgb(250 248 246 / 62%) 66%,
+      rgb(248 247 249 / 95%) 100%
+    ),
+    linear-gradient(180deg, rgb(20 35 60 / 2%), transparent 55%, rgb(20 35 60 / 5%)) !important;
+}
+
+.login-hybrid-card {
+  border: 1px solid rgb(221 228 237 / 96%) !important;
+  border-radius: 28px !important;
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(181 22 50 / 5%), transparent 33%),
+    linear-gradient(145deg, rgb(255 255 255 / 98%), rgb(250 249 250 / 96%)) !important;
+  box-shadow:
+    0 30px 80px rgb(20 35 60 / 14%),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.login-hybrid-card::before {
+  right: 0 !important;
+  left: 0 !important;
+  height: 4px !important;
+  border-radius: 28px 28px 0 0 !important;
+  background: linear-gradient(90deg, var(--vp-brand), #d53a50 42%, var(--vp-primary)) !important;
+  box-shadow: none !important;
+}
+
+.login-hybrid-logo,
+.splash-hybrid-logo {
+  filter: drop-shadow(0 7px 15px rgb(181 22 50 / 12%)) !important;
+}
+
+.login-hybrid-divider {
+  background: linear-gradient(90deg, var(--vp-brand), rgb(181 22 50 / 22%), transparent) !important;
+  box-shadow: none !important;
+}
+
+.login-hybrid [class*="text-cyan-"],
+.login-hybrid [class*="text-blue-"] {
+  color: var(--vp-primary) !important;
+}
+
+.login-hybrid [class*="text-slate-9"],
+.login-hybrid [class*="text-slate-8"] {
+  color: var(--vp-ink) !important;
+}
+
+.login-hybrid [class*="text-slate-6"],
+.login-hybrid [class*="text-slate-5"] {
+  color: var(--vp-muted) !important;
+}
+
+.login-account-card,
+.login-hybrid-surface {
+  border: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background: rgb(255 255 255 / 94%) !important;
+  box-shadow: 0 9px 26px rgb(20 35 60 / 6%) !important;
+}
+
+.login-account-card:nth-child(1) {
+  border-left: 4px solid var(--vp-primary) !important;
+}
+
+.login-account-card:nth-child(2) {
+  border-left: 4px solid var(--vp-brand) !important;
+}
+
+.login-account-card:hover {
+  border-color: rgb(35 105 216 / 28%) !important;
+  background: linear-gradient(135deg, #ffffff, #f7f9fd) !important;
+  box-shadow: 0 16px 36px rgb(20 35 60 / 10%) !important;
+  transform: translateY(-2px) !important;
+}
+
+.login-account-card:nth-child(2):hover {
+  border-color: rgb(181 22 50 / 26%) !important;
+}
+
+.login-hybrid-icon {
+  border: 1px solid rgb(35 105 216 / 17%) !important;
+  color: var(--vp-primary) !important;
+  background: var(--vp-primary-soft) !important;
+  box-shadow: none !important;
+}
+
+.login-account-card:nth-child(2) .login-hybrid-icon {
+  border-color: rgb(181 22 50 / 15%) !important;
+  color: var(--vp-brand) !important;
+  background: var(--vp-brand-soft) !important;
+}
+
+.login-account-card:nth-child(1) [class*="text-cyan-"] {
+  color: var(--vp-primary) !important;
+}
+
+.login-account-card:nth-child(2) [class*="text-cyan-"] {
+  color: var(--vp-brand) !important;
+}
+
+.login-account-arrow {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: var(--vp-primary) !important;
+  box-shadow: 0 8px 18px rgb(35 105 216 / 18%) !important;
+}
+
+.login-account-card:nth-child(2) .login-account-arrow {
+  background: var(--vp-brand) !important;
+  box-shadow: 0 8px 18px rgb(181 22 50 / 16%) !important;
+}
+
+.login-hybrid-input {
+  border: 1px solid var(--vp-line) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.login-hybrid-input:focus-within {
+  border-color: rgb(35 105 216 / 52%) !important;
+  box-shadow: 0 0 0 3px rgb(35 105 216 / 9%) !important;
+}
+
+.login-hybrid-primary {
+  border: 1px solid var(--vp-primary-deep) !important;
+  background: linear-gradient(135deg, var(--vp-primary-deep), var(--vp-primary)) !important;
+  box-shadow: 0 10px 24px rgb(35 105 216 / 19%) !important;
+}
+
+.login-hybrid-primary:hover {
+  border-color: #12366f !important;
+  background: linear-gradient(135deg, #12366f, #1f5fc5) !important;
+  box-shadow: 0 14px 30px rgb(35 105 216 / 23%) !important;
+}
+
+.login-hybrid p[class*="border-red-"] {
+  border-color: rgb(213 58 80 / 24%) !important;
+  color: #aa263a !important;
+  background: #fff2f4 !important;
+}
+
+.login-hybrid button:focus-visible {
+  outline: 3px solid rgb(35 105 216 / 20%) !important;
+  outline-offset: 3px;
+}
+
+.splash-hybrid,
+.startup-update-gate {
+  color: var(--vp-ink) !important;
+  background-color: #f7f6f8 !important;
+}
+
+.splash-hybrid-vignette,
+.startup-update-vignette {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 2%) 0%,
+    rgb(250 248 246 / 6%) 43%,
+    rgb(250 248 246 / 64%) 68%,
+    rgb(248 247 249 / 95%) 100%
+  ) !important;
+}
+
+.splash-hybrid-panel,
+.startup-update-card {
+  border: 1px solid var(--vp-line) !important;
+  color: var(--vp-ink) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(181 22 50 / 5%), transparent 34%),
+    linear-gradient(145deg, rgb(255 255 255 / 98%), rgb(250 249 250 / 96%)) !important;
+  box-shadow:
+    0 30px 80px rgb(20 35 60 / 14%),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.splash-hybrid-panel::before,
+.startup-update-card::before {
+  height: 4px !important;
+  background: linear-gradient(90deg, var(--vp-brand), #d53a50 42%, var(--vp-primary)) !important;
+  box-shadow: none !important;
+}
+
+.splash-hybrid [class*="text-cyan-"],
+.splash-hybrid [class*="text-blue-"] {
+  color: var(--vp-primary) !important;
+}
+
+.splash-hybrid .loading-dot {
+  background: var(--vp-primary) !important;
+  box-shadow: 0 0 10px rgb(35 105 216 / 30%) !important;
+}
+
+.startup-update-icon {
+  border-color: rgb(35 105 216 / 18%) !important;
+  color: var(--vp-primary) !important;
+  background: var(--vp-primary-soft) !important;
+}
+
+.startup-update-primary,
+.startup-update-progress {
+  background: linear-gradient(135deg, var(--vp-primary-deep), var(--vp-primary)) !important;
+  box-shadow: 0 10px 24px rgb(35 105 216 / 19%) !important;
+}
+
 @media (max-width: 900px) {
   .dashboard-sidebar {
     box-shadow: 10px 0 34px rgb(20 35 60 / 7%) !important;
+  }
+
+  .login-hybrid-vignette,
+  .splash-hybrid-vignette,
+  .startup-update-vignette {
+    background: rgb(248 247 249 / 68%) !important;
   }
 }
 
