@@ -163,6 +163,28 @@ export const systemModules:
     },
 
     {
+      id: 9,
+      route:
+        "sales-cn-summary",
+      title:
+        "สรุปยอดขาย และ CN",
+      subtitle:
+        "SALES / CN SUMMARY",
+      description:
+        "เพิ่มข้อมูล Excel รอบใหม่ สร้างชีตเดือน และอัปเดต Dashboard ยอดขาย CN และยอดสุทธิอัตโนมัติ",
+      icon:
+        BarChart3,
+      color:
+        "#b4233c",
+      status:
+        "online",
+      workspaces: [
+        "retail",
+        "head-office",
+      ],
+    },
+
+    {
       id: 7,
       route:
         "po-data",

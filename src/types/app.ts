@@ -16,7 +16,8 @@ export type WorkRoute =
   | "retail-worldwide-po"
   | "po-data"
   | "product-catalog"
-  | "receivables-freight";
+  | "receivables-freight"
+  | "sales-cn-summary";
 
 export type AppRoute =
   | "login"
