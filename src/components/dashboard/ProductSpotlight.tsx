@@ -22,7 +22,7 @@ import type {
   ProductShowcaseCategory,
 } from "../../data/productShowcase";
 
-const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits-v2.png";
+const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits-v2.webp";
 
 const mascotSpriteStyle = (position: number) => ({
   "--mascot-x": `${((position % 4) / 3) * 100}%`,
