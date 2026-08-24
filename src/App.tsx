@@ -72,6 +72,10 @@ import {
 } from "./pages/modules/SalesBillingPage";
 
 import {
+  SalesCnSummaryPage,
+} from "./pages/modules/SalesCnSummaryPage";
+
+import {
   WorldwideRetailPage,
 } from "./pages/modules/WorldwideRetailPage";
 
@@ -332,6 +336,13 @@ function App() {
       case "receivables-freight":
         return (
           <ReceivablesFreightPage
+            onBack={backToDashboard}
+          />
+        );
+
+      case "sales-cn-summary":
+        return (
+          <SalesCnSummaryPage
             onBack={backToDashboard}
           />
         );
