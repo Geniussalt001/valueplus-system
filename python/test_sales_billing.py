@@ -4,7 +4,11 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from valueplus_billing.cpall_parser import ITEM_PATTERN, _parse_number
+from valueplus_billing.cpall_parser import (
+    COMPACT_ITEM_PATTERN,
+    ITEM_PATTERN,
+    _parse_number,
+)
 from valueplus_common.cpall_pdf import normalize_wrapped_item_quantities
 from valueplus_billing.express_plan import increment_iv
 from valueplus_billing.mappings import (
@@ -18,6 +22,19 @@ from valueplus_billing.runtime_paths import product_db_path
 
 
 class SalesBillingRulesTest(unittest.TestCase):
+    def test_compact_pdf_row_does_not_require_barcode(self) -> None:
+        text = (
+            "1 6002424 Hมิลค์เค้กUM 55 G. "
+            "1 130.00 0 10.30 0.00 0.00 0.00 0.00 1,339.00"
+        )
+        match = COMPACT_ITEM_PATTERN.search(text)
+
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match.group(1), "6002424")
+        self.assertEqual(_parse_number(match.group(3)), 130.0)
+        self.assertEqual(_parse_number(match.group(4)), 10.3)
+
     def test_increment_iv_keeps_number_width(self) -> None:
         self.assertEqual(increment_iv("VPR6907001", 0), "VPR6907001")
         self.assertEqual(increment_iv("VPR6907001", 24), "VPR6907025")
