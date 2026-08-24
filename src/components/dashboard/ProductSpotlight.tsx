@@ -25,8 +25,8 @@ import type {
 const mascotSprite = "/images/product-showcase/umi-umi-mascot-outfits.webp";
 
 const mascotSpriteStyle = (position: number) => ({
-  "--mascot-column": position % 4,
-  "--mascot-row": Math.floor(position / 4),
+  "--mascot-x": `${((position % 4) / 3) * 100}%`,
+  "--mascot-y": `${(Math.floor(position / 4) / 3) * 100}%`,
 } as React.CSSProperties);
 
 const categories: Array<"ทั้งหมด" | ProductShowcaseCategory> = [

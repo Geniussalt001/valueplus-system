@@ -74,11 +74,15 @@
 }
 
 .product-spotlight-description {
+  display: -webkit-box;
   max-width: 600px;
   margin: 10px 0 0;
+  overflow: hidden;
   color: #68768a;
   font-size: 13px;
   line-height: 1.7;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .product-spotlight-actions {
@@ -296,15 +300,13 @@
 }
 
 .product-showcase-mascot-sprite {
-  --mascot-column: 0;
-  --mascot-row: 0;
+  --mascot-x: 0%;
+  --mascot-y: 0%;
   display: block;
   aspect-ratio: 1;
   background-image: url("/images/product-showcase/umi-umi-mascot-outfits.webp");
   background-repeat: no-repeat;
-  background-position:
-    calc(var(--mascot-column) * 100% / 3)
-    calc(var(--mascot-row) * 100% / 3);
+  background-position: var(--mascot-x) var(--mascot-y);
   background-size: 400% 400%;
 }
 
