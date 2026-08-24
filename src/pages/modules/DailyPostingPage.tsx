@@ -62,12 +62,12 @@ const dailyPostingModules: Array<{
     subtitle:
       "MONTHLY SALES POSTING",
     description:
-      "พื้นที่สำหรับงานลงยอดขายรายเดือน พร้อมรับรายละเอียดขั้นตอนการทำงาน",
+      "นำเข้า CSV สะสมรายเดือน อัปเดตแดชบอร์ด ฐานข้อมูล และไฟล์ Excel อัตโนมัติ",
     icon: BarChart3,
     color: "#b51632",
     eyebrow: "03",
     statusLabel:
-      "รอรายละเอียดการทำงาน",
+      "พร้อมใช้งาน",
   },
 ];
 
