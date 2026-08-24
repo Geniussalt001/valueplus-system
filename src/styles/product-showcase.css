@@ -128,25 +128,66 @@
 }
 
 .product-spotlight-pagination {
-  display: flex;
-  max-width: 260px;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 23px;
+  display: grid;
+  width: min(100%, 560px);
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 18px;
 }
 
 .product-spotlight-pagination button {
-  width: 7px;
-  height: 7px;
-  border: 0;
-  border-radius: 99px;
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #dce5ef;
+  border-radius: 9px;
   padding: 0;
-  background: #cbd6e4;
-  transition: width 180ms ease, background 180ms ease;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 4px 10px rgb(41 62 91 / 5%);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.product-spotlight-pagination button img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.68;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.product-spotlight-pagination button span {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  display: grid;
+  min-width: 12px;
+  height: 12px;
+  place-items: center;
+  border-radius: 99px;
+  color: #617087;
+  background: rgb(255 255 255 / 90%);
+  font-size: 7px;
+  font-weight: 800;
 }
 
 .product-spotlight-pagination button.is-active {
-  width: 28px;
+  border-color: var(--spotlight-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--spotlight-accent) 17%, transparent), 0 7px 15px color-mix(in srgb, var(--spotlight-accent) 13%, transparent);
+  transform: translateY(-2px);
+}
+
+.product-spotlight-pagination button.is-active img {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.product-spotlight-pagination button.is-active span {
+  color: #ffffff;
   background: var(--spotlight-accent);
 }
 
@@ -217,10 +258,11 @@
   z-index: 3;
   top: 50%;
   left: 34%;
-  width: min(25vw, 320px);
-  height: 285px;
-  max-height: 285px;
+  width: min(28vw, 360px);
+  height: 300px;
+  max-height: 300px;
   overflow: visible;
+  padding: 12px;
   transform: translate3d(-50%, -50%, 0);
   animation: product-spotlight-arrive 520ms cubic-bezier(0.22, 0.75, 0.28, 1) both;
   pointer-events: none;
@@ -232,8 +274,9 @@
   display: block;
   width: 100%;
   height: 100%;
-  max-height: 285px;
-  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: scale-down;
   object-position: center;
   filter: drop-shadow(0 22px 18px rgb(36 50 71 / 16%));
   animation: product-spotlight-float 6.4s ease-in-out 520ms infinite;
@@ -258,9 +301,9 @@
 .product-spotlight-mascot-button {
   position: absolute;
   z-index: 3;
-  right: -3%;
-  bottom: -18%;
-  width: min(20vw, 265px);
+  right: 0;
+  bottom: -2%;
+  width: min(18vw, 245px);
   border: 0;
   border-radius: 48%;
   padding: 0;
@@ -304,7 +347,7 @@
   --mascot-y: 0%;
   display: block;
   aspect-ratio: 1;
-  background-image: url("/images/product-showcase/umi-umi-mascot-outfits.webp");
+  background-image: url("/images/product-showcase/umi-umi-mascot-outfits-v2.png");
   background-repeat: no-repeat;
   background-position: var(--mascot-x) var(--mascot-y);
   background-size: 400% 400%;
@@ -536,8 +579,8 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 10px;
-  object-fit: contain;
+  padding: 14px;
+  object-fit: scale-down;
   object-position: center;
   filter: drop-shadow(0 9px 9px rgb(45 58 76 / 10%));
 }
@@ -585,7 +628,7 @@
 .product-showcase-detail-visual {
   position: relative;
   display: grid;
-  min-height: 220px;
+  min-height: 240px;
   place-items: center;
   overflow: hidden;
   border-radius: 17px;
@@ -596,9 +639,9 @@
 .product-showcase-detail-visual img {
   box-sizing: border-box;
   width: 100%;
-  height: 220px;
-  padding: 12px;
-  object-fit: contain;
+  height: 240px;
+  padding: 18px;
+  object-fit: scale-down;
   object-position: center;
   filter: drop-shadow(0 18px 15px rgb(40 54 73 / 13%));
 }
@@ -795,6 +838,7 @@
   .product-showcase-grid {
     grid-template-columns: repeat(3, minmax(145px, 1fr));
   }
+
 }
 
 @media (max-width: 900px) {
@@ -822,7 +866,7 @@
 
   .product-spotlight-mascot-button {
     right: 3%;
-    bottom: -30%;
+    bottom: -4%;
     width: min(31vw, 230px);
   }
 
@@ -836,6 +880,11 @@
 }
 
 @media (max-width: 700px) {
+  .product-spotlight-pagination {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    width: min(100%, 390px);
+  }
+
   .product-showcase-overlay {
     padding: 8px;
   }
