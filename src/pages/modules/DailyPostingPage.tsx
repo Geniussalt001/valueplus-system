@@ -11,10 +11,6 @@ import {
   HandCoins,
 } from "lucide-react";
 
-import type {
-  WorkRoute,
-} from "../../types/app";
-
 type DailyPostingChildRoute =
   | "daily-so"
   | "receivables-freight"
@@ -35,6 +31,7 @@ const dailyPostingModules: Array<{
   icon: typeof FileSpreadsheet;
   color: string;
   eyebrow: string;
+  statusLabel: string;
 }> = [
   {
     route: "daily-so",
@@ -45,6 +42,7 @@ const dailyPostingModules: Array<{
     icon: FileSpreadsheet,
     color: "#356bc4",
     eyebrow: "01",
+    statusLabel: "พร้อมใช้งาน",
   },
   {
     route: "receivables-freight",
@@ -56,6 +54,7 @@ const dailyPostingModules: Array<{
     icon: HandCoins,
     color: "#159b82",
     eyebrow: "02",
+    statusLabel: "พร้อมใช้งาน",
   },
   {
     route: "monthly-sales",
@@ -67,6 +66,8 @@ const dailyPostingModules: Array<{
     icon: BarChart3,
     color: "#b51632",
     eyebrow: "03",
+    statusLabel:
+      "รอรายละเอียดการทำงาน",
   },
 ];
 
@@ -161,7 +162,7 @@ export function DailyPostingPage({
                         className="status-light status-online"
                         aria-hidden="true"
                       />
-                      พร้อมใช้งาน
+                      {module.statusLabel}
                     </span>
 
                     <span className="module-open-button flex h-10 w-10 items-center justify-center">
@@ -180,5 +181,4 @@ export function DailyPostingPage({
 
 export type {
   DailyPostingChildRoute,
-  WorkRoute,
 };
