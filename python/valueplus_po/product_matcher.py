@@ -30,21 +30,9 @@ def match_products(
         data_candidates = data_by_key.get(key, [])
         target_candidates = target_by_key.get(key, [])
 
-        if not data_candidates:
-            results.append(
-                ProductMatch(
-                    barcode=barcode,
-                    pdf_name=first_item.pdf_name,
-                    data_name=None,
-                    target_name=None,
-                    excel_row=None,
-                    quantity=group["quantity"],
-                    matched=False,
-                    message="ไม่พบสินค้าในชีต Data",
-                ),
-            )
-            continue
-
+        # The destination warehouse sheet is the workbook write target and is
+        # therefore authoritative. A unique exact normalized-name match is
+        # safe even when a newly-added product has not been duplicated in Data.
         if len(target_candidates) != 1:
             message = (
                 "ไม่พบสินค้าในชีตปลายทาง"
@@ -55,7 +43,11 @@ def match_products(
                 ProductMatch(
                     barcode=barcode,
                     pdf_name=first_item.pdf_name,
-                    data_name=data_candidates[0].name,
+                    data_name=(
+                        data_candidates[0].name
+                        if data_candidates
+                        else None
+                    ),
                     target_name=None,
                     excel_row=None,
                     quantity=group["quantity"],
@@ -70,16 +62,20 @@ def match_products(
             (
                 product
                 for product in data_candidates
-                if normalize_product_name(product.name) == target.normalized_name
+                if product.normalized_name == target.normalized_name
             ),
-            data_candidates[0],
+            None,
         )
 
         results.append(
             ProductMatch(
                 barcode=barcode,
                 pdf_name=first_item.pdf_name,
-                data_name=matching_data.name,
+                data_name=(
+                    matching_data.name
+                    if matching_data
+                    else target.name
+                ),
                 target_name=target.name,
                 excel_row=target.row,
                 quantity=group["quantity"],
@@ -88,4 +84,3 @@ def match_products(
         )
 
     return sorted(results, key=lambda item: item.excel_row or 999)
-
