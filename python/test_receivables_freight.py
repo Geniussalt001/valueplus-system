@@ -3,7 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from receivables_freight_cli import parse_credit_note_records
+from receivables_freight_cli import (
+    normalize_gregorian_date,
+    parse_credit_note_records,
+)
 
 
 def make_row():
@@ -49,20 +52,33 @@ class CreditNoteParserTest(unittest.TestCase):
         self.assertEqual(result["error_count"], 0)
 
         first = result["records"][0]
-        self.assertEqual(first["date"], "01/07/2569")
+        self.assertEqual(first["date"], "01/07/2026")
         self.assertEqual(first["credit_note_number"], "SR6907001")
         self.assertEqual(
             first["customer"],
             "บริษัท ซีพี ออลล์ จำกัด(มหาชน)สำนักงานใหญ่",
         )
         self.assertEqual(first["amount"], 86.46)
-        self.assertEqual(first["reference_invoice"], "IVVPR6907001")
+        self.assertEqual(first["reference_invoice"], "VPR6907001")
         self.assertEqual(first["applied_invoice"], "VPR6907001")
 
         second = result["records"][1]
         self.assertEqual(second["reference_invoice"], "IV0000000")
-        self.assertEqual(second["applied_invoice"], "")
+        self.assertEqual(second["date"], "02/07/2026")
+        self.assertEqual(second["applied_invoice"], "IV0000000")
         self.assertEqual(second["status"], "ready")
+
+    def test_normalizes_buddhist_and_gregorian_years(self):
+        self.assertEqual(
+            normalize_gregorian_date("24/08/2569"),
+            "24/08/2026",
+        )
+        self.assertEqual(
+            normalize_gregorian_date("24/08/2026"),
+            "24/08/2026",
+        )
+        with self.assertRaises(ValueError):
+            normalize_gregorian_date("31/02/2569")
 
 
 if __name__ == "__main__":
