@@ -3,7 +3,8 @@
   --spotlight-soft: #eaf4ff;
   position: relative;
   display: grid;
-  min-height: 330px;
+  height: 374px;
+  min-height: 374px;
   grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--spotlight-accent) 19%, #dfe8f2);
@@ -49,6 +50,11 @@
   color: #728096;
   font-size: 13px;
   font-weight: 600;
+}
+
+.product-spotlight-copy-content {
+  min-height: 142px;
+  animation: product-spotlight-copy-enter 420ms cubic-bezier(0.22, 0.75, 0.28, 1) both;
 }
 
 .product-spotlight h2 {
@@ -139,14 +145,9 @@
 }
 
 .product-spotlight-stage {
-  --spotlight-shift-x: 0px;
-  --spotlight-shift-y: 0px;
-  --spotlight-rotate-x: 0deg;
-  --spotlight-rotate-y: 0deg;
   position: relative;
   z-index: 2;
   min-width: 0;
-  perspective: 900px;
 }
 
 .product-spotlight-glow {
@@ -159,7 +160,8 @@
   background: color-mix(in srgb, var(--spotlight-accent) 14%, #ffffff);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 70%);
   transform: translate(-50%, -50%);
-  animation: product-spotlight-glow 4.8s ease-in-out infinite;
+  animation: product-spotlight-glow 7s ease-in-out infinite;
+  will-change: opacity, transform;
 }
 
 .product-spotlight-orbit {
@@ -168,6 +170,8 @@
   border: 1px solid color-mix(in srgb, var(--spotlight-accent) 24%, transparent);
   border-radius: 50%;
   pointer-events: none;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .product-spotlight-orbit::after {
@@ -208,23 +212,26 @@
   top: 50%;
   left: 34%;
   width: min(25vw, 320px);
+  height: 285px;
   max-height: 285px;
   overflow: hidden;
-  transform: translate(-50%, -50%)
-    translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0)
-    rotateX(var(--spotlight-rotate-x)) rotateY(var(--spotlight-rotate-y));
-  transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
-  animation: product-spotlight-arrive 420ms ease-out both;
+  transform: translate3d(-50%, -50%, 0);
+  animation: product-spotlight-arrive 520ms cubic-bezier(0.22, 0.75, 0.28, 1) both;
   pointer-events: none;
+  backface-visibility: hidden;
+  will-change: opacity, transform;
 }
 
 .product-spotlight-product {
   display: block;
   width: 100%;
+  height: 100%;
   max-height: 285px;
   object-fit: contain;
   filter: drop-shadow(0 22px 18px rgb(36 50 71 / 16%));
-  animation: product-spotlight-float 4.2s ease-in-out 450ms infinite;
+  animation: product-spotlight-float 6.4s ease-in-out 520ms infinite;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .product-spotlight-shine {
@@ -254,7 +261,9 @@
   background: transparent;
   cursor: pointer;
   transform-origin: 50% 85%;
-  animation: product-spotlight-mascot-idle 3.4s ease-in-out infinite;
+  animation: product-spotlight-mascot-idle 6.8s ease-in-out infinite;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .product-spotlight-mascot-button:hover {
@@ -266,8 +275,13 @@
   outline-offset: -12px;
 }
 
-.product-spotlight-mascot-button.is-cheering {
-  animation: product-spotlight-mascot-cheer 720ms cubic-bezier(0.2, 0.8, 0.25, 1) 2;
+.product-spotlight-mascot-motion {
+  display: block;
+  transform-origin: 50% 85%;
+}
+
+.product-spotlight-mascot-button.is-cheering .product-spotlight-mascot-motion {
+  animation: product-spotlight-mascot-cheer 900ms cubic-bezier(0.22, 0.75, 0.28, 1) 1;
 }
 
 .product-spotlight-mascot {
@@ -289,7 +303,7 @@
 }
 
 .product-spotlight-mascot-button.is-cheering .product-spotlight-mascot-sparkle {
-  animation: product-spotlight-sparkle 700ms ease-out 2;
+  animation: product-spotlight-sparkle 800ms ease-out 1;
 }
 
 .product-spotlight-mascot-sparkle.sparkle-one {
@@ -320,7 +334,6 @@
   text-align: center;
   backdrop-filter: blur(8px);
   transition: color 180ms ease, transform 180ms ease, background 180ms ease;
-  animation: product-spotlight-bubble 3s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -665,17 +678,22 @@
 @keyframes product-spotlight-arrive {
   from {
     opacity: 0;
-    transform: translate(-47%, -50%) translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0) scale(0.94);
+    transform: translate3d(-50%, calc(-50% + 12px), 0) scale(0.975);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) translate3d(var(--spotlight-shift-x), var(--spotlight-shift-y), 0) rotateX(var(--spotlight-rotate-x)) rotateY(var(--spotlight-rotate-y)) scale(1);
+    transform: translate3d(-50%, -50%, 0) scale(1);
   }
 }
 
+@keyframes product-spotlight-copy-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 @keyframes product-spotlight-float {
-  0%, 100% { transform: translateY(0) rotate(-0.35deg); }
-  50% { transform: translateY(-9px) rotate(0.55deg); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -4px, 0); }
 }
 
 @keyframes product-spotlight-shine {
@@ -686,8 +704,8 @@
 }
 
 @keyframes product-spotlight-glow {
-  0%, 100% { opacity: 0.74; transform: translate(-50%, -50%) scale(0.96); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.035); }
+  0%, 100% { opacity: 0.82; transform: translate3d(-50%, -50%, 0) scale(0.985); }
+  50% { opacity: 0.96; transform: translate3d(-50%, -50%, 0) scale(1.015); }
 }
 
 @keyframes product-spotlight-orbit {
@@ -701,14 +719,14 @@
 }
 
 @keyframes product-spotlight-mascot-idle {
-  0%, 100% { transform: translateY(0) rotate(-0.7deg); }
-  50% { transform: translateY(-7px) rotate(0.9deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.25deg); }
+  50% { transform: translate3d(0, -3px, 0) rotate(0.35deg); }
 }
 
 @keyframes product-spotlight-mascot-cheer {
-  0%, 100% { transform: translateY(0) rotate(0) scale(1); }
-  35% { transform: translateY(-17px) rotate(-4deg) scale(1.035); }
-  70% { transform: translateY(-5px) rotate(3deg) scale(1.02); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+  38% { transform: translate3d(0, -11px, 0) rotate(-2.2deg) scale(1.025); }
+  72% { transform: translate3d(0, -3px, 0) rotate(1.4deg) scale(1.012); }
 }
 
 @keyframes product-spotlight-sparkle {
@@ -748,6 +766,7 @@
 
 @media (max-width: 900px) {
   .product-spotlight {
+    height: auto;
     min-height: 540px;
     grid-template-columns: 1fr;
     grid-template-rows: auto 235px;
@@ -764,6 +783,7 @@
   .product-spotlight-product-shell {
     left: 43%;
     width: min(47vw, 310px);
+    height: 225px;
     max-height: 225px;
   }
 
@@ -879,9 +899,11 @@
 @media (prefers-reduced-motion: reduce) {
   .product-spotlight-glow,
   .product-spotlight-orbit,
+  .product-spotlight-copy-content,
   .product-spotlight-product-shell,
   .product-spotlight-product,
   .product-spotlight-mascot-button,
+  .product-spotlight-mascot-motion,
   .product-spotlight-mascot-sparkle,
   .product-spotlight-bubble,
   .product-showcase-overlay,
@@ -890,7 +912,7 @@
   }
 
   .product-spotlight-product-shell {
-    transform: translate(-50%, -50%);
+    transform: translate3d(-50%, -50%, 0);
     transition: none;
   }
 }
