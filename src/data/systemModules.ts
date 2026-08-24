@@ -5,7 +5,6 @@ import {
   Files,
   FolderArchive,
   Globe2,
-  HandCoins,
   ReceiptText,
 } from "lucide-react";
 
@@ -39,13 +38,13 @@ export const systemModules:
     {
       id: 2,
       route:
-        "daily-so",
+        "daily-posting",
       title:
-        "ลงยอด SO รายวัน",
+        "ลงยอดรายวัน",
       subtitle:
-        "DAILY SO IMPORT",
+        "DAILY POSTING CENTER",
       description:
-        "อ่าน PO จับคู่สินค้า รวมยอด และสร้างไฟล์ Q19 กับ Q20 อัตโนมัติ",
+        "ศูนย์รวมงานลงยอด SO ลูกหนี้–ค่าขนส่ง และยอดขายรายเดือน",
       icon:
         FileSpreadsheet,
       color:
@@ -113,27 +112,6 @@ export const systemModules:
         BarChart3,
       color:
         "#d18a18",
-      status:
-        "online",
-      workspaces: [
-        "retail",
-      ],
-    },
-
-    {
-      id: 6,
-      route:
-        "receivables-freight",
-      title:
-        "ลงยอดลูกหนี้–ค่าขนส่ง",
-      subtitle:
-        "RECEIVABLES & FREIGHT",
-      description:
-        "บันทึก ตรวจสอบ และติดตามยอดลูกหนี้กับค่าขนส่ง",
-      icon:
-        HandCoins,
-      color:
-        "#2c7f9e",
       status:
         "online",
       workspaces: [
