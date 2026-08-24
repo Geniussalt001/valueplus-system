@@ -29,6 +29,12 @@
         },
         {
           "path": "$HOME/Desktop/รายงาน SOรายวัน/**/*"
+        },
+        {
+          "path": "$HOME/Desktop/รายงานยอดขาย CN"
+        },
+        {
+          "path": "$HOME/Desktop/รายงานยอดขาย CN/**/*"
         }
       ]
     },
