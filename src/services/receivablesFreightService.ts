@@ -46,6 +46,45 @@ const excelFilter = [
   },
 ];
 
+function normalizeGregorianDate(
+  value: string,
+): string {
+  const match = String(value || "")
+    .trim()
+    .match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+    );
+
+  if (!match) {
+    return String(value || "").trim();
+  }
+
+  const year = Number(match[3]);
+
+  return [
+    match[1].padStart(2, "0"),
+    match[2].padStart(2, "0"),
+    String(
+      year >= 2400
+        ? year - 543
+        : year,
+    ),
+  ].join("/");
+}
+
+function normalizeCreditNoteInvoice(
+  value: string,
+): string {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(
+      /^IV(?:\s*[:./_-]\s*|\s+)?(?=VPR)/,
+      "",
+    )
+    .replace(/\s+/g, "");
+}
+
 export const receivablesFreightService = {
   async selectCsv(): Promise<string | null> {
     const desktopPath =
@@ -124,7 +163,15 @@ export const receivablesFreightService = {
     >(
       "receivables.saveMonthly",
       {
-        records,
+        records: records.map(
+          (record) => ({
+            ...record,
+            date:
+              normalizeGregorianDate(
+                record.date,
+              ),
+          }),
+        ),
       },
     );
   },
@@ -137,7 +184,27 @@ export const receivablesFreightService = {
     >(
       "receivables.saveCreditNotes",
       {
-        records,
+        records: records.map(
+          (record) => {
+            const referenceInvoice =
+              normalizeCreditNoteInvoice(
+                record.reference_invoice ||
+                  record.applied_invoice,
+              );
+
+            return {
+              ...record,
+              date:
+                normalizeGregorianDate(
+                  record.date,
+                ),
+              reference_invoice:
+                referenceInvoice,
+              applied_invoice:
+                referenceInvoice,
+            };
+          },
+        ),
       },
     );
   },
