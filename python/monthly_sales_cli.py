@@ -82,6 +82,7 @@ def parse_snapshot(csv_path):
     dates = []
     details = []
     ignored_products = set()
+    observed_names = {}
 
     for line_number, row in enumerate(rows, 1):
         row += [""] * (18 - len(row))
@@ -93,6 +94,7 @@ def parse_snapshot(csv_path):
         if product_code in PRODUCTS and product_name:
             current_source = product_code
             current_name = product_name
+            observed_names[product_code] = product_name
             continue
         if product_code and re.fullmatch(r"\d{2}-\d{4}-\d{2}", product_code) and product_name:
             current_source = product_code
@@ -116,7 +118,10 @@ def parse_snapshot(csv_path):
             "document": document,
             "sourceCode": current_source,
             "productCode": target_code,
-            "name": canonical_name or current_name,
+            "name": observed_names.get(
+                current_source,
+                canonical_name or current_name,
+            ),
             "type": "CN" if is_cn else "ขาย",
             "quantity": quantity,
             "amount": amount,
@@ -135,7 +140,7 @@ def parse_snapshot(csv_path):
         source: {
             "productCode": target,
             "sourceCode": source,
-            "name": name,
+            "name": observed_names.get(source, name),
             "sales": 0,
             "cn": 0,
             "salesAmount": 0.0,
