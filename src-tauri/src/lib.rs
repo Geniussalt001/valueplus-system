@@ -63,6 +63,12 @@ use commands::receivables_freight::{
     process_receivables_freight,
 };
 
+use commands::monthly_sales::{
+    get_monthly_sales,
+    preview_monthly_sales,
+    import_monthly_sales,
+};
+
 use commands::sales_billing::{
     control_sales_billing,
     preview_sales_billing,
@@ -150,6 +156,9 @@ pub fn run() {
                 process_daily_so,
                 preview_receivables_freight,
                 process_receivables_freight,
+                get_monthly_sales,
+                preview_monthly_sales,
+                import_monthly_sales,
                 open_receivables_sheet_editor,
                 preview_sales_billing,
                 run_sales_billing,
