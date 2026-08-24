@@ -28,7 +28,7 @@ export const systemModules:
       icon:
         ClipboardList,
       color:
-        "#00c7ed",
+        "#2389a8",
       status:
         "online",
       workspaces: [
@@ -49,7 +49,7 @@ export const systemModules:
       icon:
         FileSpreadsheet,
       color:
-        "#247bff",
+        "#356bc4",
       status:
         "online",
       workspaces: [
@@ -70,7 +70,7 @@ export const systemModules:
       icon:
         ReceiptText,
       color:
-        "#0f9f8f",
+        "#159b82",
       status:
         "online",
       workspaces: [
@@ -91,7 +91,7 @@ export const systemModules:
       icon:
         Files,
       color:
-        "#5965d8",
+        "#6a67c7",
       status:
         "online",
       workspaces: [
@@ -112,7 +112,7 @@ export const systemModules:
       icon:
         BarChart3,
       color:
-        "#e58a00",
+        "#d18a18",
       status:
         "online",
       workspaces: [
@@ -133,7 +133,7 @@ export const systemModules:
       icon:
         HandCoins,
       color:
-        "#0891b2",
+        "#2c7f9e",
       status:
         "online",
       workspaces: [
@@ -154,7 +154,7 @@ export const systemModules:
       icon:
         Globe2,
       color:
-        "#6551bd",
+        "#7560b8",
       status:
         "online",
       workspaces: [
@@ -175,7 +175,7 @@ export const systemModules:
       icon:
         FolderArchive,
       color:
-        "#0e7490",
+        "#527187",
       status:
         "online",
       workspaces: [

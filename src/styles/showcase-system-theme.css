@@ -218,41 +218,44 @@ body {
 }
 
 .top-module-tab {
-  --menu-accent: var(--vp-brand) !important;
   color: var(--vp-muted) !important;
 }
 
 .top-module-tab::after {
-  background: var(--vp-brand) !important;
+  background: var(--menu-accent) !important;
 }
 
 .top-module-tab:not(.top-module-tab-active) .top-module-icon {
-  border-color: var(--vp-line) !important;
-  color: #68768a !important;
-  background: #f8fafc !important;
+  border-color: color-mix(in srgb, var(--menu-accent) 18%, var(--vp-line)) !important;
+  color: var(--menu-accent) !important;
+  background: color-mix(in srgb, var(--menu-accent) 7%, #ffffff) !important;
   box-shadow: none !important;
 }
 
 .top-module-tab:hover:not(:disabled) {
-  color: var(--vp-brand) !important;
-  background: #fff7f8 !important;
+  color: var(--menu-accent) !important;
+  background: color-mix(in srgb, var(--menu-accent) 5%, #ffffff) !important;
 }
 
 .top-module-tab:hover:not(:disabled) .top-module-icon,
 .top-module-tab-active .top-module-icon {
-  border-color: rgb(181 22 50 / 20%) !important;
-  color: var(--vp-brand) !important;
-  background: var(--vp-brand-soft) !important;
-  box-shadow: 0 6px 16px rgb(181 22 50 / 10%) !important;
+  border-color: color-mix(in srgb, var(--menu-accent) 24%, var(--vp-line)) !important;
+  color: var(--menu-accent) !important;
+  background: color-mix(in srgb, var(--menu-accent) 9%, #ffffff) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--menu-accent) 14%, transparent) !important;
 }
 
 .top-module-tab-active {
-  color: var(--vp-brand) !important;
-  background: linear-gradient(180deg, #ffffff, #fff4f6) !important;
+  color: var(--menu-accent) !important;
+  background: linear-gradient(180deg, #ffffff, color-mix(in srgb, var(--menu-accent) 7%, #ffffff)) !important;
 }
 
 .top-module-tab-active .top-module-label {
-  color: var(--vp-brand) !important;
+  color: var(--menu-accent) !important;
+}
+
+.top-dashboard-tab {
+  --menu-accent: var(--vp-brand) !important;
 }
 
 .top-module-label {
@@ -403,24 +406,23 @@ body {
 }
 
 .module-card {
-  --accent-color: var(--vp-brand) !important;
-  border: 1px solid rgb(181 22 50 / 16%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 20%, var(--vp-line)) !important;
   color: var(--vp-ink) !important;
   background:
-    radial-gradient(circle at 100% 0, rgb(181 22 50 / 6%), transparent 40%),
-    linear-gradient(145deg, #ffffff, #fffafb) !important;
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--accent-color) 8%, transparent), transparent 40%),
+    linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--accent-color) 3%, #ffffff)) !important;
   box-shadow: var(--vp-shadow-sm) !important;
 }
 
 .module-card::after {
-  background: linear-gradient(90deg, var(--vp-brand), rgb(181 22 50 / 8%)) !important;
+  background: linear-gradient(90deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 8%, transparent)) !important;
   opacity: 0.72 !important;
 }
 
 .module-card:hover {
-  border-color: rgb(181 22 50 / 34%) !important;
-  background: linear-gradient(145deg, #ffffff, #fff6f7) !important;
-  box-shadow: 0 18px 42px rgb(181 22 50 / 10%) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 38%, var(--vp-line)) !important;
+  background: linear-gradient(145deg, #ffffff, color-mix(in srgb, var(--accent-color) 6%, #ffffff)) !important;
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--accent-color) 11%, rgb(20 35 60 / 8%)) !important;
   transform: translateY(-4px) !important;
 }
 
@@ -433,22 +435,22 @@ body {
 }
 
 .module-card p[style] {
-  color: var(--vp-brand) !important;
+  color: var(--accent-color) !important;
 }
 
 .module-icon,
 .module-open-button {
-  border-color: rgb(181 22 50 / 20%) !important;
-  color: var(--vp-brand) !important;
-  background: var(--vp-brand-soft) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 22%, var(--vp-line)) !important;
+  color: var(--accent-color) !important;
+  background: color-mix(in srgb, var(--accent-color) 9%, #ffffff) !important;
   box-shadow: none !important;
 }
 
 .module-open-button {
-  border-color: var(--vp-brand) !important;
+  border-color: var(--accent-color) !important;
   color: #ffffff !important;
-  background: linear-gradient(135deg, var(--vp-primary-deep), var(--vp-brand)) !important;
-  box-shadow: 0 8px 18px rgb(181 22 50 / 16%) !important;
+  background: var(--accent-color) !important;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent-color) 20%, transparent) !important;
 }
 
 /* Work pages and shared surfaces */
@@ -569,6 +571,118 @@ body {
 
 .dashboard [class*="bg-red-"]:not(button) {
   background-color: #fff2f4 !important;
+}
+
+/* Stable action hierarchy. These rules intentionally come after utility colors. */
+.dashboard button.vp-action-button {
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease !important;
+}
+
+.dashboard button.vp-action-primary {
+  border-color: var(--vp-blue-deep) !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--vp-blue-deep), var(--vp-blue)) !important;
+  box-shadow: 0 9px 22px rgb(35 105 216 / 18%) !important;
+}
+
+.dashboard button.vp-action-primary:hover:not(:disabled) {
+  border-color: #12366f !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #12366f, #1f5fc5) !important;
+  box-shadow: 0 12px 27px rgb(35 105 216 / 23%) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-action-secondary,
+.dashboard button.vp-action-secondary:hover:not(:disabled) {
+  border-color: #d8e0e9 !important;
+  color: #40536b !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 16px rgb(20 35 60 / 7%) !important;
+}
+
+.dashboard button.vp-action-secondary:hover:not(:disabled) {
+  border-color: rgb(35 105 216 / 34%) !important;
+  color: var(--vp-blue-deep) !important;
+  background: var(--vp-blue-soft) !important;
+  box-shadow: 0 9px 20px rgb(35 105 216 / 11%) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-action-success {
+  border-color: #078b70 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #078b70, #0aa985) !important;
+  box-shadow: 0 9px 22px rgb(10 169 133 / 17%) !important;
+}
+
+.dashboard button.vp-action-success:hover:not(:disabled) {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #06755f, #089677) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-action-warning {
+  border-color: #e5c575 !important;
+  color: #784d00 !important;
+  background: #fff8e8 !important;
+  box-shadow: 0 7px 17px rgb(221 160 30 / 10%) !important;
+}
+
+.dashboard button.vp-action-warning:hover:not(:disabled) {
+  border-color: #d5a53a !important;
+  color: #633f00 !important;
+  background: #fff1ce !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-action-danger {
+  border-color: rgb(213 58 80 / 28%) !important;
+  color: #b4263d !important;
+  background: #fff2f4 !important;
+  box-shadow: 0 7px 17px rgb(213 58 80 / 9%) !important;
+}
+
+.dashboard button.vp-action-danger:hover:not(:disabled) {
+  border-color: rgb(213 58 80 / 45%) !important;
+  color: #981e33 !important;
+  background: #ffe7eb !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-next-process,
+.dashboard button.vp-action-wms {
+  border-color: #5f54ad !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #5f54ad, #7868c8) !important;
+  box-shadow: 0 10px 24px rgb(95 84 173 / 20%) !important;
+}
+
+.dashboard button.vp-next-process:hover:not(:disabled),
+.dashboard button.vp-action-wms:hover:not(:disabled) {
+  border-color: #4f4498 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #4f4498, #6758b7) !important;
+  box-shadow: 0 13px 29px rgb(95 84 173 / 25%) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard button.vp-action-primary *,
+.dashboard button.vp-action-success *,
+.dashboard button.vp-next-process *,
+.dashboard button.vp-action-wms * {
+  color: #ffffff !important;
+}
+
+.dashboard button.vp-action-secondary *,
+.dashboard button.vp-action-warning *,
+.dashboard button.vp-action-danger * {
+  color: inherit !important;
 }
 
 .dashboard button:focus-visible {
