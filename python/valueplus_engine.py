@@ -50,6 +50,7 @@ import cli
 import daily_so_cli
 import doll_summary_cli
 import express_summary_cli
+import monthly_sales_cli
 import print_cli
 import product_catalog_cli
 import receivables_freight_cli
@@ -76,6 +77,7 @@ COMMANDS = {
     "daily-so": daily_so_cli.main,
     "doll-summary": doll_summary_cli.main,
     "express-summary": express_summary_cli.main,
+    "monthly-sales": monthly_sales_cli.main,
     "print": print_cli.main,
     "product-catalog": product_catalog_cli.main,
     "receivables-freight": receivables_freight_cli.main,
