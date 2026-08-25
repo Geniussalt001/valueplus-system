@@ -62,3 +62,28 @@ export interface DailyPickingPaths {
   outputFolder: string;
   outputPath: string;
 }
+
+export interface PoDetectedNewProduct {
+  detectedName: string;
+  savedName: string;
+  productCode: string;
+  packQuantity: number | null;
+}
+
+export interface PoTemplateProductInput {
+  name: string;
+  productCode: string;
+  packQuantity: number;
+}
+
+export interface PoTemplateUpdateInput {
+  templatePath: string;
+  products: PoTemplateProductInput[];
+}
+
+export interface PoTemplateUpdateResult {
+  backup_path: string;
+  template_path: string;
+  product_count: number;
+  sheet_count: number;
+}
