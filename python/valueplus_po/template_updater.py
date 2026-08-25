@@ -1,4 +1,5 @@
 import copy
+import html
 import os
 import re
 import shutil
@@ -169,7 +170,15 @@ def _sheet_has_product(xml_text, product_name, shared_strings, column):
 def _cell_text(cell_xml, shared_strings):
     cell_type = re.search(r'\bt="([^"]+)"', cell_xml)
     if cell_type and cell_type.group(1) == "inlineStr":
-        return "".join(re.findall(r"<t\b[^>]*>(.*?)</t>", cell_xml, re.DOTALL))
+        return html.unescape(
+            "".join(
+                re.findall(
+                    r"<t\b[^>]*>(.*?)</t>",
+                    cell_xml,
+                    re.DOTALL,
+                )
+            )
+        )
     value = re.search(r"<v>(.*?)</v>", cell_xml, re.DOTALL)
     if not value:
         return ""
