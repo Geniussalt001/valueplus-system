@@ -15,7 +15,7 @@ from .normalizers import normalize_warehouse
 
 
 PO_PATTERN = re.compile(r"เลขที่\s*:\s*([A-Z]\d+)")
-DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{2}|\d{4}))")
+DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{4}|\d{2}))")
 WAREHOUSE_PATTERN = re.compile(
     r"(?:คลัง|ศูนย์กระจายสินค้า)\s+BDC\s+(.+?)(?:\s+คลังดี|\s+อ้างถึง|\n)",
 )
