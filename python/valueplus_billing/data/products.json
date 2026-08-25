@@ -2,6 +2,7 @@
   "version": 1,
   "products": [
     {"cpall_code": "6002424", "pdf_name": "มิลค์เค้ก 55 G.", "express_code": "01-0000-29", "keyword": "มิลค์เค้ก"},
+    {"cpall_code": "6002425", "pdf_name": "ชิสึเค้กรสชาอู่หลง 70 G.", "express_code": "01-0000-38", "keyword": "ชาอู่หลง"},
     {"cpall_code": "6002487", "pdf_name": "เค้กไข่ชีส 78 G.", "express_code": "01-0000-10", "keyword": "เค้กไข่"},
     {"cpall_code": "6002510", "pdf_name": "เค้กอัลมอนด์ 75 G.", "express_code": "01-0000-14", "keyword": "อัลมอนด์"},
     {"cpall_code": "6002567", "pdf_name": "โรลช็อกโกแลตเค้ก 55 G.", "express_code": "01-0000-16", "keyword": "โรลช็อก"},
@@ -20,7 +21,7 @@
     {"cpall_code": "6002571", "pdf_name": "เค้กท่อไข่เค็ม 63 G.", "express_code": "01-0000-17", "keyword": "ท่อไข่"},
     {"cpall_code": "6002797", "pdf_name": "ขนมปังมอนสเตอร์รสเยลโล่พีช 50 G.", "express_code": "01-0000-35", "keyword": "มอนสเตอร์รสเยลโล่พีช"},
     {"cpall_code": "6002829", "pdf_name": "ขนมปังมอนสเตอร์รสสตรอเบอร์รี่ 50 G.", "express_code": "01-0000-36", "keyword": "มอนสเตอร์รสสตรอเบอร์รี่"},
-    {"cpall_code": "6002799", "pdf_name": "มินิเค้กไส้ครีมกลิ่นกล้วยหอม 40 G.", "express_code": "01-0000-37", "keyword": "ครีมกลิ่นกล้วยหอม"}
+    {"cpall_code": "6002799", "pdf_name": "มินิเค้กไส้ครีมกลิ่นกล้วยหอม 40 G.", "express_code": "01-0000-37", "keyword": "ครีมกลิ่นกล้วยหอม"},
+    {"cpall_code": "6002929", "pdf_name": "เนโกะพุดดิ้งเค้ก 50 G.", "express_code": "01-0000-39", "keyword": "เนโกะพุดดิ้งเค้ก"}
   ]
 }
-
