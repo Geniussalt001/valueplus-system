@@ -6,9 +6,9 @@ const DO_DELIVERY_CONFIG = {
 };
 
 const DO_DATA_HEADERS = [
-  "รหัสรายการ", "รหัสไฟล์", "ไฟล์ต้นทาง", "หน้า", "วันที่", "ปี", "เดือน",
-  "รหัสคลัง", "สายรถ", "รหัสสาขา", "ชื่อสาขา", "จังหวัด", "ภาค",
-  "รหัสสินค้า", "ชื่อสินค้า", "จำนวนจัดส่ง", "ผู้อัปโหลด", "เวลาบันทึก",
+  "รหัสสรุป", "ปี", "เดือน", "รหัสคลัง", "รหัสสาขา", "ชื่อสาขา",
+  "จังหวัด", "ภาค", "รหัสสินค้า", "ชื่อสินค้า", "จำนวนจัดส่งสะสม",
+  "ผู้อัปเดต", "อัปเดตล่าสุด",
 ];
 const DO_BRANCH_HEADERS = ["รหัสสาขา", "ชื่อสาขา", "จังหวัด", "ภาค", "ละติจูด", "ลองจิจูด", "อัปเดตล่าสุด"];
 const DO_HISTORY_HEADERS = ["รหัสไฟล์", "ชื่อไฟล์", "จำนวนรายการ", "สถานะ", "ผู้อัปโหลด", "เวลาบันทึก"];
@@ -35,25 +35,30 @@ function saveDoDelivery(input, userCode) {
 
     const branchMaster = readDoBranchMaster(branchSheet);
     const now = new Date();
-    const normalized = [];
+    const acceptedRecords = [];
     records.forEach(function(record) {
       const sourceId = String(record.source_id || "").trim();
       if (!acceptedSources[sourceId]) return;
-      const branchCode = String(record.branch_code || "").trim();
-      const branch = branchMaster[branchCode] || {};
-      normalized.push([
-        String(record.record_key || ""), sourceId, String(record.source_file || ""), Number(record.page || 0),
-        String(record.date || ""), Number(record.year || 0), Number(record.month || 0),
-        String(record.warehouse_code || ""), String(record.route_code || ""), branchCode,
-        String(record.branch_name || branch.name || ""), String(branch.province || ""), String(branch.region || ""),
-        String(record.product_code || ""), String(record.product_name || ""), Number(record.quantity || 0),
-        String(userCode || ""), now,
-      ]);
+      acceptedRecords.push(record);
     });
 
-    if (normalized.length) {
-      dataSheet.getRange(dataSheet.getLastRow() + 1, 1, normalized.length, DO_DATA_HEADERS.length).setValues(normalized);
-      appendNewDoBranches(branchSheet, normalized, branchMaster, now);
+    const monthlyUpdates = {};
+    acceptedRecords.forEach(function(record) {
+      const branchCode = String(record.branch_code || "").trim();
+      const branch = branchMaster[branchCode] || {};
+      const key = [record.year, record.month, record.warehouse_code, branchCode, record.product_code].join("|");
+      if (!monthlyUpdates[key]) monthlyUpdates[key] = {
+        year: Number(record.year || 0), month: Number(record.month || 0), warehouse: String(record.warehouse_code || ""),
+        branchCode: branchCode, branchName: String(record.branch_name || branch.name || ""),
+        province: String(branch.province || ""), region: String(branch.region || ""),
+        productCode: String(record.product_code || ""), productName: String(record.product_name || ""), quantity: 0,
+      };
+      monthlyUpdates[key].quantity += Number(record.quantity || 0);
+    });
+
+    if (acceptedRecords.length) {
+      mergeDoMonthlyRows(dataSheet, monthlyUpdates, userCode, now);
+      appendNewDoBranches(branchSheet, acceptedRecords, branchMaster, now);
     }
 
     const historyRows = [];
@@ -71,7 +76,7 @@ function saveDoDelivery(input, userCode) {
     const summary = rebuildDoDashboard(spreadsheet, dataSheet, branchSheet);
     SpreadsheetApp.flush();
     return {
-      insertedCount: normalized.length,
+      insertedCount: acceptedRecords.length,
       duplicateFileCount: files.filter(function(file) { return existingSources[String(file.source_id || "")]; }).length,
       totalRecords: Math.max(0, dataSheet.getLastRow() - 1),
       unresolvedBranchCount: summary.unresolvedBranchCount,
@@ -109,12 +114,31 @@ function readDoBranchMaster(sheet) {
 
 function appendNewDoBranches(sheet, records, existing, now) {
   const pending = {};
-  records.forEach(function(row) {
-    const code = String(row[9] || "").trim();
-    if (code && !existing[code]) pending[code] = String(row[10] || "");
+  records.forEach(function(record) {
+    const code = String(record.branch_code || "").trim();
+    if (code && !existing[code]) pending[code] = String(record.branch_name || "");
   });
   const rows = Object.keys(pending).sort().map(function(code) { return [code, pending[code], "", "", "", "", now]; });
   if (rows.length) sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, DO_BRANCH_HEADERS.length).setValues(rows);
+}
+
+function mergeDoMonthlyRows(sheet, updates, userCode, now) {
+  const merged = {};
+  if (sheet.getLastRow() >= 2) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, DO_DATA_HEADERS.length).getValues().forEach(function(row) {
+      const key = String(row[0] || "").trim();
+      if (key) merged[key] = row;
+    });
+  }
+  Object.keys(updates).forEach(function(key) {
+    const item = updates[key], current = merged[key];
+    const quantity = Number(item.quantity || 0) + Number(current ? current[10] : 0);
+    merged[key] = [key, item.year, item.month, item.warehouse, item.branchCode, item.branchName,
+      item.province, item.region, item.productCode, item.productName, quantity, String(userCode || ""), now];
+  });
+  const rows = Object.keys(merged).sort().map(function(key) { return merged[key]; });
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, DO_DATA_HEADERS.length).clearContent();
+  if (rows.length) sheet.getRange(2, 1, rows.length, DO_DATA_HEADERS.length).setValues(rows);
 }
 
 function rebuildDoDashboard(spreadsheet, dataSheet, branchSheet) {
@@ -126,11 +150,11 @@ function rebuildDoDashboard(spreadsheet, dataSheet, branchSheet) {
   const byBranch = {}, byWarehouse = {}, byRegion = {};
   let total = 0;
   rows.forEach(function(row) {
-    const quantity = Number(row[15] || 0), branchCode = String(row[9] || ""), warehouse = String(row[7] || "");
+    const quantity = Number(row[10] || 0), branchCode = String(row[4] || ""), warehouse = String(row[3] || "");
     const master = branches[branchCode] || {};
-    const region = String(master.region || row[12] || "รอระบุพื้นที่");
+    const region = String(master.region || row[7] || "รอระบุพื้นที่");
     total += quantity;
-    if (!byBranch[branchCode]) byBranch[branchCode] = { name: String(row[10] || master.name || ""), quantity: 0, region: region };
+    if (!byBranch[branchCode]) byBranch[branchCode] = { name: String(row[5] || master.name || ""), quantity: 0, region: region };
     byBranch[branchCode].quantity += quantity;
     byWarehouse[warehouse] = (byWarehouse[warehouse] || 0) + quantity;
     byRegion[region] = (byRegion[region] || 0) + quantity;
