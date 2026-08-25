@@ -228,7 +228,7 @@ export function NewProductDetectionModal({
           <div className="space-y-4">
             {drafts.map((product, index) => (
               <article
-                key={`${product.productCode}-${index}`}
+                key={`${product.detectedName}-${index}`}
                 className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
               >
                 <div className="mb-4 flex items-center justify-between gap-3">
