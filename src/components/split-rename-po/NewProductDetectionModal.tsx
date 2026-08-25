@@ -52,16 +52,35 @@ export function NewProductDetectionModal({
   }, [open, products]);
 
   const valid = useMemo(
-    () =>
-      drafts.length > 0 &&
-      drafts.every(
+    () => {
+      const names = drafts.map(
+        (product) =>
+          normalizeField(
+            product.savedName,
+          ),
+      );
+
+      const codes = drafts.map(
+        (product) =>
+          normalizeField(
+            product.productCode,
+          ),
+      );
+
+      return (
+        drafts.length > 0 &&
+        drafts.every(
         (product) =>
           Boolean(product.savedName.trim()) &&
           Boolean(product.productCode.trim()) &&
           product.packQuantity !== null &&
           Number.isFinite(product.packQuantity) &&
           product.packQuantity > 0,
-      ),
+        ) &&
+        new Set(names).size === names.length &&
+        new Set(codes).size === codes.length
+      );
+    },
     [drafts],
   );
 
@@ -397,4 +416,14 @@ export function NewProductDetectionModal({
     </div>,
     document.body,
   );
+}
+
+function normalizeField(
+  value: string,
+): string {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase("th-TH")
+    .replace(/\s+/g, "")
+    .trim();
 }
