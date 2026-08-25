@@ -258,6 +258,24 @@ function doPost(event) {
           );
         break;
 
+      case "monthlySales.saveSnapshot":
+        requireOfficeOrHeadOfficeSession(
+          session,
+        );
+        data =
+          saveMonthlySalesSnapshot(
+            request.data,
+            session.userCode,
+          );
+        break;
+
+      case "monthlySales.list":
+        data =
+          listMonthlySalesSummary(
+            request.data,
+          );
+        break;
+
       case "receivables.saveCreditNotes":
         requireOfficeOrHeadOfficeSession(
           session,
@@ -481,6 +499,7 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "archive.uploadPdf",
   "archive.registerUpload",
   "receivables.saveMonthly",
+  "monthlySales.saveSnapshot",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",
@@ -514,6 +533,7 @@ const PERSISTENT_REPLAY_ACTIONS = [
   "archive.uploadPdf",
   "archive.registerUpload",
   "receivables.saveMonthly",
+  "monthlySales.saveSnapshot",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",
