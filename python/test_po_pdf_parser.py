@@ -6,6 +6,7 @@ from pathlib import Path
 from openpyxl import Workbook
 
 from valueplus_po.pdf_parser import (
+    DATE_PATTERN,
     ITEM_PATTERN,
     _normalize_wrapped_decimal_values,
 )
@@ -63,6 +64,19 @@ class PoPdfParserTest(unittest.TestCase):
     def test_expands_short_buddhist_year(self):
         self.assertEqual(
             normalize_cpall_document_date("25/08/69"),
+            "25/08/2569",
+        )
+
+    def test_prefers_full_four_digit_buddhist_year(self):
+        match = DATE_PATTERN.search(
+            "วันที่ : 25/08/2569",
+        )
+
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match.group(1), "25/08/2569")
+        self.assertEqual(
+            normalize_cpall_document_date(match.group(1)),
             "25/08/2569",
         )
 
