@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from valueplus_common.cpall_pdf import normalize_wrapped_item_quantities
 from valueplus_po.normalizers import normalize_product_name
 from valueplus_po.pdf_parser import parse_pdf
 
@@ -70,6 +71,14 @@ class PdfParserFormatTests(unittest.TestCase):
             normalize_product_name(documents[0].items[0].pdf_name),
             normalize_product_name("Hเค้กอัลมอนด์UM 75.00 G."),
         )
+
+    def test_report_po_wrapped_quantity_is_repaired(self):
+        normalized = normalize_wrapped_item_quantities(
+            "1 6002510 Hเค้กอัลมอนด์UM 75 G. 1 10,000 0 15.72\n"
+            "                                  .00\n",
+        )
+
+        self.assertIn("1 10,000.00 0 15.72", normalized)
 
 
 if __name__ == "__main__":
