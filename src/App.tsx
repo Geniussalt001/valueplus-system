@@ -76,6 +76,14 @@ import {
 } from "./pages/modules/WorldwideRetailPage";
 
 import {
+  PostingCenterPage,
+} from "./pages/modules/PostingCenterPage";
+
+import {
+  MonthlySalesPostingPage,
+} from "./pages/modules/MonthlySalesPostingPage";
+
+import {
   startAppsScriptOutboxSync,
 } from "./services/appsScriptClient";
 
@@ -233,6 +241,10 @@ function App() {
     setRoute("dashboard");
   };
 
+  const backToPostingCenter = () => {
+    setRoute("daily-posting");
+  };
+
   const continueToDailySo = (
     pdfPath: string,
     startIvNumber: string,
@@ -273,6 +285,14 @@ function App() {
 
   const renderPage = () => {
     switch (route) {
+      case "daily-posting":
+        return (
+          <PostingCenterPage
+            onBack={backToDashboard}
+            onNavigate={navigate}
+          />
+        );
+
       case "daily-picking":
         return (
           <SplitRenamePoPage
@@ -284,7 +304,7 @@ function App() {
       case "daily-so":
         return (
           <DailySoPage
-            onBack={backToDashboard}
+            onBack={backToPostingCenter}
             initialPdfPath={nextProcessPdfPath}
             onInitialPdfConsumed={consumeNextProcessPdf}
             onNextProcess={continueToSalesBilling}
@@ -332,7 +352,7 @@ function App() {
       case "receivables-freight":
         return (
           <ReceivablesFreightPage
-            onBack={backToDashboard}
+            onBack={backToPostingCenter}
           />
         );
 
@@ -340,7 +360,14 @@ function App() {
         return (
           <WorldwideRetailPage
             currentUser={currentUser}
-            onBack={backToDashboard}
+            onBack={backToPostingCenter}
+          />
+        );
+
+      case "monthly-sales-posting":
+        return (
+          <MonthlySalesPostingPage
+            onBack={backToPostingCenter}
           />
         );
 
