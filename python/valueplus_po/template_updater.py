@@ -27,6 +27,25 @@ def add_template_products(template_path, products):
     if not clean_products:
         raise TemplateUpdateError("ไม่พบสินค้าที่ต้องการเพิ่ม")
 
+    product_codes = [
+        _normalize(product["product_code"])
+        for product in clean_products
+    ]
+    product_names = [
+        _normalize(product["name"])
+        for product in clean_products
+    ]
+
+    if len(set(product_codes)) != len(product_codes):
+        raise TemplateUpdateError(
+            "รหัสสินค้าใหม่ห้ามซ้ำกัน"
+        )
+
+    if len(set(product_names)) != len(product_names):
+        raise TemplateUpdateError(
+            "ชื่อสินค้าใหม่ห้ามซ้ำกัน"
+        )
+
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     backup = path.with_name(f"{path.stem}.backup-{timestamp}{path.suffix}")
     temporary = Path(tempfile.mkstemp(suffix=".xlsx", dir=path.parent)[1])
