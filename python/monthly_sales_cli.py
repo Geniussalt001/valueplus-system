@@ -103,7 +103,7 @@ def parse_files(csv_paths):
                 "type": record_type,
                 "express_code": current_code,
                 "cpall_code": product["cpall_code"],
-                "product_name": product["pdf_name"],
+                "product_name": current_name or product["pdf_name"],
                 "quantity": quantity,
                 "document": document,
             })
@@ -118,6 +118,7 @@ def build_result(csv_paths):
 
     month_totals = defaultdict(lambda: {"sales": 0.0, "cn": 0.0})
     product_totals = defaultdict(lambda: {"name": "", "sales": 0.0, "cn": 0.0})
+    summary_totals = defaultdict(float)
     for record in records:
         key = (record["year"], record["month"])
         target = "cn" if record["type"] == "CN" else "sales"
@@ -125,6 +126,15 @@ def build_result(csv_paths):
         product = product_totals[record["cpall_code"]]
         product["name"] = record["product_name"]
         product[target] += record["quantity"]
+        summary_totals[
+            (
+                record["year"],
+                record["month"],
+                record["type"],
+                record["cpall_code"],
+                record["product_name"],
+            )
+        ] += record["quantity"]
 
     months = []
     for (year, month), totals in sorted(month_totals.items()):
@@ -148,6 +158,26 @@ def build_result(csv_paths):
             "net": totals["sales"] - totals["cn"],
         })
 
+    summary_records = [
+        {
+            "year": year,
+            "buddhist_year": year + 543,
+            "month": month,
+            "month_name": MONTH_NAMES[month],
+            "type": record_type,
+            "cpall_code": cpall_code,
+            "product_name": product_name,
+            "quantity": quantity,
+        }
+        for (
+            year,
+            month,
+            record_type,
+            cpall_code,
+            product_name,
+        ), quantity in sorted(summary_totals.items())
+    ]
+
     return {
         "csv_paths": list(csv_paths),
         "file_count": len(csv_paths),
@@ -158,6 +188,7 @@ def build_result(csv_paths):
         "net_total": sum(item["net"] for item in months),
         "months": months,
         "products": products,
+        "summary_records": summary_records,
         "records": records,
         "excluded_products": [
             {"express_code": code, **value}
