@@ -8,8 +8,6 @@ from .constants import (
     DELIVERY_DATE_CELL,
     IV_CELL,
     PO_CELL,
-    PRODUCT_FIRST_ROW,
-    PRODUCT_LAST_ROW,
     TARGET_SHEET_OVERRIDES,
     WAREHOUSE_PRIORITY,
 )
@@ -323,6 +321,12 @@ def process_files(
         quantity_overrides or {},
     )
 
+    # Read the template again so save-time clearing follows the dynamic
+    # product rows discovered in each destination sheet.
+    catalog = read_template(
+        template_path,
+    )
+
     sheet_updates: dict[
         str,
         dict[
@@ -360,12 +364,12 @@ def process_files(
             ),
         }
 
-        for row in range(
-            PRODUCT_FIRST_ROW,
-            PRODUCT_LAST_ROW + 1,
+        for product in catalog.sheet_products.get(
+            record["target_sheet"],
+            [],
         ):
             updates[
-                f"D{row}"
+                f"D{product.row}"
             ] = None
 
         for item in record[
