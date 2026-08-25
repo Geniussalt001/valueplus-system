@@ -44,6 +44,8 @@ import {
 import type {
   DailySoGroup,
   DailySoPaths,
+  DailySoProductOption,
+  DailySoRecord,
   DailySoResult,
 } from "../../types/dailySo.types";
 
@@ -73,8 +75,14 @@ type WarehouseGroupCode =
 type WarehouseAssignments =
   Record<string, WarehouseGroupCode>;
 
+type ProductAssignments =
+  Record<string, string>;
+
 const warehouseAssignmentsStorageKey =
   "valueplus.daily-so.warehouse-assignments.v1";
+
+const productAssignmentsStorageKey =
+  "valueplus.daily-so.product-assignments.v1";
 
 export function DailySoPage({
   onBack,
@@ -161,6 +169,20 @@ export function DailySoPage({
     warehouseManagerOpen,
     setWarehouseManagerOpen,
   ] = useState(false);
+
+  const [
+    productAssignments,
+    setProductAssignments,
+  ] = useState<ProductAssignments>(
+    loadProductAssignments,
+  );
+
+  const [
+    mappingTarget,
+    setMappingTarget,
+  ] = useState<DailySoRecord | null>(
+    null,
+  );
 
   const busy =
     activity !== "idle";
@@ -341,6 +363,8 @@ export function DailySoPage({
               paths.templatePath,
             warehouseOverrides:
               warehouseAssignments,
+            productOverrides:
+              productAssignments,
           });
 
       setPreview(
@@ -403,6 +427,7 @@ export function DailySoPage({
         pdfPath,
         templatePath: paths.templatePath,
         warehouseOverrides: warehouseDraft,
+        productOverrides: productAssignments,
       });
 
       setPreview(result);
@@ -436,6 +461,7 @@ export function DailySoPage({
         pdfPath,
         templatePath: paths.templatePath,
         warehouseOverrides: {},
+        productOverrides: productAssignments,
       });
 
       setPreview(result);
@@ -448,6 +474,54 @@ export function DailySoPage({
     } catch (reason) {
       setError(getErrorMessage(reason));
       setWarehouseManagerOpen(true);
+    } finally {
+      setActivity("idle");
+    }
+  };
+
+  const saveProductAssignment = async (
+    target: DailySoRecord,
+    itemCode: string,
+  ) => {
+    if (!paths || !pdfPath || busy || !itemCode) {
+      return;
+    }
+
+    const nextAssignments: ProductAssignments = {
+      ...productAssignments,
+      [`name:${target.pdf_name}`]: itemCode,
+    };
+
+    for (const barcode of target.barcodes) {
+      if (barcode) {
+        nextAssignments[`barcode:${barcode}`] = itemCode;
+      }
+    }
+
+    setMappingTarget(null);
+    setActivity("preview");
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await dailySoService.preview({
+        pdfPath,
+        templatePath: paths.templatePath,
+        warehouseOverrides: warehouseAssignments,
+        productOverrides: nextAssignments,
+      });
+
+      setProductAssignments(nextAssignments);
+      persistProductAssignments(nextAssignments);
+      setPreview(result);
+      setAdjusting(false);
+      setQuantityEdits({});
+      setSuccess(
+        "บันทึกการจับคู่สินค้าแล้ว ระบบจะจำและใช้อัตโนมัติในครั้งถัดไป",
+      );
+    } catch (reason) {
+      setError(getErrorMessage(reason));
+      setMappingTarget(target);
     } finally {
       setActivity("idle");
     }
@@ -481,6 +555,8 @@ export function DailySoPage({
         templatePath: paths.templatePath,
         warehouseOverrides:
           warehouseAssignments,
+        productOverrides:
+          productAssignments,
       })
       .then((result) => {
         setPreview(result);
@@ -504,6 +580,7 @@ export function DailySoPage({
     onInitialPdfConsumed,
     paths,
     warehouseAssignments,
+    productAssignments,
   ]);
 
   const exportFiles = async () => {
@@ -571,6 +648,8 @@ export function DailySoPage({
             quantityOverrides,
             warehouseOverrides:
               warehouseAssignments,
+            productOverrides:
+              productAssignments,
           });
 
       setPreview(
@@ -642,6 +721,21 @@ export function DailySoPage({
           }}
           onSave={() => {
             void saveWarehouseAssignments();
+          }}
+        />
+      )}
+      {mappingTarget && preview && (
+        <ProductMappingPopup
+          target={mappingTarget}
+          products={preview.product_options}
+          onClose={() => {
+            setMappingTarget(null);
+          }}
+          onSave={(itemCode) => {
+            void saveProductAssignment(
+              mappingTarget,
+              itemCode,
+            );
           }}
         />
       )}
@@ -1269,6 +1363,9 @@ export function DailySoPage({
                       },
                     );
                   }}
+                  onMapProduct={(record) => {
+                    setMappingTarget(record);
+                  }}
                 />
               ),
             )}
@@ -1283,6 +1380,127 @@ export function DailySoPage({
         )}
       </section>
     </div>
+  );
+}
+
+function ProductMappingPopup({
+  target,
+  products,
+  onClose,
+  onSave,
+}: {
+  target: DailySoRecord;
+  products: DailySoProductOption[];
+  onClose: () => void;
+  onSave: (itemCode: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [selectedCode, setSelectedCode] = useState("");
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => {
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return `${product.item_code} ${product.item_name}`
+      .toLowerCase()
+      .includes(normalizedSearch);
+  });
+  const selectedProduct = products.find(
+    (product) => product.item_code === selectedCode,
+  );
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/75 p-5 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="จับคู่สินค้าใหม่"
+    >
+      <section className="w-full max-w-2xl overflow-hidden rounded-2xl border border-amber-300/25 bg-[#0b1928] shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-700/60 p-5">
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.2em] text-amber-300">
+              NEW PRODUCT MAPPING
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-white">
+              พบสินค้าใหม่ — ต้องการลงเป็นสินค้าใดใน DATA?
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-slate-700 p-2 text-slate-400 transition hover:text-white"
+            aria-label="ปิด"
+          >
+            <X size={17} />
+          </button>
+        </header>
+
+        <div className="space-y-5 p-5">
+          <div className="rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-4">
+            <p className="font-medium text-amber-100">{target.pdf_name}</p>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-400">
+              <span>Barcode: {target.barcodes.join(", ") || "-"}</span>
+              <span>ราคา PDF: {formatNumber(target.price)}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-slate-300" htmlFor="daily-so-product-search">
+              ค้นหาด้วยรหัสหรือชื่อสินค้าใน DATA
+            </label>
+            <input
+              id="daily-so-product-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="เช่น 01-0000-39 หรือ อุ้งเท้าแมว"
+              autoFocus
+              className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-amber-300/60"
+            />
+          </div>
+
+          <select
+            size={Math.min(8, Math.max(3, filteredProducts.length))}
+            value={selectedCode}
+            onChange={(event) => setSelectedCode(event.target.value)}
+            className="w-full rounded-xl border border-slate-600 bg-slate-950/60 p-2 text-sm text-slate-200 outline-none focus:border-amber-300/60"
+          >
+            {filteredProducts.map((product) => (
+              <option key={product.item_code} value={product.item_code}>
+                {product.item_code} — {product.item_name}
+                {product.price === null ? "" : ` — ${formatNumber(product.price)}`}
+              </option>
+            ))}
+          </select>
+
+          {selectedProduct && (
+            <p className="rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] px-4 py-3 text-xs text-emerald-200">
+              ระบบจะจำ Barcode และชื่อ “{target.pdf_name}” ให้ลงเป็น {selectedProduct.item_code} — {selectedProduct.item_name}
+            </p>
+          )}
+        </div>
+
+        <footer className="flex justify-end gap-3 border-t border-slate-700/60 p-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-slate-600 px-5 py-2.5 text-sm text-slate-300 transition hover:text-white"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            disabled={!selectedCode}
+            onClick={() => onSave(selectedCode)}
+            className="rounded-xl border border-emerald-300/30 bg-emerald-400/15 px-5 py-2.5 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-400/25 disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            บันทึกและประมวลผลใหม่
+          </button>
+        </footer>
+      </section>
+    </div>,
+    document.body,
   );
 }
 
@@ -1442,6 +1660,7 @@ function GroupPreview({
   quantityEdits,
   onQuantityChange,
   onQuantityRestore,
+  onMapProduct,
 }: {
   group: DailySoGroup;
   documentDate: string;
@@ -1454,6 +1673,9 @@ function GroupPreview({
   ) => void;
   onQuantityRestore: (
     key: string,
+  ) => void;
+  onMapProduct: (
+    record: DailySoRecord,
   ) => void;
 }) {
   const q19 =
@@ -1940,6 +2162,33 @@ function GroupPreview({
                         <Ban size={11} />
                         ตัดรายการ
                       </span>
+                    ) : record.status === "error" ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onMapProduct(record);
+                        }}
+                        className="
+                          inline-flex
+                          items-center
+                          gap-1.5
+                          whitespace-nowrap
+                          rounded-lg
+                          border
+                          border-amber-400/40
+                          bg-amber-400/10
+                          px-2.5
+                          py-1.5
+                          text-[10px]
+                          font-semibold
+                          text-amber-300
+                          transition
+                          hover:bg-amber-400/20
+                        "
+                      >
+                        <ArrowRightLeft size={12} />
+                        จับคู่สินค้า
+                      </button>
                     ) : (
                       <StatusBadge
                         status={record.status}
@@ -2586,6 +2835,49 @@ function persistWarehouseAssignments(
 function clearWarehouseAssignments(): void {
   window.localStorage.removeItem(
     warehouseAssignmentsStorageKey,
+  );
+}
+
+function loadProductAssignments(): ProductAssignments {
+  try {
+    const storedValue = window.localStorage.getItem(
+      productAssignmentsStorageKey,
+    );
+
+    if (!storedValue) {
+      return {};
+    }
+
+    const parsed: unknown = JSON.parse(storedValue);
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+
+    const assignments: ProductAssignments = {};
+
+    for (const [key, itemCode] of Object.entries(parsed)) {
+      if (
+        (key.startsWith("barcode:") || key.startsWith("name:")) &&
+        typeof itemCode === "string" &&
+        itemCode.trim()
+      ) {
+        assignments[key] = itemCode.trim();
+      }
+    }
+
+    return assignments;
+  } catch {
+    return {};
+  }
+}
+
+function persistProductAssignments(
+  assignments: ProductAssignments,
+): void {
+  window.localStorage.setItem(
+    productAssignmentsStorageKey,
+    JSON.stringify(assignments),
   );
 }
 
