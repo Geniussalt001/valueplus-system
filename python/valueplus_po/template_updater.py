@@ -101,9 +101,19 @@ def add_template_products(template_path, products):
 
 def _validate_product(item):
     name = str(item.get("name", "")).strip()
-    code = str(item.get("product_code", "")).strip()
+    code = str(
+        item.get(
+            "product_code",
+            item.get("productCode", ""),
+        )
+    ).strip()
     try:
-        pack_quantity = float(item.get("pack_quantity"))
+        pack_quantity = float(
+            item.get(
+                "pack_quantity",
+                item.get("packQuantity"),
+            )
+        )
     except (TypeError, ValueError) as error:
         raise TemplateUpdateError("จำนวนบรรจุต้องเป็นตัวเลขมากกว่า 0") from error
     if not name:
