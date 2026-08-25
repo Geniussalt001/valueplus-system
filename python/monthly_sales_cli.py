@@ -12,7 +12,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 
 DATE_PATTERN = re.compile(r"^(\d{1,2})/(\d{1,2})/(\d{4})$")
-SALE_PREFIXES = ("IV", "IP")
+SALE_PREFIXES = ("IV",)
 MONTH_NAMES = [
     "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม",
     "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม",
