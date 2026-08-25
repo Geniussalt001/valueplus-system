@@ -18,7 +18,8 @@ export type WorkRoute =
   | "po-data"
   | "product-catalog"
   | "receivables-freight"
-  | "monthly-sales-posting";
+  | "monthly-sales-posting"
+  | "do-delivery";
 
 export type AppRoute =
   | "login"
