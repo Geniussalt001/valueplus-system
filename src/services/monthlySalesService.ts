@@ -1,11 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { desktopDir, join } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { openPath } from "@tauri-apps/plugin-opener";
+import { openPath, openUrl } from "@tauri-apps/plugin-opener";
+
+import { callAppsScript } from "./appsScriptClient";
 
 import type {
   MonthlySalesInput,
+  MonthlySalesArchiveResult,
   MonthlySalesResult,
+  MonthlySalesSheetResult,
+  MonthlySalesSummaryRecord,
 } from "../types/monthlySales.types";
 
 export const monthlySalesService = {
@@ -38,5 +43,31 @@ export const monthlySalesService = {
 
   async openOutput(path: string): Promise<void> {
     if (path) await openPath(path);
+  },
+
+  saveSnapshot(
+    records: MonthlySalesSummaryRecord[],
+    sourceFiles: string[],
+  ): Promise<MonthlySalesSheetResult> {
+    return callAppsScript<MonthlySalesSheetResult>(
+      "monthlySales.saveSnapshot",
+      { records, sourceFiles },
+      { requestProfile: "interactive" },
+    );
+  },
+
+  listArchive(
+    year?: number,
+    month?: number,
+  ): Promise<MonthlySalesArchiveResult> {
+    return callAppsScript<MonthlySalesArchiveResult>(
+      "monthlySales.list",
+      { year, month },
+      { cachePolicy: "network-first" },
+    );
+  },
+
+  async openSpreadsheet(url: string): Promise<void> {
+    if (url) await openUrl(url);
   },
 };
