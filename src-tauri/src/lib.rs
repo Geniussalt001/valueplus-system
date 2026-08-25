@@ -34,6 +34,11 @@ use commands::google_sheet_editor::{
     open_receivables_sheet_editor,
 };
 
+use commands::monthly_sales::{
+    preview_monthly_sales,
+    process_monthly_sales,
+};
+
 use commands::pdf_splitter::{
     split_po_pdf,
 };
@@ -150,6 +155,8 @@ pub fn run() {
                 process_daily_so,
                 preview_receivables_freight,
                 process_receivables_freight,
+                preview_monthly_sales,
+                process_monthly_sales,
                 open_receivables_sheet_editor,
                 preview_sales_billing,
                 run_sales_billing,
