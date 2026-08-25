@@ -4,7 +4,11 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from valueplus_billing.cpall_parser import ITEM_PATTERN, _parse_number
+from valueplus_billing.cpall_parser import (
+    ITEM_PATTERN,
+    NEW_ITEM_PATTERN,
+    _parse_number,
+)
 from valueplus_common.cpall_pdf import normalize_wrapped_item_quantities
 from valueplus_billing.express_plan import increment_iv
 from valueplus_billing.mappings import (
@@ -44,6 +48,18 @@ class SalesBillingRulesTest(unittest.TestCase):
         self.assertIsNotNone(match)
         assert match is not None
         self.assertEqual(_parse_number(match.group(4)), 8000.0)
+
+    def test_new_pdf_single_line_item_pattern(self) -> None:
+        text = (
+            "1 6002424 Hมิลค์เค้กUM 55 G. "
+            "1 139.00 0 10.30 0.00 0.00 0.00 0.00 1,431.70"
+        )
+        match = NEW_ITEM_PATTERN.search(text)
+        self.assertIsNotNone(match)
+        assert match is not None
+        self.assertEqual(match.group(1), "6002424")
+        self.assertEqual(_parse_number(match.group(3)), 139.0)
+        self.assertEqual(_parse_number(match.group(4)), 10.30)
 
     def test_pdf_row_repairs_wrapped_four_digit_quantity(self) -> None:
         text = (
