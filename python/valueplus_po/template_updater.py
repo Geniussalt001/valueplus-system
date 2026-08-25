@@ -1,4 +1,3 @@
-import copy
 import html
 import os
 import re
