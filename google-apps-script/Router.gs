@@ -276,6 +276,11 @@ function doPost(event) {
           );
         break;
 
+      case "doDelivery.save":
+        requireOfficeOrHeadOfficeSession(session);
+        data = saveDoDelivery(request.data, session.userCode);
+        break;
+
       case "receivables.saveCreditNotes":
         requireOfficeOrHeadOfficeSession(
           session,
@@ -500,6 +505,7 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "archive.registerUpload",
   "receivables.saveMonthly",
   "monthlySales.saveSnapshot",
+  "doDelivery.save",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",
