@@ -5,7 +5,9 @@ from pathlib import Path
 import pdfplumber
 
 from valueplus_common.cpall_pdf import (
+    normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
+    repair_cpall_extracted_text,
 )
 
 from .models import PdfItem, PoDocument
@@ -13,12 +15,12 @@ from .normalizers import normalize_warehouse
 
 
 PO_PATTERN = re.compile(r"เลขที่\s*:\s*([A-Z]\d+)")
-DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/\d{4})")
+DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{2}|\d{4}))")
 WAREHOUSE_PATTERN = re.compile(
     r"(?:คลัง|ศูนย์กระจายสินค้า)\s+BDC\s+(.+?)(?:\s+คลังดี|\s+อ้างถึง|\n)",
 )
 ITEM_PATTERN = re.compile(
-    r"^\s*(\d+)\s+(\d{13})\s+(.+?)\s+1\s+([\d,]+\.\d{2})\s+0\s+",
+    r"^\s*(\d+)\s+(\d{7}(?:\d{6})?)\s+(.+?)\s+1\s+([\d,]+\.\d{2})\s+0\s+",
     re.MULTILINE,
 )
 class PdfParseError(ValueError):
@@ -27,7 +29,9 @@ class PdfParseError(ValueError):
 
 def _normalize_wrapped_decimal_values(text: str) -> str:
     """Backward-compatible alias for the shared CP ALL normalizer."""
-    return normalize_wrapped_item_quantities(text)
+    return normalize_wrapped_item_quantities(
+        repair_cpall_extracted_text(text),
+    )
 
 
 def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
@@ -55,7 +59,11 @@ def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
                 warehouse_raw = warehouse_match.group(1).strip() if warehouse_match else ""
                 po_map[po_number] = PoDocument(
                     po_number=po_number,
-                    document_date=date_match.group(1) if date_match else "",
+                    document_date=(
+                        normalize_cpall_document_date(date_match.group(1))
+                        if date_match
+                        else ""
+                    ),
                     warehouse_raw=warehouse_raw,
                     warehouse=normalize_warehouse(warehouse_raw),
                 )
@@ -64,7 +72,9 @@ def parse_pdf(pdf_path: str | Path) -> list[PoDocument]:
             document.pages.append(page_number)
 
             if not document.document_date and date_match:
-                document.document_date = date_match.group(1)
+                document.document_date = normalize_cpall_document_date(
+                    date_match.group(1),
+                )
 
             if not document.warehouse and warehouse_match:
                 document.warehouse_raw = warehouse_match.group(1).strip()
