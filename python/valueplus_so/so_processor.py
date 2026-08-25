@@ -25,7 +25,7 @@ PO_PATTERN = re.compile(
 )
 
 DATE_PATTERN = re.compile(
-    r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{2}|\d{4}))",
+    r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{4}|\d{2}))",
 )
 
 WAREHOUSE_PATTERN = re.compile(
