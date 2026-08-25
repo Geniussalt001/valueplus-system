@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, FileSpreadsheet, FolderOpen, LoaderCircle, PackageSearch, Save } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, CloudUpload, Database, ExternalLink, FileSpreadsheet, FolderOpen, LoaderCircle, PackageSearch, RefreshCw } from "lucide-react";
 
 import { monthlySalesService } from "../../services/monthlySalesService";
-import type { MonthlySalesResult } from "../../types/monthlySales.types";
+import type { MonthlySalesArchiveResult, MonthlySalesResult, MonthlySalesSheetResult } from "../../types/monthlySales.types";
 
 interface MonthlySalesPostingPageProps { onBack: () => void; }
 
@@ -14,15 +14,13 @@ export function MonthlySalesPostingPage({ onBack }: MonthlySalesPostingPageProps
   const [result, setResult] = useState<MonthlySalesResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const suggestedName = useMemo(() => {
-    const month = result?.months[0];
-    return month ? `สรุปยอดขาย-${month.month_name}-${month.buddhist_year}.xlsx` : "สรุปยอดขายรายเดือน.xlsx";
-  }, [result]);
+  const [sheetResult, setSheetResult] = useState<MonthlySalesSheetResult | null>(null);
+  const [archive, setArchive] = useState<MonthlySalesArchiveResult | null>(null);
 
   const selectFiles = async () => {
     const selected = await monthlySalesService.selectCsvFiles();
     if (!selected.length) return;
-    setCsvPaths(selected); setResult(null); setError("");
+    setCsvPaths(selected); setResult(null); setSheetResult(null); setError("");
   };
   const preview = async () => {
     if (!csvPaths.length) return;
@@ -31,16 +29,24 @@ export function MonthlySalesPostingPage({ onBack }: MonthlySalesPostingPageProps
     catch (reason) { setError(String(reason)); }
     finally { setBusy(false); }
   };
-  const exportExcel = async () => {
+  const saveToGoogleSheet = async () => {
     if (!result) return;
-    const outputPath = await monthlySalesService.selectOutputPath(suggestedName);
-    if (!outputPath) return;
     setBusy(true); setError("");
     try {
-      const processed = await monthlySalesService.process({ csvPaths, outputPath });
-      setResult(processed);
-      await monthlySalesService.openOutput(processed.output_path);
+      const saved = await monthlySalesService.saveSnapshot(
+        result.summary_records,
+        csvPaths.map(fileName),
+      );
+      setSheetResult(saved);
+      setArchive(await monthlySalesService.listArchive());
     } catch (reason) { setError(String(reason)); }
+    finally { setBusy(false); }
+  };
+
+  const refreshArchive = async () => {
+    setBusy(true); setError("");
+    try { setArchive(await monthlySalesService.listArchive()); }
+    catch (reason) { setError(String(reason)); }
     finally { setBusy(false); }
   };
 
@@ -64,11 +70,13 @@ export function MonthlySalesPostingPage({ onBack }: MonthlySalesPostingPageProps
         </div>
         <div className="flex min-w-[280px] flex-col justify-end gap-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <button type="button" disabled={!csvPaths.length || busy} onClick={preview} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-700 px-6 py-3.5 text-sm font-bold text-white disabled:opacity-40">{busy ? <LoaderCircle className="animate-spin" size={18} /> : <PackageSearch size={18} />} ประมวลผลและ Preview</button>
-          <button type="button" disabled={!result || busy} onClick={exportExcel} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white disabled:opacity-40"><Save size={18} /> บันทึกไฟล์ Excel</button>
+          <button type="button" disabled={!result || busy} onClick={saveToGoogleSheet} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white disabled:opacity-40"><CloudUpload size={18} /> อัปเดต Google Sheet</button>
+          <button type="button" disabled={busy} onClick={refreshArchive} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-600 disabled:opacity-40"><RefreshCw size={17} /> เปิดแฟ้มฐานข้อมูล</button>
         </div>
       </section>
 
       {error ? <div className="mt-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertTriangle size={19} />{error}</div> : null}
+      {sheetResult ? <section className="mt-5 flex flex-col justify-between gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:flex-row sm:items-center"><div className="flex gap-3"><CheckCircle2 className="shrink-0 text-emerald-600" size={21} /><div><h4 className="font-bold text-emerald-900">อัปเดตแฟ้ม Google Sheet สำเร็จ</h4><p className="mt-1 text-xs text-emerald-700">บันทึก {sheetResult.sourceCount} แถว • แทนที่ข้อมูลเดิม {sheetResult.replacedCount} แถว • {sheetResult.periods.join(", ")}</p></div></div><button type="button" onClick={() => monthlySalesService.openSpreadsheet(sheetResult.spreadsheetUrl)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm"><ExternalLink size={16} /> เปิด Google Sheet</button></section> : null}
       {result ? <>
         <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <Metric label="ยอดขาย" value={formatNumber(result.sales_total)} tone="blue" />
@@ -83,6 +91,8 @@ export function MonthlySalesPostingPage({ onBack }: MonthlySalesPostingPageProps
         </section>
         {result.excluded_count ? <section className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex gap-3"><AlertTriangle className="shrink-0 text-amber-600" size={20} /><div><h4 className="font-bold text-amber-900">มี {formatNumber(result.excluded_count)} ธุรกรรมที่ไม่นำมาคำนวณ</h4><p className="mt-1 text-xs text-amber-700">เป็นรหัสสินค้าเก่าหรือยังไม่มีในฐานข้อมูล และจะแสดงรายละเอียดในไฟล์ Excel</p></div></div></section> : null}
       </> : null}
+
+      {archive ? <section className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"><div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700"><Database size={19} /></span><div><h3 className="font-bold text-slate-900">แฟ้มฐานข้อมูลสรุป</h3><p className="text-xs text-slate-500">ข้อมูลถาวรจาก Google Sheet • {archive.records.length} แถว</p></div></div><button type="button" onClick={() => monthlySalesService.openSpreadsheet(archive.spreadsheetUrl)} className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700"><ExternalLink size={16} /> เปิดฉบับเต็ม</button></div><div className="max-h-[520px] overflow-auto"><table className="w-full min-w-[900px] text-sm"><thead className="sticky top-0 bg-slate-50 text-left text-xs text-slate-500"><tr><th className="px-5 py-3">ปี</th><th className="px-5 py-3">เดือน</th><th className="px-5 py-3">ประเภท</th><th className="px-5 py-3">รหัสสินค้า</th><th className="px-5 py-3">ชื่อสินค้า</th><th className="px-5 py-3 text-right">จำนวน</th></tr></thead><tbody>{archive.records.map((record, index) => <tr key={`${record.year}-${record.month}-${record.type}-${record.cpallCode}-${index}`} className="border-t border-slate-100"><td className="px-5 py-3">{record.year}</td><td className="px-5 py-3">{record.monthName}</td><td className={`px-5 py-3 font-semibold ${record.type === "CN" ? "text-orange-600" : "text-blue-700"}`}>{record.type}</td><td className="px-5 py-3 font-mono text-xs">{record.cpallCode}</td><td className="px-5 py-3">{record.productName}</td><td className="px-5 py-3 text-right font-semibold">{formatNumber(record.quantity)}</td></tr>)}</tbody></table></div></section> : null}
     </div>
   );
 }
