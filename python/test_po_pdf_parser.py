@@ -1,4 +1,9 @@
 import unittest
+import tempfile
+
+from pathlib import Path
+
+from openpyxl import Workbook
 
 from valueplus_po.pdf_parser import (
     ITEM_PATTERN,
@@ -10,8 +15,38 @@ from valueplus_common.cpall_pdf import (
     repair_cpall_extracted_text,
 )
 
+from valueplus_po.template_reader import (
+    read_template,
+)
+
 
 class PoPdfParserTest(unittest.TestCase):
+    def test_template_reads_products_beyond_legacy_row_26(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "template.xlsx"
+            workbook = Workbook()
+            data_sheet = workbook.active
+            data_sheet.title = "Data"
+            data_sheet.cell(2, 5).value = (
+                "ยูมิยูมิ เนโกะพุดดิ้งเค้ก 50กรัม"
+            )
+            target_sheet = workbook.create_sheet("มหาชัย(1)")
+            target_sheet.cell(27, 2).value = (
+                "ยูมิยูมิ เนโกะพุดดิ้งเค้ก 50กรัม"
+            )
+            target_sheet.cell(28, 2).value = "เช็คสต็อกสินค้า"
+            workbook.save(path)
+
+            catalog = read_template(path)
+
+            self.assertEqual(
+                [
+                    product.row
+                    for product in catalog.sheet_products["มหาชัย(1)"]
+                ],
+                [27],
+            )
+
     def test_repairs_cid_marks_in_new_cpall_pdf(self):
         text = (
             "เลขที(cid:1143) : B012801967 "
