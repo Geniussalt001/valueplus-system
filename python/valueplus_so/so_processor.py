@@ -122,6 +122,7 @@ def preview_daily_so(
     pdf_path: str | Path,
     template_path: str | Path,
     warehouse_overrides: dict[str, str] | None = None,
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     source_pdf = _validate_file(
         pdf_path,
@@ -149,6 +150,7 @@ def preview_daily_so(
         documents,
         template_products,
         warehouse_overrides or {},
+        product_overrides or {},
     )
 
 
@@ -158,11 +160,13 @@ def process_daily_so(
     output_folder: str | Path,
     quantity_overrides: dict[str, float] | None = None,
     warehouse_overrides: dict[str, str] | None = None,
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     preview = preview_daily_so(
         pdf_path,
         template_path,
         warehouse_overrides,
+        product_overrides,
     )
 
     if preview["error_count"] > 0:
@@ -534,6 +538,7 @@ def _build_preview(
     documents: list[PdfDocument],
     template_products: list[TemplateProduct],
     warehouse_overrides: dict[str, str],
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     dates = {
         document.document_date
@@ -567,6 +572,12 @@ def _build_preview(
             warehouse_overrides,
         )
     )
+    normalized_product_overrides = (
+        _normalize_product_overrides(
+            product_overrides or {},
+            template_products,
+        )
+    )
 
     for group_code in (
         "Q19",
@@ -586,6 +597,7 @@ def _build_preview(
             group_documents,
             template_products,
             parsed_date,
+            normalized_product_overrides,
         )
 
         total_errors += (
@@ -639,6 +651,14 @@ def _build_preview(
             unknown_warehouses
         ),
         "groups": groups,
+        "product_options": [
+            {
+                "item_code": product.item_code,
+                "item_name": product.item_name,
+                "price": product.price,
+            }
+            for product in template_products
+        ],
         "warehouse_overrides": (
             normalized_overrides
         ),
@@ -652,6 +672,7 @@ def _build_group(
     documents: list[PdfDocument],
     template_products: list[TemplateProduct],
     parsed_date: datetime,
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     products_by_code = {
         product.item_code: product
@@ -678,6 +699,7 @@ def _build_group(
                     item,
                     template_products,
                     products_by_code,
+                    product_overrides or {},
                 )
             )
 
@@ -866,6 +888,37 @@ def _build_group(
     }
 
 
+def _normalize_product_overrides(
+    overrides: dict[str, str],
+    products: list[TemplateProduct],
+) -> dict[str, str]:
+    valid_codes = {
+        product.item_code
+        for product in products
+    }
+    normalized: dict[str, str] = {}
+
+    for raw_key, raw_code in overrides.items():
+        key = str(raw_key or "").strip()
+        code = str(raw_code or "").strip()
+
+        if not key or code not in valid_codes:
+            continue
+
+        if key.startswith("barcode:"):
+            barcode = key.partition(":")[2].strip()
+            if barcode:
+                normalized[f"barcode:{barcode}"] = code
+        elif key.startswith("name:"):
+            name = _normalize_product_name(
+                key.partition(":")[2],
+            )
+            if name:
+                normalized[f"name:{name}"] = code
+
+    return normalized
+
+
 def _match_product(
     item: PdfItem,
     products: list[TemplateProduct],
@@ -873,11 +926,40 @@ def _match_product(
         str,
         TemplateProduct,
     ],
+    product_overrides: dict[str, str] | None = None,
 ) -> tuple[
     TemplateProduct | None,
     float,
     str,
 ]:
+    normalized_pdf_name = (
+        _normalize_product_name(
+            item.pdf_name,
+        )
+    )
+
+    overrides = product_overrides or {}
+    override_code = (
+        overrides.get(
+            f"barcode:{item.barcode}",
+        )
+        or overrides.get(
+            f"name:{normalized_pdf_name}",
+        )
+    )
+
+    if override_code:
+        override_product = products_by_code.get(
+            override_code,
+        )
+
+        if override_product:
+            return (
+                override_product,
+                1.0,
+                "saved_mapping",
+            )
+
     mapped_code = BARCODE_ITEM_CODES.get(
         item.barcode,
     )
@@ -895,12 +977,6 @@ def _match_product(
                 1.0,
                 "barcode",
             )
-
-    normalized_pdf_name = (
-        _normalize_product_name(
-            item.pdf_name,
-        )
-    )
 
     candidates = sorted(
         (
