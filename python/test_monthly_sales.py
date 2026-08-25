@@ -47,6 +47,21 @@ class MonthlySalesTest(unittest.TestCase):
         self.assertEqual(result["sales_total"], 5)
         self.assertEqual(result["excluded_count"], 1)
 
+    def test_ip_documents_are_not_counted_as_sales(self):
+        rows = [
+            ["", "", "", "มิลค์เค้ก", "01-0000-29"],
+            ["", "", "", "", "", "01/05/2569", "IVVPR6905001", "5"],
+            ["", "", "", "", "", "01/05/2569", "IPVPR6905002", "100"],
+        ]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "sample.csv"
+            with path.open("w", encoding="utf-8-sig", newline="") as stream:
+                csv.writer(stream).writerows(rows)
+            result = build_result([str(path)])
+
+        self.assertEqual(result["sales_total"], 5)
+        self.assertEqual(result["transaction_count"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
