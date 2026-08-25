@@ -8,7 +8,9 @@ from pathlib import Path
 import pdfplumber
 
 from valueplus_common.cpall_pdf import (
+    normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
+    repair_cpall_extracted_text,
 )
 
 from .mappings import assign_sales_areas
@@ -17,7 +19,7 @@ from .product_database import ProductDatabase
 
 
 PO_PATTERN = re.compile(r"\bB\d{9}\b")
-DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/\d{4})")
+DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{4}|\d{2}))")
 WAREHOUSE_PATTERN = re.compile(
     r"นำส่ง\s*:\s*(WB\d+)\s+(.+?)(?:\s{2,}อ้างถึง|\n)"
 )
@@ -28,6 +30,10 @@ ITEM_PATTERN = re.compile(
     rf"{NUMBER_PATTERN}\s+({NUMBER_PATTERN})\s+"
     rf"{NUMBER_PATTERN}\s+({NUMBER_PATTERN})\s+"
 )
+NEW_ITEM_PATTERN = re.compile(
+    r"(?m)^\s*\d+\s+(\d{7})\s+(.+?)\s+1\s+"
+    rf"({NUMBER_PATTERN})\s+0\s+({NUMBER_PATTERN})\s+"
+)
 
 
 def _to_express_date(thai_date: str) -> str:
@@ -36,7 +42,8 @@ def _to_express_date(thai_date: str) -> str:
 
 
 def _clean_name(value: str) -> str:
-    return re.sub(r"\s+", " ", value).strip()
+    cleaned = re.sub(r"\s+", " ", value).strip()
+    return re.sub(r"^H(?=[^A-Za-z])", "", cleaned)
 
 
 def _parse_number(value: str) -> float:
@@ -55,7 +62,9 @@ def parse_pdf(
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
             text = normalize_wrapped_item_quantities(
-                page.extract_text(x_tolerance=2, y_tolerance=3) or "",
+                repair_cpall_extracted_text(
+                    page.extract_text(x_tolerance=2, y_tolerance=3) or "",
+                ),
             )
             po_match = PO_PATTERN.search(text)
             if not po_match:
@@ -69,7 +78,11 @@ def parse_pdf(
         date_match = DATE_PATTERN.search(first_page)
         warehouse_match = WAREHOUSE_PATTERN.search(first_page)
 
-        po_date = date_match.group(1) if date_match else ""
+        po_date = (
+            normalize_cpall_document_date(date_match.group(1))
+            if date_match
+            else ""
+        )
         warehouse_code = warehouse_match.group(1) if warehouse_match else ""
         warehouse_text = (
             _clean_name(warehouse_match.group(2)) if warehouse_match else ""
@@ -95,6 +108,17 @@ def parse_pdf(
                 pdf_name=_clean_name(match.group(3)),
                 quantity=_parse_number(match.group(4)),
                 unit_price=_parse_number(match.group(5)),
+            )
+            product_database.apply(item)
+            order.items.append(item)
+
+        for match in NEW_ITEM_PATTERN.finditer(full_text):
+            item = ProductItem(
+                cpall_code=match.group(1),
+                barcode="",
+                pdf_name=_clean_name(match.group(2)),
+                quantity=_parse_number(match.group(3)),
+                unit_price=_parse_number(match.group(4)),
             )
             product_database.apply(item)
             order.items.append(item)
