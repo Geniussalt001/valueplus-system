@@ -159,6 +159,7 @@ export function AppLayout({
     "receivables-freight",
     "retail-worldwide-po",
     "monthly-sales-posting",
+    "do-delivery",
   ];
 
   const routeTitles: Partial<Record<WorkRoute, string>> = {
@@ -166,6 +167,7 @@ export function AppLayout({
     "receivables-freight": "ลงยอดลูกหนี้–ค่าขนส่ง",
     "retail-worldwide-po": "ลงยอด PO รีเทลขายเวิร์ลไวด์",
     "monthly-sales-posting": "ลงยอดขายรายเดือน",
+    "do-delivery": "วิเคราะห์ยอดจัดส่ง DO",
   };
 
   const pageTitle =
