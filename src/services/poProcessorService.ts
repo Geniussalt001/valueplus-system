@@ -19,6 +19,8 @@ import type {
   DailyPickingPaths,
   PoPreviewResult,
   PoProcessorInput,
+  PoTemplateUpdateInput,
+  PoTemplateUpdateResult,
 } from "../types/poProcessor.types";
 
 import type {
@@ -179,6 +181,20 @@ export const poProcessorService = {
       PoPreviewResult
     >(
       "process_po_documents",
+      {
+        input,
+      },
+    );
+  },
+
+  async addTemplateProducts(
+    input:
+      PoTemplateUpdateInput,
+  ): Promise<PoTemplateUpdateResult> {
+    return invoke<
+      PoTemplateUpdateResult
+    >(
+      "add_po_template_products",
       {
         input,
       },

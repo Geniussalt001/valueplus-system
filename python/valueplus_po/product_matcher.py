@@ -11,8 +11,17 @@ def match_products(
     catalog: TemplateCatalog,
 ) -> list[ProductMatch]:
     data_by_key = defaultdict(list)
+    data_by_code = defaultdict(list)
+
     for product in catalog.data_products:
         data_by_key[product.normalized_name].append(product)
+
+        if product.product_code:
+            data_by_code[
+                normalize_product_code(
+                    product.product_code,
+                )
+            ].append(product)
 
     target_by_key = defaultdict(list)
     for product in catalog.sheet_products.get(target_sheet, []):
@@ -27,10 +36,14 @@ def match_products(
     results = []
     for (key, barcode), group in aggregated.items():
         first_item = group["items"][0]
-        data_candidates = data_by_key.get(key, [])
-        target_candidates = target_by_key.get(key, [])
+        code_candidates = data_by_code.get(
+            normalize_product_code(
+                barcode,
+            ),
+            [],
+        )
 
-        if not data_candidates:
+        if len(code_candidates) > 1:
             results.append(
                 ProductMatch(
                     barcode=barcode,
@@ -40,11 +53,35 @@ def match_products(
                     excel_row=None,
                     quantity=group["quantity"],
                     matched=False,
-                    message="ไม่พบสินค้าในชีต Data",
+                    message="พบรหัสสินค้าซ้ำในชีต Data",
                 ),
             )
             continue
 
+        data_candidates = (
+            code_candidates
+            if code_candidates
+            else data_by_key.get(
+                key,
+                [],
+            )
+        )
+
+        target_key = (
+            code_candidates[0]
+            .normalized_name
+            if code_candidates
+            else key
+        )
+
+        target_candidates = target_by_key.get(
+            target_key,
+            [],
+        )
+
+        # The destination warehouse sheet is the workbook write target and is
+        # therefore authoritative. A unique exact normalized-name match is
+        # safe even when a newly-added product has not been duplicated in Data.
         if len(target_candidates) != 1:
             message = (
                 "ไม่พบสินค้าในชีตปลายทาง"
@@ -55,7 +92,11 @@ def match_products(
                 ProductMatch(
                     barcode=barcode,
                     pdf_name=first_item.pdf_name,
-                    data_name=data_candidates[0].name,
+                    data_name=(
+                        data_candidates[0].name
+                        if data_candidates
+                        else None
+                    ),
                     target_name=None,
                     excel_row=None,
                     quantity=group["quantity"],
@@ -70,16 +111,20 @@ def match_products(
             (
                 product
                 for product in data_candidates
-                if normalize_product_name(product.name) == target.normalized_name
+                if product.normalized_name == target.normalized_name
             ),
-            data_candidates[0],
+            None,
         )
 
         results.append(
             ProductMatch(
                 barcode=barcode,
                 pdf_name=first_item.pdf_name,
-                data_name=matching_data.name,
+                data_name=(
+                    matching_data.name
+                    if matching_data
+                    else target.name
+                ),
                 target_name=target.name,
                 excel_row=target.row,
                 quantity=group["quantity"],
@@ -89,3 +134,14 @@ def match_products(
 
     return sorted(results, key=lambda item: item.excel_row or 999)
 
+
+
+def normalize_product_code(
+    value: str,
+) -> str:
+    return "".join(
+        str(value or "")
+        .strip()
+        .upper()
+        .split()
+    )

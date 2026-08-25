@@ -46,6 +46,7 @@ use commands::local_pdf::{
 };
 
 use commands::po_processor::{
+    add_po_template_products,
     preview_po_documents,
     process_po_documents,
 };
@@ -61,6 +62,12 @@ use commands::product_catalog::{
 use commands::receivables_freight::{
     preview_receivables_freight,
     process_receivables_freight,
+};
+
+use commands::monthly_sales::{
+    get_monthly_sales,
+    preview_monthly_sales,
+    import_monthly_sales,
 };
 
 use commands::sales_billing::{
@@ -137,6 +144,7 @@ pub fn run() {
                 clear_connection_token,
                 manage_product_catalog,
                 manage_doll_summary,
+                add_po_template_products,
                 preview_po_documents,
                 process_po_documents,
                 print_po_workbook,
@@ -150,6 +158,9 @@ pub fn run() {
                 process_daily_so,
                 preview_receivables_freight,
                 process_receivables_freight,
+                get_monthly_sales,
+                preview_monthly_sales,
+                import_monthly_sales,
                 open_receivables_sheet_editor,
                 preview_sales_billing,
                 run_sales_billing,

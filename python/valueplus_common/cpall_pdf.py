@@ -3,13 +3,14 @@ from __future__ import annotations
 import re
 
 
+ITEM_IDENTIFIER_PATTERN = r"(?:\d{7}|\d{13})"
 ITEM_ROW_QUANTITY_PATTERN = re.compile(
-    r"^(?P<prefix>\s*\d+\s+\d{13}\s+.+?\s+1\s+)"
+    rf"^(?P<prefix>\s*\d+\s+{ITEM_IDENTIFIER_PATTERN}\s+.+?\s+1\s+)"
     r"(?P<quantity>\d[\d,]*)"
     r"(?P<suffix>\s+0\s+\d[\d,]*(?:\.\d+)?)",
 )
 ITEM_ROW_DOTTED_QUANTITY_PATTERN = re.compile(
-    r"^(?P<prefix>\s*\d+\s+\d{13}\s+.+?\s+1\s+)"
+    rf"^(?P<prefix>\s*\d+\s+{ITEM_IDENTIFIER_PATTERN}\s+.+?\s+1\s+)"
     r"(?P<quantity>\d[\d,]*)\."
     r"(?P<suffix>\s+0\s+\d[\d,]*(?:\.\d+)?)",
 )
@@ -21,7 +22,8 @@ def normalize_wrapped_item_quantities(text: str) -> str:
     JasperReports can extract a visual ``5,390.00`` as either
     ``5,390.`` followed by ``00`` or ``10,060`` followed by ``.00``.
     Repair only lines shaped like product rows so unrelated totals are not
-    modified.
+    modified. Both 13-digit barcodes and 7-digit ReportPO product codes are
+    supported.
     """
     lines = text.splitlines()
 

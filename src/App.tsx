@@ -44,6 +44,18 @@ import {
 } from "./pages/modules/DailyPickingPage";
 
 import {
+  DailyPostingPage,
+} from "./pages/modules/DailyPostingPage";
+
+import type {
+  DailyPostingChildRoute,
+} from "./pages/modules/DailyPostingPage";
+
+import {
+  MonthlySalesPage,
+} from "./pages/modules/MonthlySalesPage";
+
+import {
   DailySoPage,
 } from "./pages/modules/DailySoPage";
 
@@ -135,6 +147,13 @@ function App() {
   const [nextProcessIvNumber, setNextProcessIvNumber] =
     useState("");
 
+  const [
+    dailyPostingReturnRoute,
+    setDailyPostingReturnRoute,
+  ] = useState<
+    "dashboard" | "daily-posting"
+  >("dashboard");
+
   const outboxSyncEnabled =
     startupCheckComplete &&
     Boolean(currentUser) &&
@@ -187,6 +206,9 @@ function App() {
     setNextProcessPdfPath("");
     setNextProcessIvNumber("");
     setWorkspaceScope("retail");
+    setDailyPostingReturnRoute(
+      "dashboard",
+    );
     setCurrentUser(null);
     setRoute("login");
 
@@ -226,6 +248,9 @@ function App() {
     setWorkspaceScope(nextWorkspace);
     setNextProcessPdfPath("");
     setNextProcessIvNumber("");
+    setDailyPostingReturnRoute(
+      "dashboard",
+    );
     setRoute("dashboard");
   };
 
@@ -233,12 +258,34 @@ function App() {
     setRoute("dashboard");
   };
 
+  const openDailyPostingModule = (
+    nextRoute:
+      DailyPostingChildRoute,
+  ) => {
+    setNextProcessPdfPath("");
+    setNextProcessIvNumber("");
+    setDailyPostingReturnRoute(
+      "daily-posting",
+    );
+    setRoute(nextRoute);
+  };
+
+  const backFromDailyPostingModule =
+    () => {
+      setRoute(
+        dailyPostingReturnRoute,
+      );
+    };
+
   const continueToDailySo = (
     pdfPath: string,
     startIvNumber: string,
   ) => {
     setNextProcessPdfPath(pdfPath);
     setNextProcessIvNumber(startIvNumber);
+    setDailyPostingReturnRoute(
+      "dashboard",
+    );
     setRoute("daily-so");
   };
 
@@ -259,6 +306,9 @@ function App() {
 
   const continueToReceivablesFreight = () => {
     setNextProcessPdfPath("");
+    setDailyPostingReturnRoute(
+      "dashboard",
+    );
     setRoute("receivables-freight");
   };
 
@@ -281,10 +331,22 @@ function App() {
           />
         );
 
+      case "daily-posting":
+        return (
+          <DailyPostingPage
+            onBack={backToDashboard}
+            onNavigate={
+              openDailyPostingModule
+            }
+          />
+        );
+
       case "daily-so":
         return (
           <DailySoPage
-            onBack={backToDashboard}
+            onBack={
+              backFromDailyPostingModule
+            }
             initialPdfPath={nextProcessPdfPath}
             onInitialPdfConsumed={consumeNextProcessPdf}
             onNextProcess={continueToSalesBilling}
@@ -332,7 +394,20 @@ function App() {
       case "receivables-freight":
         return (
           <ReceivablesFreightPage
-            onBack={backToDashboard}
+            onBack={
+              backFromDailyPostingModule
+            }
+          />
+        );
+
+      case "monthly-sales":
+        return (
+          <MonthlySalesPage
+            onBack={() => {
+              setRoute(
+                "daily-posting",
+              );
+            }}
           />
         );
 

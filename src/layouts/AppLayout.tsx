@@ -146,17 +146,44 @@ export function AppLayout({
     onNavigate("dashboard");
   };
 
+  const dailyPostingRoutes: WorkRoute[] = [
+    "daily-posting",
+    "daily-so",
+    "receivables-freight",
+    "monthly-sales",
+  ];
+
+  const activeNavigationRoute =
+    dailyPostingRoutes.includes(currentRoute)
+      ? "daily-posting"
+      : currentRoute;
+
   const currentModule =
     systemModules.find(
       (module) =>
         module.route ===
-        currentRoute,
+        activeNavigationRoute,
     );
+
+  const dailyPostingPageTitles:
+    Partial<Record<WorkRoute, string>> = {
+      "daily-posting":
+        "ลงยอดรายวัน",
+      "daily-so":
+        "ลงยอด SO รายวัน",
+      "receivables-freight":
+        "ลงยอดลูกหนี้–ค่าขนส่ง",
+      "monthly-sales":
+        "ลงยอดขายรายเดือน",
+    };
 
   const pageTitle =
     currentRoute === "dashboard"
       ? "ValuePlus Dashboard"
-      : currentModule?.title ??
+      : dailyPostingPageTitles[
+          currentRoute
+        ] ??
+        currentModule?.title ??
         "ValuePlus System";
 
   const workspaceName =
@@ -280,7 +307,7 @@ export function AppLayout({
 
               {availableModules.map((module) => {
                 const Icon = module.icon;
-                const isActive = currentRoute === module.route;
+                const isActive = activeNavigationRoute === module.route;
                 const isOnline = module.status === "online";
 
                 return (

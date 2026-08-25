@@ -38,6 +38,9 @@ const activityMessages: Record<
   exporting:
     "กำลังสร้างและบันทึกไฟล์ Excel...",
 
+  "updating-template":
+    "กำลังสำรองและเพิ่มสินค้าใหม่ใน Template...",
+
   printing:
     "กำลังเตรียมเอกสารสำหรับพิมพ์...",
 };

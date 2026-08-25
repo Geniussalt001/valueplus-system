@@ -7,12 +7,44 @@ from .constants import (
 )
 
 
+# Microsoft Reporting Services sometimes exports Thai combining marks as
+# literal CID placeholders. These values are stable in CP ALL ReportPO PDFs.
+CPALL_CID_GLYPHS = {
+    "1142": "็",
+    "1143": "่",
+    "1144": "้",
+    "1147": "์",
+    # SARA AM is exported as NIKHAHIT followed by the existing SARA AA.
+    "1148": "ํ",
+    "1173": "่",
+    "1174": "้",
+    "1177": "์",
+}
+
+
+def normalize_cpall_cid_text(
+    raw_value: str,
+) -> str:
+    return re.sub(
+        r"\(cid:(\d+)\)",
+        lambda match: CPALL_CID_GLYPHS.get(
+            match.group(1),
+            "",
+        ),
+        str(raw_value or ""),
+    )
+
+
 def normalize_thai_text(
     raw_value: str,
 ) -> str:
+    value = normalize_cpall_cid_text(
+        raw_value,
+    )
+
     value = unicodedata.normalize(
         "NFC",
-        str(raw_value or ""),
+        value,
     )
 
     # PDF บางไฟล์แยกสระอำเป็น "ํ" + "า"
@@ -98,6 +130,14 @@ def normalize_product_name(
     )
 
     value = value.upper().strip()
+
+    # ReportPO can place a Thai mark between U and M, for example U์ M.
+    # Move that mark back to the Thai word before removing the UM marker.
+    value = re.sub(
+        r"U([\u0e31-\u0e4e]*)\s*M",
+        r"\1",
+        value,
+    )
 
     # ตัดตัว H หน้าชื่อสินค้าใน PDF
     value = re.sub(

@@ -24,6 +24,11 @@ import {
   LockedTemplateCard,
 } from "../../components/split-rename-po/LockedTemplateCard";
 
+
+import {
+  NewProductDetectionModal,
+} from "../../components/split-rename-po/NewProductDetectionModal";
+
 import {
   PickingAdjustmentModal,
 } from "../../components/split-rename-po/PickingAdjustmentModal";
@@ -103,6 +108,28 @@ export function SplitRenamePoPage({
         activity={
           processor.activity
         }
+      />
+
+      <NewProductDetectionModal
+        open={
+          processor
+            .newProductModalOpen
+        }
+        products={
+          processor
+            .detectedNewProducts
+        }
+        disabled={busy}
+        onClose={
+          processor
+            .closeNewProductModal
+        }
+        onSave={(products) => {
+          void processor
+            .saveNewProducts(
+              products,
+            );
+        }}
       />
 
       <PickingAdjustmentModal

@@ -5,8 +5,10 @@ import { poProcessorService } from "../services/poProcessorService";
 import { showAppToast } from "../services/appToast";
 
 import type {
+  PoDetectedNewProduct,
   PoPreviewResult,
   PoQuantityOverrides,
+  PoTemplateProductInput,
 } from "../types/poProcessor.types";
 
 import {
@@ -19,6 +21,7 @@ export type ProcessorActivity =
   | "selecting"
   | "previewing"
   | "exporting"
+  | "updating-template"
   | "printing";
 
 export function usePoProcessor() {
@@ -53,6 +56,19 @@ export function usePoProcessor() {
   ] = useState<
     PoQuantityOverrides
   >({});
+
+
+  const [
+    newProductModalOpen,
+    setNewProductModalOpen,
+  ] = useState(false);
+
+  const [
+    detectedNewProducts,
+    setDetectedNewProducts,
+  ] = useState<
+    PoDetectedNewProduct[]
+  >([]);
 
   useEffect(() => {
     let active = true;
@@ -113,6 +129,8 @@ export function usePoProcessor() {
     setSavedOutputPath("");
     setPrintModalOpen(false);
     setAdjustmentModalOpen(false);
+    setNewProductModalOpen(false);
+    setDetectedNewProducts([]);
     setQuantityOverrides({});
   }
 
@@ -174,6 +192,19 @@ export function usePoProcessor() {
         });
 
       setPreview(result);
+
+      const detected =
+        detectNewProducts(
+          result,
+        );
+
+      setDetectedNewProducts(
+        detected,
+      );
+
+      setNewProductModalOpen(
+        detected.length > 0,
+      );
     } catch (requestError) {
       setPreview(null);
       setError(getErrorMessage(requestError));
@@ -396,6 +427,98 @@ export function usePoProcessor() {
     }
   }
 
+
+  function closeNewProductModal() {
+    if (activity !== "idle") {
+      return;
+    }
+
+    setNewProductModalOpen(false);
+  }
+
+  async function saveNewProducts(
+    products:
+      PoTemplateProductInput[],
+  ) {
+    if (
+      products.length === 0 ||
+      !templatePath ||
+      !pdfPath ||
+      !startIv
+    ) {
+      return;
+    }
+
+    setActivity(
+      "updating-template",
+    );
+    setError("");
+    setSuccess("");
+
+    try {
+      const updateResult =
+        await poProcessorService
+          .addTemplateProducts({
+            templatePath,
+            products,
+          });
+
+      const refreshed =
+        await poProcessorService
+          .preview({
+            pdfPath,
+            templatePath,
+            startIv,
+          });
+
+      setPreview(refreshed);
+      setQuantityOverrides({});
+      setSavedFolder("");
+      setSavedOutputPath("");
+
+      const remaining =
+        detectNewProducts(
+          refreshed,
+        );
+
+      setDetectedNewProducts(
+        remaining,
+      );
+
+      setNewProductModalOpen(
+        remaining.length > 0,
+      );
+
+      setSuccess(
+        `เพิ่มสินค้าใหม่ ${updateResult.product_count} รายการ และตรวจ Preview ใหม่แล้ว`,
+      );
+
+      showAppToast({
+        tone: "success",
+        title:
+          "อัปเดตสินค้าใน Template แล้ว",
+        message:
+          `สำรองไฟล์เดิมไว้ที่ ${updateResult.backup_path}`,
+      });
+    } catch (requestError) {
+      const message =
+        getErrorMessage(
+          requestError,
+        );
+
+      setError(message);
+
+      showAppToast({
+        tone: "error",
+        title:
+          "เพิ่มสินค้าใหม่ไม่สำเร็จ",
+        message,
+      });
+    } finally {
+      setActivity("idle");
+    }
+  }
+
   return {
     pdfPath,
     templatePath,
@@ -409,6 +532,8 @@ export function usePoProcessor() {
     savedOutputPath,
     printModalOpen,
     adjustmentModalOpen,
+    newProductModalOpen,
+    detectedNewProducts,
     quantityOverrides,
     hasQuantityOverrides:
       Object.keys(
@@ -427,6 +552,8 @@ export function usePoProcessor() {
     setQuantityOverride,
     restoreQuantityOverride,
     resetQuantityOverrides,
+    closeNewProductModal,
+    saveNewProducts,
     openPrintModal,
     closePrintModal,
     printWorkbook,
@@ -465,4 +592,63 @@ function getErrorMessage(
   }
 
   return String(error);
+}
+
+
+function detectNewProducts(
+  preview: PoPreviewResult,
+): PoDetectedNewProduct[] {
+  const detected =
+    new Map<
+      string,
+      PoDetectedNewProduct
+    >();
+
+  for (const record of preview.records) {
+    for (const item of record.items) {
+      if (
+        item.matched ||
+        !item.message.includes(
+          "ไม่พบสินค้า",
+        )
+      ) {
+        continue;
+      }
+
+      const key =
+        item.barcode.trim() ||
+        normalizeProductLabel(
+          item.pdf_name,
+        );
+
+      if (detected.has(key)) {
+        continue;
+      }
+
+      detected.set(key, {
+        detectedName:
+          item.pdf_name,
+        savedName:
+          item.data_name ??
+          item.pdf_name,
+        productCode:
+          item.barcode,
+        packQuantity: null,
+      });
+    }
+  }
+
+  return Array.from(
+    detected.values(),
+  );
+}
+
+function normalizeProductLabel(
+  value: string,
+): string {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase("th-TH")
+    .replace(/\s+/g, "")
+    .trim();
 }
