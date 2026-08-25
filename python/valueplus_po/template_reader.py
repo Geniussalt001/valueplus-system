@@ -12,6 +12,7 @@ class TemplateProduct:
     name: str
     normalized_name: str
     row: int
+    product_code: str | None = None
 
 
 @dataclass
@@ -181,9 +182,15 @@ def read_data_products(
             column=5,
         ).value
 
+        product_code = data_sheet.cell(
+            row=row_number,
+            column=4,
+        ).value
+
         product = create_product(
             name=name,
             row_number=row_number,
+            product_code=product_code,
         )
 
         if product:
@@ -195,6 +202,7 @@ def read_data_products(
 def create_product(
     name,
     row_number: int,
+    product_code=None,
 ) -> TemplateProduct | None:
     if name is None:
         return None
@@ -211,8 +219,13 @@ def create_product(
     if not normalized_name:
         return None
 
+    clean_code = str(
+        product_code or "",
+    ).strip()
+
     return TemplateProduct(
         name=clean_name,
         normalized_name=normalized_name,
         row=row_number,
+        product_code=clean_code or None,
     )
