@@ -46,6 +46,7 @@ use commands::local_pdf::{
 };
 
 use commands::po_processor::{
+    add_po_template_products,
     preview_po_documents,
     process_po_documents,
 };
@@ -143,6 +144,7 @@ pub fn run() {
                 clear_connection_token,
                 manage_product_catalog,
                 manage_doll_summary,
+                add_po_template_products,
                 preview_po_documents,
                 process_po_documents,
                 print_po_workbook,
