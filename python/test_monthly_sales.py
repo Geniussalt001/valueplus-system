@@ -25,6 +25,11 @@ class MonthlySalesTest(unittest.TestCase):
         self.assertEqual(result["net_total"], 97)
         self.assertEqual(result["transaction_count"], 2)
         self.assertEqual(result["months"][0]["month_name"], "พฤษภาคม")
+        self.assertEqual(len(result["summary_records"]), 2)
+        self.assertEqual(
+            {record["type"] for record in result["summary_records"]},
+            {"ขาย", "CN"},
+        )
 
     def test_unmapped_product_is_reported_but_not_calculated(self):
         rows = [
