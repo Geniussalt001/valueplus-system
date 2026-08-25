@@ -14,7 +14,9 @@ import pdfplumber
 from openpyxl import load_workbook
 
 from valueplus_common import (
+    normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
+    repair_cpall_extracted_text,
 )
 
 
@@ -23,7 +25,7 @@ PO_PATTERN = re.compile(
 )
 
 DATE_PATTERN = re.compile(
-    r"วันที่\s*:\s*(\d{2}/\d{2}/\d{4})",
+    r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{2}|\d{4}))",
 )
 
 WAREHOUSE_PATTERN = re.compile(
@@ -33,7 +35,7 @@ WAREHOUSE_PATTERN = re.compile(
 
 ITEM_PATTERN = re.compile(
     r"^\s*(\d+)\s+"
-    r"(\d{13})\s+"
+    r"(\d{7}(?:\d{6})?)\s+"
     r"(.+?)\s+"
     r"1\s+"
     r"([\d,]+\.(?:\d{2})?)\s+"
@@ -334,7 +336,9 @@ def _parse_pdf(
 
             text = (
                 normalize_wrapped_item_quantities(
-                    text,
+                    repair_cpall_extracted_text(
+                        text,
+                    ),
                 )
             )
 
@@ -364,7 +368,9 @@ def _parse_pdf(
                     PdfDocument(
                         po_number=po_number,
                         document_date=(
-                            date_match.group(1)
+                            normalize_cpall_document_date(
+                                date_match.group(1),
+                            )
                             if date_match
                             else ""
                         ),
@@ -391,7 +397,9 @@ def _parse_pdf(
                 and date_match
             ):
                 document.document_date = (
-                    date_match.group(1)
+                    normalize_cpall_document_date(
+                        date_match.group(1),
+                    )
                 )
 
             if (
