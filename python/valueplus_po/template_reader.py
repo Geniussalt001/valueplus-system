@@ -3,10 +3,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from .constants import (
-    PRODUCT_FIRST_ROW,
-    PRODUCT_LAST_ROW,
-)
+from .constants import PRODUCT_FIRST_ROW
 from .normalizers import normalize_product_name
 
 
@@ -74,27 +71,9 @@ def read_template(
             if sheet_name == data_sheet_name:
                 continue
 
-            sheet = workbook[sheet_name]
-            products: list[TemplateProduct] = []
-
-            for row_number in range(
-                PRODUCT_FIRST_ROW,
-                PRODUCT_LAST_ROW + 1,
-            ):
-                name = sheet.cell(
-                    row=row_number,
-                    column=2,
-                ).value
-
-                product = create_product(
-                    name=name,
-                    row_number=row_number,
-                )
-
-                if product:
-                    products.append(product)
-
-            sheet_products[sheet_name] = products
+            sheet_products[sheet_name] = read_sheet_products(
+                workbook[sheet_name],
+            )
 
         return TemplateCatalog(
             sheet_names=set(workbook.sheetnames),
@@ -116,21 +95,82 @@ def find_data_sheet_name(
     return None
 
 
-def read_data_products(
-    data_sheet,
-) -> list[TemplateProduct]:
-    products: list[TemplateProduct] = []
-
-    # บังคับให้ OpenPyXL คำนวณขนาดชีต
-    # สำหรับ Template ที่ไม่มีค่า dimension
+def _calculate_maximum_row(sheet) -> int:
     try:
-        data_sheet.calculate_dimension(
+        sheet.calculate_dimension(
             force=True,
         )
     except Exception:
         pass
 
-    maximum_row = data_sheet.max_row or 1
+    return sheet.max_row or 1
+
+
+def read_sheet_products(
+    sheet,
+) -> list[TemplateProduct]:
+    """Read the variable-length product block before the total row.
+
+    Users can insert new product rows in the workbook without requiring a
+    corresponding code release. The total marker remains the safe boundary,
+    so footer labels are never interpreted as products.
+    """
+    products: list[TemplateProduct] = []
+    maximum_row = _calculate_maximum_row(sheet)
+
+    for row_number in range(
+        PRODUCT_FIRST_ROW,
+        maximum_row + 1,
+    ):
+        if _is_product_total_row(
+            sheet,
+            row_number,
+        ):
+            break
+
+        name = sheet.cell(
+            row=row_number,
+            column=2,
+        ).value
+
+        product = create_product(
+            name=name,
+            row_number=row_number,
+        )
+
+        if product:
+            products.append(product)
+
+    return products
+
+
+def _is_product_total_row(
+    sheet,
+    row_number: int,
+) -> bool:
+    for column_number in range(1, 6):
+        value = sheet.cell(
+            row=row_number,
+            column=column_number,
+        ).value
+
+        marker = "".join(
+            str(value or "").split(),
+        )
+
+        if "ยอดรวมสินค้า" in marker:
+            return True
+
+    return False
+
+
+def read_data_products(
+    data_sheet,
+) -> list[TemplateProduct]:
+    products: list[TemplateProduct] = []
+    maximum_row = _calculate_maximum_row(
+        data_sheet,
+    )
 
     for row_number in range(
         2,
