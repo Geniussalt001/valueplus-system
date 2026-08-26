@@ -360,9 +360,18 @@ def process_files(
             ),
         }
 
+        matched_rows = [
+            int(item["excel_row"])
+            for item in record["items"]
+            if item.get("excel_row") is not None
+        ]
+        last_product_row = max(
+            [PRODUCT_LAST_ROW, *matched_rows],
+        )
+
         for row in range(
             PRODUCT_FIRST_ROW,
-            PRODUCT_LAST_ROW + 1,
+            last_product_row + 1,
         ):
             updates[
                 f"D{row}"

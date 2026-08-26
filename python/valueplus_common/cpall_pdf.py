@@ -4,15 +4,62 @@ import re
 
 
 ITEM_ROW_QUANTITY_PATTERN = re.compile(
-    r"^(?P<prefix>\s*\d+\s+\d{13}\s+.+?\s+1\s+)"
+    r"^(?P<prefix>\s*\d+\s+\d{7}(?:\d{6})?\s+.+?\s+1\s+)"
     r"(?P<quantity>\d[\d,]*)"
     r"(?P<suffix>\s+0\s+\d[\d,]*(?:\.\d+)?)",
 )
 ITEM_ROW_DOTTED_QUANTITY_PATTERN = re.compile(
-    r"^(?P<prefix>\s*\d+\s+\d{13}\s+.+?\s+1\s+)"
+    r"^(?P<prefix>\s*\d+\s+\d{7}(?:\d{6})?\s+.+?\s+1\s+)"
     r"(?P<quantity>\d[\d,]*)\."
     r"(?P<suffix>\s+0\s+\d[\d,]*(?:\.\d+)?)",
 )
+
+CID_THAI_REPLACEMENTS = {
+    "1142": "็",
+    "1143": "่",
+    "1144": "้",
+    "1147": "์",
+    "1148": "ำ",
+    "1173": "่",
+    "1174": "้",
+    "1177": "์",
+}
+CID_PATTERN = re.compile(
+    r"\(cid:(\d+)\)",
+)
+
+
+def repair_cpall_extracted_text(text: str) -> str:
+    """Repair Thai marks emitted as CID placeholders by CP ALL PDFs."""
+    repaired = CID_PATTERN.sub(
+        lambda match: CID_THAI_REPLACEMENTS.get(
+            match.group(1),
+            "",
+        ),
+        str(text or ""),
+    )
+
+    repaired = repaired.replace(
+        "ำา",
+        "ำ",
+    )
+
+    return re.sub(
+        r"U([\u0e31-\u0e4e]+)\s*M",
+        r"\1UM",
+        repaired,
+    )
+
+
+def normalize_cpall_document_date(value: str) -> str:
+    """Expand a two-digit Buddhist year such as 69 to 2569."""
+    day_text, month_text, year_text = str(value or "").split("/")
+    year = int(year_text)
+
+    if len(year_text) == 2:
+        year += 2500
+
+    return f"{int(day_text):02d}/{int(month_text):02d}/{year:04d}"
 
 
 def normalize_wrapped_item_quantities(text: str) -> str:

@@ -153,10 +153,27 @@ export function AppLayout({
         currentRoute,
     );
 
+  const postingRoutes: WorkRoute[] = [
+    "daily-posting",
+    "daily-so",
+    "receivables-freight",
+    "retail-worldwide-po",
+    "monthly-sales-posting",
+    "do-delivery",
+  ];
+
+  const routeTitles: Partial<Record<WorkRoute, string>> = {
+    "daily-so": "ลงยอด SO รายวัน",
+    "receivables-freight": "ลงยอดลูกหนี้–ค่าขนส่ง",
+    "retail-worldwide-po": "ลงยอด PO รีเทลขายเวิร์ลไวด์",
+    "monthly-sales-posting": "ลงยอดขายรายเดือน",
+    "do-delivery": "วิเคราะห์ยอดจัดส่ง DO",
+  };
+
   const pageTitle =
     currentRoute === "dashboard"
       ? "ValuePlus Dashboard"
-      : currentModule?.title ??
+      : routeTitles[currentRoute] ?? currentModule?.title ??
         "ValuePlus System";
 
   const workspaceName =
@@ -280,7 +297,9 @@ export function AppLayout({
 
               {availableModules.map((module) => {
                 const Icon = module.icon;
-                const isActive = currentRoute === module.route;
+                const isActive =
+                  currentRoute === module.route ||
+                  (module.route === "daily-posting" && postingRoutes.includes(currentRoute));
                 const isOnline = module.status === "online";
 
                 return (

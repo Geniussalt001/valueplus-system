@@ -8,6 +8,7 @@ export type WorkspaceScope =
 
 export type WorkRoute =
   | "dashboard"
+  | "daily-posting"
   | "daily-picking"
   | "daily-so"
   | "sales-billing"
@@ -16,7 +17,9 @@ export type WorkRoute =
   | "retail-worldwide-po"
   | "po-data"
   | "product-catalog"
-  | "receivables-freight";
+  | "receivables-freight"
+  | "monthly-sales-posting"
+  | "do-delivery";
 
 export type AppRoute =
   | "login"

@@ -5,7 +5,6 @@ from openpyxl import load_workbook
 
 from .constants import (
     PRODUCT_FIRST_ROW,
-    PRODUCT_LAST_ROW,
 )
 from .normalizers import normalize_product_name
 
@@ -69,6 +68,10 @@ def read_template(
             str,
             list[TemplateProduct],
         ] = {}
+        data_product_keys = {
+            product.normalized_name
+            for product in data_products
+        }
 
         for sheet_name in workbook.sheetnames:
             if sheet_name == data_sheet_name:
@@ -79,7 +82,7 @@ def read_template(
 
             for row_number in range(
                 PRODUCT_FIRST_ROW,
-                PRODUCT_LAST_ROW + 1,
+                (sheet.max_row or PRODUCT_FIRST_ROW) + 1,
             ):
                 name = sheet.cell(
                     row=row_number,
@@ -91,7 +94,11 @@ def read_template(
                     row_number=row_number,
                 )
 
-                if product:
+                if (
+                    product
+                    and product.normalized_name
+                    in data_product_keys
+                ):
                     products.append(product)
 
             sheet_products[sheet_name] = products

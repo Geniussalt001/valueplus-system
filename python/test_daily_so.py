@@ -20,6 +20,57 @@ from valueplus_common import (
 
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_uses_saved_mapping_for_a_new_pdf_product_name(self):
+        product = TemplateProduct(
+            item_code="01-0000-39",
+            item_name="ยูมิยูมิ เค้กรูปอุ้งเท้าแมว 50 กรัม",
+            price=14.09,
+            row_number=2,
+            normalized_name="เค้กรูปอุ้งเท้าแมว",
+        )
+        item = PdfItem(
+            barcode="8850000000039",
+            pdf_name="เนโกะพุดดิ้งเค้ก UM 50 G.",
+            quantity=10,
+            price=14.09,
+            page_number=1,
+        )
+
+        result = _build_preview(
+            pdf_path=Path("input.pdf"),
+            template_path=Path("template.xlsx"),
+            documents=[
+                PdfDocument(
+                    po_number="B012600039",
+                    document_date="25/08/2026",
+                    warehouse="สำโรง",
+                    items=[item],
+                ),
+            ],
+            template_products=[product],
+            warehouse_overrides={},
+            product_overrides={
+                "name:เนโกะพุดดิ้งเค้ก UM 50 G.": "01-0000-39",
+            },
+        )
+
+        record = result["groups"][0]["records"][0]
+
+        self.assertEqual(record["item_code"], "01-0000-39")
+        self.assertEqual(record["match_score"], 1.0)
+        self.assertEqual(record["match_method"], "saved_mapping")
+        self.assertEqual(result["error_count"], 0)
+        self.assertEqual(
+            result["product_options"],
+            [
+                {
+                    "item_code": "01-0000-39",
+                    "item_name": "ยูมิยูมิ เค้กรูปอุ้งเท้าแมว 50 กรัม",
+                    "price": 14.09,
+                },
+            ],
+        )
+
     def test_reads_large_quantities_wrapped_by_cpall_pdf(self):
         cases = [
             ("13,330", ".00", 13330.0),

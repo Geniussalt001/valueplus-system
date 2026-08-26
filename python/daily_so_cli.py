@@ -45,6 +45,11 @@ def main() -> int:
         default="{}",
     )
 
+    parser.add_argument(
+        "--product-overrides-json",
+        default="{}",
+    )
+
     arguments = parser.parse_args()
 
     try:
@@ -60,6 +65,18 @@ def main() -> int:
                 "ข้อมูลจัดการคลังไม่ถูกต้อง",
             )
 
+        product_overrides = json.loads(
+            arguments.product_overrides_json,
+        )
+
+        if not isinstance(
+            product_overrides,
+            dict,
+        ):
+            raise ValueError(
+                "ข้อมูลจับคู่สินค้าไม่ถูกต้อง",
+            )
+
         if arguments.preview:
             result = preview_daily_so(
                 pdf_path=arguments.pdf,
@@ -68,6 +85,9 @@ def main() -> int:
                 ),
                 warehouse_overrides=(
                     warehouse_overrides
+                ),
+                product_overrides=(
+                    product_overrides
                 ),
             )
         else:
@@ -101,6 +121,9 @@ def main() -> int:
                 ),
                 warehouse_overrides=(
                     warehouse_overrides
+                ),
+                product_overrides=(
+                    product_overrides
                 ),
             )
 

@@ -13,6 +13,8 @@ export interface DailySoInput {
     Record<string, number>;
   warehouseOverrides?:
     Record<string, "Q19" | "Q20">;
+  productOverrides?:
+    Record<string, string>;
 }
 
 export type DailySoRecordStatus =
@@ -52,6 +54,12 @@ export interface DailySoGroup {
   records: DailySoRecord[];
 }
 
+export interface DailySoProductOption {
+  item_code: string;
+  item_name: string;
+  price: number | null;
+}
+
 export interface DailySoResult {
   pdf_path: string;
   template_path: string;
@@ -62,6 +70,7 @@ export interface DailySoResult {
   error_count: number;
   unknown_warehouses: string[];
   groups: DailySoGroup[];
+  product_options: DailySoProductOption[];
   warehouse_overrides?:
     Record<string, "Q19" | "Q20">;
   output_folder: string;

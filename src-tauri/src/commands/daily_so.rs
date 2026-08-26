@@ -18,6 +18,7 @@ pub struct DailySoInput {
     output_folder: Option<String>,
     quantity_overrides: Option<Value>,
     warehouse_overrides: Option<Value>,
+    product_overrides: Option<Value>,
 }
 
 #[derive(
@@ -139,6 +140,19 @@ fn validate_input(
         );
     }
 
+    if input
+        .product_overrides
+        .as_ref()
+        .is_some_and(|value| {
+            !value.is_object()
+        })
+    {
+        return Err(
+            "ข้อมูลจับคู่สินค้าไม่ถูกต้อง"
+                .to_string(),
+        );
+    }
+
     Ok(())
 }
 
@@ -232,6 +246,33 @@ fn run_python(
         )
         .arg(
             warehouse_overrides,
+        );
+
+    let product_overrides = input
+        .product_overrides
+        .as_ref()
+        .map(|value| {
+            serde_json::to_string(
+                value,
+            )
+        })
+        .transpose()
+        .map_err(|error| {
+            format!(
+                "แปลงข้อมูลจับคู่สินค้าไม่สำเร็จ: {}",
+                error,
+            )
+        })?
+        .unwrap_or_else(|| {
+            "{}".to_string()
+        });
+
+    command
+        .arg(
+            "--product-overrides-json",
+        )
+        .arg(
+            product_overrides,
         );
 
     if preview_only {
