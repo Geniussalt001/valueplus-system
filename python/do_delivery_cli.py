@@ -8,6 +8,7 @@ from io import BytesIO
 from pathlib import Path
 
 import pdfplumber
+import xlrd
 from fontTools.ttLib import TTFont
 from pypdf import PdfReader
 
@@ -182,7 +183,7 @@ def parse_page(page, decode, source_file, source_id, page_number, product_names)
     return records, None
 
 
-def parse_file(path, product_names):
+def parse_pdf_file(path, product_names):
     path = Path(path)
     source_id = hashlib.sha256(path.read_bytes()).hexdigest()
     decode = build_glyph_decoder(path)
@@ -199,26 +200,103 @@ def parse_file(path, product_names):
     return records, warnings, source_id
 
 
-def build_result(pdf_paths):
+def clean_excel_product_name(value):
+    lines = [part.strip() for part in str(value or "").splitlines() if part.strip()]
+    name = " ".join(lines[1:]) if len(lines) > 1 else ""
+    return re.sub(r"^H|UM$", "", name).strip()
+
+
+def parse_excel_file(path, product_names):
+    path = Path(path)
+    source_id = hashlib.sha256(path.read_bytes()).hexdigest()
+    workbook = xlrd.open_workbook(str(path), formatting_info=False)
+    date_match = None
+    for sheet in workbook.sheets():
+        for row_index in range(min(sheet.nrows, 8)):
+            date_match = DATE_PATTERN.search(" ".join(str(sheet.cell_value(row_index, column)) for column in range(sheet.ncols)))
+            if date_match:
+                break
+        if date_match:
+            break
+    if not date_match:
+        raise ValueError("ไม่พบวันที่สั่งในไฟล์ Excel DO")
+    date_text, year, month = normalize_date(date_match)
+    records, warnings = [], []
+    for page_number, sheet in enumerate(workbook.sheets(), 1):
+        if sheet.nrows < 9:
+            warnings.append({"page": page_number, "reason": "ชีตไม่มีตารางจัดส่ง"})
+            continue
+        warehouse_text = " ".join(str(sheet.cell_value(4, column)) for column in range(sheet.ncols))
+        warehouse_match = re.search(r"\b(WB\d{2})\b", warehouse_text, re.IGNORECASE)
+        warehouse_code = warehouse_match.group(1).upper() if warehouse_match else ""
+        route_text = " ".join(str(sheet.cell_value(5, column)) for column in range(sheet.ncols))
+        route_matches = re.findall(r"\b\d{5}\b", route_text)
+        route_code = route_matches[-1] if route_matches else ""
+        product_columns = []
+        for column in range(sheet.ncols):
+            header = str(sheet.cell_value(7, column) or "").strip()
+            match = PRODUCT_CODE_PATTERN.search(header)
+            if match and match.group(0).startswith("600"):
+                code = match.group(0)
+                product_columns.append((column, code, product_names.get(code) or clean_excel_product_name(header)))
+        if not product_columns:
+            warnings.append({"page": page_number, "reason": "ไม่พบคอลัมน์สินค้า"})
+            continue
+        for row_index in range(8, sheet.nrows):
+            branch_text = str(sheet.cell_value(row_index, 1) or "").strip()
+            branch_match = re.match(r"\s*(\d{5})\s+(.+)", branch_text, re.DOTALL)
+            if not branch_match:
+                continue
+            branch_code = branch_match.group(1)
+            branch_name = re.sub(r"^สาขา\s*", "", re.sub(r"\s+", " ", branch_match.group(2))).strip()
+            for column, product_code, product_name in product_columns:
+                value = sheet.cell_value(row_index, column)
+                try:
+                    quantity = float(value)
+                except (TypeError, ValueError):
+                    continue
+                if quantity <= 0:
+                    continue
+                records.append({
+                    "record_key": "|".join([source_id, str(page_number), branch_code, product_code]),
+                    "source_id": source_id, "source_file": path.name, "page": page_number,
+                    "date": date_text, "year": year, "buddhist_year": year + 543, "month": month,
+                    "warehouse_code": warehouse_code, "route_code": route_code,
+                    "branch_code": branch_code, "branch_name": branch_name,
+                    "product_code": product_code, "product_name": product_name, "quantity": quantity,
+                })
+    return records, warnings, source_id
+
+
+def parse_file(path, product_names):
+    suffix = Path(path).suffix.lower()
+    if suffix == ".pdf":
+        return parse_pdf_file(path, product_names)
+    if suffix == ".xls":
+        return parse_excel_file(path, product_names)
+    raise ValueError(f"ชนิดไฟล์ DO ยังไม่รองรับ: {suffix}")
+
+
+def build_result(file_paths):
     product_names = load_product_names()
     all_records = []
     files = []
     seen_sources = set()
-    for pdf_path in pdf_paths:
-        records, warnings, source_id = parse_file(pdf_path, product_names)
+    for file_path in file_paths:
+        records, warnings, source_id = parse_file(file_path, product_names)
         duplicate = source_id in seen_sources
         if not duplicate:
             all_records.extend(records)
             seen_sources.add(source_id)
         files.append({
-            "name": Path(pdf_path).name,
+            "name": Path(file_path).name,
             "source_id": source_id,
             "record_count": len(records),
             "warning_count": len(warnings),
             "duplicate_in_selection": duplicate,
         })
     if not all_records:
-        raise ValueError("ไม่พบข้อมูลจัดส่งในไฟล์ PDF")
+        raise ValueError("ไม่พบข้อมูลจัดส่งในไฟล์ DO")
 
     branch_totals = defaultdict(lambda: {"name": "", "quantity": 0.0})
     product_totals = defaultdict(lambda: {"name": "", "quantity": 0.0})
@@ -260,10 +338,10 @@ def build_result(pdf_paths):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pdf", action="append", required=True)
+    parser.add_argument("--file", action="append", required=True)
     args = parser.parse_args()
     try:
-        print(json.dumps({"success": True, "data": build_result(args.pdf)}, ensure_ascii=False))
+        print(json.dumps({"success": True, "data": build_result(args.file)}, ensure_ascii=False))
     except Exception as error:
         print(json.dumps({"success": False, "message": str(error)}, ensure_ascii=False))
         return 1

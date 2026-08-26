@@ -32,9 +32,9 @@ fn run_python(input: &DoDeliveryInput) -> Result<Value, String> {
     let mut command = engine_command("do-delivery", "do_delivery_cli.py")?;
     for pdf_path in &input.pdf_paths {
         if !Path::new(pdf_path).is_file() {
-            return Err(format!("ไม่พบไฟล์ PDF: {}", pdf_path));
+            return Err(format!("ไม่พบไฟล์ DO: {}", pdf_path));
         }
-        command.arg("--pdf").arg(pdf_path);
+        command.arg("--file").arg(pdf_path);
     }
     let output = command.output().map_err(|error| format!("เปิดระบบวิเคราะห์ DO ไม่สำเร็จ: {}", error))?;
     let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();

@@ -1,6 +1,7 @@
 pdfplumber==0.11.8
 fonttools==4.61.1
 openpyxl==3.1.5
+xlrd==2.0.1
 pywin32==311
 pypdf==6.10.0
 PyAutoGUI==0.9.54

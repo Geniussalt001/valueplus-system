@@ -10,7 +10,7 @@ export const doDeliveryService = {
   async selectPdfFiles(): Promise<string[]> {
     const selected = await open({
       multiple: true, directory: false, defaultPath: await desktopDir(),
-      filters: [{ name: "รายงาน DO", extensions: ["pdf"] }],
+      filters: [{ name: "รายงาน DO", extensions: ["xls", "pdf"] }],
     });
     if (Array.isArray(selected)) return selected;
     return typeof selected === "string" ? [selected] : [];
