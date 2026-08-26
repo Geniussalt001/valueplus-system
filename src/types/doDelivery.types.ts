@@ -19,3 +19,22 @@ export interface DoDeliverySaveResult {
   insertedCount: number; duplicateFileCount: number; totalRecords: number;
   spreadsheetUrl: string; unresolvedBranchCount: number;
 }
+export interface DoBranchMasterRecord { branch_code: string; branch_name: string; province: string; region: string; source_row: number; }
+export interface DoBranchMasterResult {
+  file_name: string; branch_count: number; province_count: number; duplicate_count: number;
+  conflict_count: number; regions: { region: string; branch_count: number }[]; records: DoBranchMasterRecord[];
+}
+export interface DoBranchMasterSaveResult {
+  branchCount: number; updatedDoRows: number; spreadsheetUrl: string;
+}
+export interface DoAnalyticsPeriod { year: number; month: number; label: string; }
+export interface DoAnalyticsRegion { region: string; quantity: number; provinceCount: number; branchCount: number; }
+export interface DoAnalyticsProvince { province: string; region: string; quantity: number; branchCount: number; }
+export interface DoAnalyticsBranch { branchCode: string; branchName: string; province: string; region: string; quantity: number; }
+export interface DoAnalyticsProduct { productCode: string; productName: string; quantity: number; }
+export interface DoAnalyticsResult {
+  totalQuantity: number; branchCount: number; provinceCount: number; productCount: number;
+  unresolvedBranchCount: number; periods: DoAnalyticsPeriod[]; regions: DoAnalyticsRegion[];
+  provinces: DoAnalyticsProvince[]; topBranches: DoAnalyticsBranch[]; topProducts: DoAnalyticsProduct[];
+  spreadsheetUrl: string;
+}

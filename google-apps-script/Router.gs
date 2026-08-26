@@ -281,6 +281,15 @@ function doPost(event) {
         data = saveDoDelivery(request.data, session.userCode);
         break;
 
+      case "doDelivery.saveMaster":
+        requireOfficeOrHeadOfficeSession(session);
+        data = saveDoBranchMaster(request.data, session.userCode);
+        break;
+
+      case "doDelivery.analytics":
+        data = listDoDeliveryAnalytics(request.data);
+        break;
+
       case "receivables.saveCreditNotes":
         requireOfficeOrHeadOfficeSession(
           session,
@@ -506,6 +515,7 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "receivables.saveMonthly",
   "monthlySales.saveSnapshot",
   "doDelivery.save",
+  "doDelivery.saveMaster",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",
@@ -540,6 +550,8 @@ const PERSISTENT_REPLAY_ACTIONS = [
   "archive.registerUpload",
   "receivables.saveMonthly",
   "monthlySales.saveSnapshot",
+  "doDelivery.save",
+  "doDelivery.saveMaster",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",

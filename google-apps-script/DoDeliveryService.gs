@@ -13,6 +13,55 @@ const DO_DATA_HEADERS = [
 const DO_BRANCH_HEADERS = ["รหัสสาขา", "ชื่อสาขา", "จังหวัด", "ภาค", "ละติจูด", "ลองจิจูด", "อัปเดตล่าสุด"];
 const DO_HISTORY_HEADERS = ["รหัสไฟล์", "ชื่อไฟล์", "จำนวนรายการ", "สถานะ", "ผู้อัปโหลด", "เวลาบันทึก"];
 
+function saveDoBranchMaster(input, userCode) {
+  const payload = input || {};
+  const records = Array.isArray(payload.records) ? payload.records : [];
+  if (!records.length) throw new Error("ไม่พบข้อมูล Master สาขา");
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const branchSheet = ensureDoSheet(spreadsheet, DO_DELIVERY_CONFIG.branchSheet, DO_BRANCH_HEADERS);
+    const now = new Date(), unique = {};
+    records.forEach(function(record) {
+      const code = String(record.branch_code || "").trim();
+      if (code && !unique[code]) unique[code] = [
+        code, String(record.branch_name || ""), String(record.province || ""),
+        normalizeDoRegion(record.region), "", "", now,
+      ];
+    });
+    const rows = Object.keys(unique).sort().map(function(code) { return unique[code]; });
+    if (branchSheet.getLastRow() > 1) branchSheet.getRange(2, 1, branchSheet.getLastRow() - 1, DO_BRANCH_HEADERS.length).clearContent();
+    branchSheet.getRange(2, 1, rows.length, DO_BRANCH_HEADERS.length).setValues(rows);
+    branchSheet.setColumnWidth(1, 110); branchSheet.setColumnWidth(2, 320);
+    branchSheet.setColumnWidth(3, 150); branchSheet.setColumnWidth(4, 150);
+
+    const dataSheet = ensureDoSheet(spreadsheet, DO_DELIVERY_CONFIG.dataSheet, DO_DATA_HEADERS);
+    let updatedDoRows = 0;
+    if (dataSheet.getLastRow() >= 2) {
+      const data = dataSheet.getRange(2, 1, dataSheet.getLastRow() - 1, DO_DATA_HEADERS.length).getValues();
+      data.forEach(function(row) {
+        const master = unique[String(row[4] || "").trim()];
+        if (!master) return;
+        row[5] = master[1]; row[6] = master[2]; row[7] = master[3]; row[11] = String(userCode || ""); row[12] = now;
+        updatedDoRows += 1;
+      });
+      dataSheet.getRange(2, 1, data.length, DO_DATA_HEADERS.length).setValues(data);
+    }
+    rebuildDoDashboard(spreadsheet, dataSheet, branchSheet);
+    SpreadsheetApp.flush();
+    return { branchCount: rows.length, updatedDoRows: updatedDoRows, spreadsheetUrl: spreadsheet.getUrl() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function normalizeDoRegion(value) {
+  const region = String(value || "").trim().replace(/^ภาค/, "");
+  if (region === "ตะวันออกเฉียงเหนือ") return "อีสาน";
+  return region;
+}
+
 function saveDoDelivery(input, userCode) {
   const payload = input || {};
   const records = Array.isArray(payload.records) ? payload.records : [];
@@ -183,4 +232,56 @@ function rebuildDoDashboard(spreadsheet, dataSheet, branchSheet) {
     dashboard.insertChart(chart);
   }
   return { unresolvedBranchCount: Object.keys(branches).filter(function(code) { return !String(branches[code].region || "").trim(); }).length };
+}
+
+function listDoDeliveryAnalytics(input) {
+  const filters = input || {}, spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const dataSheet = ensureDoSheet(spreadsheet, DO_DELIVERY_CONFIG.dataSheet, DO_DATA_HEADERS);
+  const branchSheet = ensureDoSheet(spreadsheet, DO_DELIVERY_CONFIG.branchSheet, DO_BRANCH_HEADERS);
+  const master = readDoBranchMaster(branchSheet);
+  const values = dataSheet.getLastRow() < 2 ? [] : dataSheet.getRange(2, 1, dataSheet.getLastRow() - 1, DO_DATA_HEADERS.length).getValues();
+  const regionFilter = normalizeDoRegion(filters.region), provinceFilter = String(filters.province || "").trim();
+  const yearFilter = Number(filters.year || 0), monthFilter = Number(filters.month || 0);
+  const periods = {}, regions = {}, provinces = {}, branches = {}, products = {}, allBranches = {}, unresolved = {};
+  let total = 0;
+  values.forEach(function(row) {
+    const year = Number(row[1] || 0), month = Number(row[2] || 0), branchCode = String(row[4] || "").trim();
+    const branch = master[branchCode] || {};
+    const province = String(branch.province || row[6] || "ยังไม่ระบุ").trim();
+    const region = normalizeDoRegion(branch.region || row[7] || "ยังไม่ระบุ");
+    const quantity = Number(row[10] || 0);
+    if (year && month) periods[year + "|" + month] = { year: year, month: month, label: getDoMonthName(month) + " " + (year + 543) };
+    if (yearFilter && year !== yearFilter) return;
+    if (monthFilter && month !== monthFilter) return;
+    if (regionFilter && region !== regionFilter) return;
+    if (provinceFilter && province !== provinceFilter) return;
+    total += quantity; allBranches[branchCode] = true;
+    if (province === "ยังไม่ระบุ" || region === "ยังไม่ระบุ") unresolved[branchCode] = true;
+    if (!regions[region]) regions[region] = { region: region, quantity: 0, provinces: {}, branches: {} };
+    regions[region].quantity += quantity; regions[region].provinces[province] = true; regions[region].branches[branchCode] = true;
+    const provinceKey = region + "|" + province;
+    if (!provinces[provinceKey]) provinces[provinceKey] = { province: province, region: region, quantity: 0, branches: {} };
+    provinces[provinceKey].quantity += quantity; provinces[provinceKey].branches[branchCode] = true;
+    if (!branches[branchCode]) branches[branchCode] = { branchCode: branchCode, branchName: String(branch.name || row[5] || ""), province: province, region: region, quantity: 0 };
+    branches[branchCode].quantity += quantity;
+    const productCode = String(row[8] || "");
+    if (!products[productCode]) products[productCode] = { productCode: productCode, productName: String(row[9] || ""), quantity: 0 };
+    products[productCode].quantity += quantity;
+  });
+  const regionRows = Object.keys(regions).map(function(key) { const item = regions[key]; return { region: item.region, quantity: item.quantity, provinceCount: Object.keys(item.provinces).length, branchCount: Object.keys(item.branches).length }; }).sort(function(a, b) { return b.quantity - a.quantity; });
+  const provinceRows = Object.keys(provinces).map(function(key) { const item = provinces[key]; return { province: item.province, region: item.region, quantity: item.quantity, branchCount: Object.keys(item.branches).length }; }).sort(function(a, b) { return b.quantity - a.quantity; });
+  const branchRows = Object.keys(branches).map(function(key) { return branches[key]; }).sort(function(a, b) { return b.quantity - a.quantity; }).slice(0, 50);
+  const productRows = Object.keys(products).map(function(key) { return products[key]; }).sort(function(a, b) { return b.quantity - a.quantity; }).slice(0, 20);
+  return {
+    totalQuantity: total, branchCount: Object.keys(allBranches).length,
+    provinceCount: provinceRows.length, productCount: Object.keys(products).length,
+    unresolvedBranchCount: Object.keys(unresolved).length,
+    periods: Object.keys(periods).map(function(key) { return periods[key]; }).sort(function(a, b) { return b.year - a.year || b.month - a.month; }),
+    regions: regionRows, provinces: provinceRows, topBranches: branchRows, topProducts: productRows,
+    spreadsheetUrl: spreadsheet.getUrl(),
+  };
+}
+
+function getDoMonthName(month) {
+  return ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"][Number(month || 0)] || "";
 }

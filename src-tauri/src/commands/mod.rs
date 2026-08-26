@@ -3,6 +3,7 @@ pub mod connection_credentials;
 pub mod daily_so;
 pub mod monthly_sales;
 pub mod do_delivery;
+pub mod do_branch_master;
 pub mod doll_summary;
 pub mod express_summary;
 pub mod google_sheet_editor;
