@@ -14,6 +14,7 @@ from .constants import (
     WAREHOUSE_PRIORITY,
 )
 from .models import PoPreview
+from .normalizers import normalize_product_name
 from .pdf_parser import parse_pdf
 from .product_matcher import match_products
 from .template_reader import read_template
@@ -27,10 +28,43 @@ class ProcessingError(ValueError):
     pass
 
 
+def _normalize_product_overrides(
+    overrides: dict[str, str],
+    catalog,
+) -> dict[str, str]:
+    valid_names = {
+        product.normalized_name: product.name
+        for product in catalog.data_products
+    }
+    normalized: dict[str, str] = {}
+
+    for raw_key, raw_name in overrides.items():
+        key = str(raw_key or "").strip()
+        target_key = normalize_product_name(raw_name)
+        target_name = valid_names.get(target_key)
+
+        if not key or not target_name:
+            continue
+
+        if key.startswith("barcode:"):
+            source = key.partition(":")[2].strip()
+            if source:
+                normalized[f"barcode:{source}"] = target_name
+        elif key.startswith("name:"):
+            source = normalize_product_name(
+                key.partition(":")[2],
+            )
+            if source:
+                normalized[f"name:{source}"] = target_name
+
+    return normalized
+
+
 def build_preview(
     pdf_path: str | Path,
     template_path: str | Path,
     start_iv: str,
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     iv_number = _validate_start_iv(
         start_iv,
@@ -65,6 +99,10 @@ def build_preview(
         int,
     )
 
+    normalized_product_overrides = _normalize_product_overrides(
+        product_overrides or {},
+        catalog,
+    )
     previews = []
     assigned_sheets: set[str] = set()
 
@@ -194,6 +232,7 @@ def build_preview(
             document.items,
             target_sheet,
             catalog,
+            normalized_product_overrides,
         )
 
         unmatched_count = sum(
@@ -288,6 +327,14 @@ def build_preview(
         "unused_sheets": (
             unused_sheets
         ),
+        "product_options": [
+            {"name": name}
+            for name in dict.fromkeys(
+                product.name
+                for products in catalog.sheet_products.values()
+                for product in products
+            )
+        ],
         "records": preview_rows,
     }
 
@@ -301,11 +348,13 @@ def process_files(
         str,
         int | float,
     ] | None = None,
+    product_overrides: dict[str, str] | None = None,
 ) -> dict:
     preview = build_preview(
         pdf_path,
         template_path,
         start_iv,
+        product_overrides,
     )
 
     if (

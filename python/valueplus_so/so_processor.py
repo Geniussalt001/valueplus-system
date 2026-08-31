@@ -540,6 +540,91 @@ def _read_template_products(
         workbook.close()
 
 
+def upsert_template_product(
+    template_path: str | Path,
+    item_code: str,
+    item_name: str,
+    price: float | None = None,
+) -> dict:
+    path = _validate_file(
+        template_path,
+        ".xlsx",
+        "ไม่พบไฟล์ Data-SO.Import.xlsx",
+    )
+    code = str(item_code or "").strip().upper()
+    name = " ".join(str(item_name or "").split())
+
+    if not re.fullmatch(r"\d{2}-\d{4}-\d{2}", code):
+        raise DailySoError(
+            "รหัส Express ต้องอยู่ในรูปแบบ 01-0000-00",
+        )
+    if not name:
+        raise DailySoError("กรุณาระบุชื่อสินค้า")
+
+    workbook = load_workbook(path, data_only=False)
+    try:
+        if "data" not in workbook.sheetnames:
+            raise DailySoError("Template ไม่มีชีต data")
+
+        sheet = workbook["data"]
+        target_row = None
+        for row_number in range(2, sheet.max_row + 1):
+            current_code = str(
+                sheet.cell(row_number, 5).value or "",
+            ).strip().upper()
+            if current_code == code:
+                target_row = row_number
+                break
+
+        created = target_row is None
+        if target_row is None:
+            target_row = sheet.max_row + 1
+            for row_number in range(2, sheet.max_row + 1):
+                current_code = str(
+                    sheet.cell(row_number, 5).value or "",
+                ).strip().upper()
+                if code.startswith("01-") and current_code and not current_code.startswith("01-"):
+                    target_row = row_number
+                    sheet.insert_rows(target_row, 1)
+                    break
+
+            style_row = max(2, target_row - 1)
+            for column in range(1, sheet.max_column + 1):
+                source = sheet.cell(style_row, column)
+                target = sheet.cell(target_row, column)
+                if source.has_style:
+                    target._style = copy(source._style)
+                target.number_format = source.number_format
+                target.alignment = copy(source.alignment)
+                target.font = copy(source.font)
+                target.fill = copy(source.fill)
+                target.border = copy(source.border)
+
+        sheet.cell(target_row, 5).value = code
+        sheet.cell(target_row, 6).value = name
+        if price is not None:
+            sheet.cell(target_row, 8).value = float(price)
+
+        backup = path.with_name(
+            f"{path.stem}.backup-before-product-setup{path.suffix}",
+        )
+        if not backup.exists():
+            shutil.copy2(path, backup)
+
+        workbook.save(path)
+        return {
+            "item_code": code,
+            "item_name": name,
+            "price": price,
+            "row_number": target_row,
+            "created": created,
+            "template_path": str(path),
+            "backup_path": str(backup),
+        }
+    finally:
+        workbook.close()
+
+
 def _build_preview(
     pdf_path: Path,
     template_path: Path,

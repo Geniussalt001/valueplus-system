@@ -5,6 +5,7 @@ import sys
 from valueplus_so import (
     preview_daily_so,
     process_daily_so,
+    upsert_template_product,
 )
 
 
@@ -15,15 +16,16 @@ def main() -> int:
         ),
     )
 
-    parser.add_argument(
-        "--pdf",
-        required=True,
-    )
+    parser.add_argument("--pdf", default="")
 
     parser.add_argument(
         "--template",
         required=True,
     )
+    parser.add_argument("--setup-product", action="store_true")
+    parser.add_argument("--item-code", default="")
+    parser.add_argument("--item-name", default="")
+    parser.add_argument("--price", type=float)
 
     parser.add_argument(
         "--output-folder",
@@ -53,6 +55,19 @@ def main() -> int:
     arguments = parser.parse_args()
 
     try:
+        if arguments.setup_product:
+            result = upsert_template_product(
+                arguments.template,
+                arguments.item_code,
+                arguments.item_name,
+                arguments.price,
+            )
+            print(json.dumps({"success": True, "data": result}, ensure_ascii=True))
+            return 0
+
+        if not arguments.pdf:
+            raise ValueError("กรุณาระบุไฟล์ PDF")
+
         warehouse_overrides = json.loads(
             arguments.warehouse_overrides_json,
         )

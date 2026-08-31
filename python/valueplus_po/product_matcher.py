@@ -9,6 +9,7 @@ def match_products(
     items: list[PdfItem],
     target_sheet: str,
     catalog: TemplateCatalog,
+    product_overrides: dict[str, str] | None = None,
 ) -> list[ProductMatch]:
     data_by_key = defaultdict(list)
     for product in catalog.data_products:
@@ -27,6 +28,13 @@ def match_products(
     results = []
     for (key, barcode), group in aggregated.items():
         first_item = group["items"][0]
+        override_name = (product_overrides or {}).get(
+            f"barcode:{barcode}",
+        ) or (product_overrides or {}).get(
+            f"name:{key}",
+        )
+        if override_name:
+            key = normalize_product_name(override_name)
         data_candidates = data_by_key.get(key, [])
         target_candidates = target_by_key.get(key, [])
 
@@ -34,6 +42,7 @@ def match_products(
             results.append(
                 ProductMatch(
                     barcode=barcode,
+                    cpall_code=barcode if len(barcode) == 7 else "",
                     pdf_name=first_item.pdf_name,
                     data_name=None,
                     target_name=None,
@@ -54,6 +63,7 @@ def match_products(
             results.append(
                 ProductMatch(
                     barcode=barcode,
+                    cpall_code=barcode if len(barcode) == 7 else "",
                     pdf_name=first_item.pdf_name,
                     data_name=data_candidates[0].name,
                     target_name=None,
@@ -78,6 +88,7 @@ def match_products(
         results.append(
             ProductMatch(
                 barcode=barcode,
+                cpall_code=barcode if len(barcode) == 7 else "",
                 pdf_name=first_item.pdf_name,
                 data_name=matching_data.name,
                 target_name=target.name,
@@ -88,4 +99,3 @@ def match_products(
         )
 
     return sorted(results, key=lambda item: item.excel_row or 999)
-

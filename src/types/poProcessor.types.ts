@@ -5,6 +5,7 @@ export type PoProcessingStatus =
 
 export interface PoProductMatch {
   barcode: string;
+  cpall_code: string;
   pdf_name: string;
   data_name: string | null;
   target_name: string | null;
@@ -39,6 +40,9 @@ export interface PoPreviewResult {
   review_count: number;
   error_count: number;
   unused_sheets: string[];
+  product_options: Array<{
+    name: string;
+  }>;
   records: PoPreviewRecord[];
   output_path?: string;
 }
@@ -53,6 +57,8 @@ export interface PoProcessorInput {
   outputPath?: string;
   quantityOverrides?:
     PoQuantityOverrides;
+  productOverrides?:
+    Record<string, string>;
 }
 
 export interface DailyPickingPaths {

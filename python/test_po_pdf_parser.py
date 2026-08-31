@@ -17,11 +17,47 @@ from valueplus_common.cpall_pdf import (
 )
 
 from valueplus_po.template_reader import (
+    TemplateCatalog,
+    TemplateProduct,
     read_template,
 )
+from valueplus_po.models import PdfItem
+from valueplus_po.normalizers import normalize_product_name
+from valueplus_po.product_matcher import match_products
 
 
 class PoPdfParserTest(unittest.TestCase):
+    def test_saved_mapping_matches_a_different_pdf_product_name(self):
+        name = "ยูมิยูมิ เค้กรูปอุ้งเท้าแมว 50 กรัม"
+        product = TemplateProduct(
+            name=name,
+            normalized_name=normalize_product_name(name),
+            row=28,
+        )
+        catalog = TemplateCatalog(
+            sheet_names={"Data", "มหาชัย(1)"},
+            data_products=[product],
+            sheet_products={"มหาชัย(1)": [product]},
+        )
+        item = PdfItem(
+            line_number=1,
+            barcode="6002929",
+            pdf_name="เนโกะพุดดิ้งเค้ก UM 50 G.",
+            quantity=10,
+            page_number=1,
+        )
+
+        matches = match_products(
+            [item],
+            "มหาชัย(1)",
+            catalog,
+            {"barcode:6002929": name},
+        )
+
+        self.assertTrue(matches[0].matched)
+        self.assertEqual(matches[0].excel_row, 28)
+        self.assertEqual(matches[0].cpall_code, "6002929")
+
     def test_template_reads_products_beyond_legacy_row_26(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "template.xlsx"

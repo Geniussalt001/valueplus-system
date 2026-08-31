@@ -21,6 +21,15 @@ pub struct DailySoInput {
     product_overrides: Option<Value>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DailySoProductSetupInput {
+    template_path: String,
+    item_code: String,
+    item_name: String,
+    price: Option<f64>,
+}
+
 #[derive(
     Debug,
     Deserialize,
@@ -81,6 +90,65 @@ pub async fn process_daily_so(
             error,
         )
     })?
+}
+
+#[tauri::command]
+pub async fn setup_daily_so_product(
+    input: DailySoProductSetupInput,
+) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        validate_file(
+            &input.template_path,
+            "xlsx",
+            "ไม่พบไฟล์ Data-SO.Import.xlsx",
+        )?;
+
+        let mut command = engine_command(
+            "daily-so",
+            "daily_so_cli.py",
+        )?;
+        command
+            .arg("--template")
+            .arg(&input.template_path)
+            .arg("--setup-product")
+            .arg("--item-code")
+            .arg(input.item_code.trim())
+            .arg("--item-name")
+            .arg(input.item_name.trim());
+
+        if let Some(price) = input.price {
+            command.arg("--price").arg(price.to_string());
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            command.creation_flags(0x08000000);
+        }
+
+        let output = command.output().map_err(|error| {
+            format!("ไม่สามารถเปิด Daily SO Engine ได้: {}", error)
+        })?;
+        let text = if output.stdout.is_empty() {
+            String::from_utf8_lossy(&output.stderr).trim().to_string()
+        } else {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        };
+        let response: PythonResponse = serde_json::from_str(&text)
+            .map_err(|error| format!("อ่านผลตั้งค่าสินค้าไม่สำเร็จ: {}\n{}", error, text))?;
+
+        if !output.status.success() || !response.success {
+            return Err(response.message.unwrap_or_else(|| {
+                "ตั้งค่าสินค้า Daily SO ไม่สำเร็จ".to_string()
+            }));
+        }
+
+        response.data.ok_or_else(|| {
+            "Python ไม่ได้ส่งข้อมูลสินค้ากลับมา".to_string()
+        })
+    })
+    .await
+    .map_err(|error| format!("ระบบตั้งค่าสินค้าหยุดทำงาน: {}", error))?
 }
 
 fn validate_input(

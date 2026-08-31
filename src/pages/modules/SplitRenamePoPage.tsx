@@ -1,5 +1,7 @@
 import {
   useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 import {
@@ -10,7 +12,19 @@ import {
   PencilLine,
   Printer,
   ScanSearch,
+  PackagePlus,
 } from "lucide-react";
+
+import {
+  ProductSetupModal,
+} from "../../components/split-rename-po/ProductSetupModal";
+import type {
+  ProductSetupForm,
+} from "../../components/split-rename-po/ProductSetupModal";
+import type { PoProductMatch } from "../../types/poProcessor.types";
+import { dailySoService } from "../../services/dailySoService";
+import { salesBillingService } from "../../services/salesBillingService";
+import { productCatalogService } from "../../services/productCatalogService";
 
 import {
   FileUploadCard,
@@ -70,6 +84,114 @@ export function SplitRenamePoPage({
   const busy =
     processor.activity !==
     "idle";
+  const [setupItem, setSetupItem] = useState<PoProductMatch | null>(null);
+  const [savingSetup, setSavingSetup] = useState(false);
+
+  const previewProducts = useMemo(() => {
+    const products = new Map<string, PoProductMatch>();
+    for (const record of processor.preview?.records ?? []) {
+      for (const item of record.items) {
+        const key = `${item.barcode}|${item.pdf_name}`;
+        const current = products.get(key);
+        if (!current || (!item.matched && current.matched)) {
+          products.set(key, item);
+        }
+      }
+    }
+    return Array.from(products.values());
+  }, [processor.preview]);
+
+  async function saveProductSetup(form: ProductSetupForm) {
+    if (!setupItem || savingSetup) return;
+    setSavingSetup(true);
+    try {
+      const price = form.price.trim() ? Number(form.price) : undefined;
+      if (price !== undefined && (!Number.isFinite(price) || price < 0)) {
+        throw new Error("ราคาสินค้าไม่ถูกต้อง");
+      }
+
+      const catalog = await productCatalogService.list();
+      const existing = catalog.find(
+        (product) => product.product_code === form.expressCode,
+      );
+      if (
+        existing &&
+        existing.display_name.trim() !== form.displayName.trim() &&
+        !window.confirm(
+          `รหัส ${form.expressCode} มีสินค้า “${existing.display_name}” อยู่แล้ว\n\nต้องการเปลี่ยนชื่อเป็น “${form.displayName.trim()}” และใช้กับสินค้านี้หรือไม่?`,
+        )
+      ) {
+        return;
+      }
+
+      await processor.validateProductAssignment(
+        setupItem,
+        form.templateName,
+      );
+
+      const soPaths = await dailySoService.getPaths();
+
+      await dailySoService.setupProduct({
+        templatePath: soPaths.templatePath,
+        itemCode: form.expressCode,
+        itemName: form.displayName.trim(),
+        price,
+      });
+
+      await salesBillingService.saveProductMapping({
+        cpallCode: form.cpallCode,
+        barcode: setupItem.barcode.length === 13 ? setupItem.barcode : "",
+        pdfName: setupItem.pdf_name,
+        expressCode: form.expressCode,
+      });
+
+      if (existing) {
+        await productCatalogService.update({
+          productCode: form.expressCode,
+          displayName: form.displayName.trim(),
+          lineName: form.lineName.trim(),
+          displayOrder: existing.display_order,
+        });
+        if (!existing.active) {
+          await productCatalogService.setActive(
+            form.expressCode,
+            true,
+          );
+        }
+      } else {
+        await productCatalogService.create({
+          productCode: form.expressCode,
+          displayName: form.displayName.trim(),
+          lineName: form.lineName.trim(),
+          active: true,
+        });
+      }
+
+      persistDailySoAssignment(
+        setupItem,
+        form.cpallCode,
+        form.expressCode,
+      );
+      await processor.saveProductAssignment(
+        setupItem,
+        form.templateName,
+      );
+      setSetupItem(null);
+      showAppToast({
+        tone: "success",
+        title: "ตั้งค่าสินค้าใหม่เรียบร้อยแล้ว",
+        message: `${form.expressCode} — ${form.displayName}`,
+      });
+    } catch (reason) {
+      showAppToast({
+        tone: "error",
+        title: "ตั้งค่าสินค้าไม่สำเร็จ",
+        message: String(reason),
+      });
+    } finally {
+      setSavingSetup(false);
+    }
+  }
 
   useEffect(() => {
     if (!processor.success) {
@@ -103,6 +225,14 @@ export function SplitRenamePoPage({
         activity={
           processor.activity
         }
+      />
+
+      <ProductSetupModal
+        item={setupItem}
+        productNames={(processor.preview?.product_options ?? []).map((item) => item.name)}
+        saving={savingSetup}
+        onClose={() => setSetupItem(null)}
+        onSave={(form) => { void saveProductSetup(form); }}
       />
 
       <PickingAdjustmentModal
@@ -609,6 +739,26 @@ export function SplitRenamePoPage({
             }
           />
 
+          {previewProducts.length > 0 && (
+            <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-slate-800">
+              <div className="flex items-center gap-3">
+                <PackagePlus className="text-amber-600" size={22} />
+                <div>
+                  <h3 className="font-semibold">ตั้งค่าสินค้าและรหัส Express</h3>
+                  <p className="mt-1 text-xs text-slate-600">เลือกสินค้าใหม่เพื่อตั้งชื่อและรหัส Express ครั้งเดียว สินค้าที่รอตรวจสอบต้องตั้งค่าให้ครบก่อนสร้างไฟล์</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                {previewProducts.map((item) => (
+                  <button key={`${item.barcode}|${item.pdf_name}`} type="button" disabled={busy} onClick={() => setSetupItem(item)} className="flex items-center justify-between rounded-xl border border-amber-200 bg-white p-4 text-left hover:border-amber-400 disabled:opacity-50">
+                    <span><span className="block text-sm font-semibold">{item.pdf_name}</span><span className="mt-1 block text-xs text-slate-500">CPALL/Barcode {item.barcode || "-"} • {item.matched ? "จับคู่ใบจัดแล้ว" : "รอตรวจสอบ"}</span></span>
+                    <span className={`rounded-lg px-3 py-2 text-xs font-semibold text-white ${item.matched ? "bg-cyan-600" : "bg-amber-500"}`}>{item.matched ? "ตั้งค่า Express" : "ตั้งค่าสินค้า"}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {processor.preview
             .unused_sheets
             .length > 0 && (
@@ -649,4 +799,23 @@ export function SplitRenamePoPage({
       )}
     </div>
   );
+}
+
+function persistDailySoAssignment(
+  item: PoProductMatch,
+  cpallCode: string,
+  expressCode: string,
+) {
+  const key = "valueplus.daily-so.product-assignments.v1";
+  let assignments: Record<string, string> = {};
+  try {
+    const saved = window.localStorage.getItem(key);
+    if (saved) assignments = JSON.parse(saved) as Record<string, string>;
+  } catch {
+    assignments = {};
+  }
+  assignments[`name:${item.pdf_name}`] = expressCode;
+  if (item.barcode) assignments[`barcode:${item.barcode}`] = expressCode;
+  if (cpallCode) assignments[`barcode:${cpallCode}`] = expressCode;
+  window.localStorage.setItem(key, JSON.stringify(assignments));
 }

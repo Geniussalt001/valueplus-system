@@ -137,6 +137,18 @@ export const dailySoService = {
     );
   },
 
+  async setupProduct(input: {
+    templatePath: string;
+    itemCode: string;
+    itemName: string;
+    price?: number;
+  }): Promise<void> {
+    await invoke(
+      "setup_daily_so_product",
+      { input },
+    );
+  },
+
   async openFolder(
     folderPath: string,
   ): Promise<void> {

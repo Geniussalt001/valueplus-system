@@ -12,6 +12,7 @@ from valueplus_so.so_processor import (
     TemplateProduct,
     _build_preview,
     _write_group_workbook,
+    upsert_template_product,
 )
 
 from valueplus_common import (
@@ -20,6 +21,34 @@ from valueplus_common import (
 
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_upserts_new_product_into_daily_so_template(self):
+        with tempfile.TemporaryDirectory() as folder:
+            template_path = Path(folder) / "Data-SO.Import.xlsx"
+            workbook = Workbook()
+            workbook.active.title = "Sheet1"
+            data = workbook.create_sheet("data")
+            data.cell(2, 5).value = "01-0000-37"
+            data.cell(2, 6).value = "สินค้าเดิม"
+            data.cell(3, 5).value = "09-0000-01"
+            data.cell(3, 6).value = "สินค้าอื่น"
+            workbook.save(template_path)
+
+            result = upsert_template_product(
+                template_path,
+                "01-0000-39",
+                "ยูมิยูมิ เค้กรูปอุ้งเท้าแมว 50 กรัม",
+                14.09,
+            )
+
+            saved = load_workbook(template_path, data_only=False)
+            try:
+                self.assertTrue(result["created"])
+                self.assertEqual(saved["data"].cell(3, 5).value, "01-0000-39")
+                self.assertEqual(saved["data"].cell(3, 8).value, 14.09)
+                self.assertEqual(saved["data"].cell(4, 5).value, "09-0000-01")
+            finally:
+                saved.close()
+
     def test_uses_saved_mapping_for_a_new_pdf_product_name(self):
         product = TemplateProduct(
             item_code="01-0000-39",

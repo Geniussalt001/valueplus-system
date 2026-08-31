@@ -17,6 +17,11 @@ def main() -> int:
         help="ข้อมูลตัดยอดสินค้าในรูปแบบ JSON",
     )
     parser.add_argument(
+        "--product-overrides-json",
+        default="{}",
+        help="ข้อมูลจับคู่สินค้าในรูปแบบ JSON",
+    )
+    parser.add_argument(
         "--preview",
         action="store_true",
         help="วิเคราะห์และแสดง Preview โดยยังไม่สร้าง Excel",
@@ -24,8 +29,19 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        product_overrides = json.loads(
+            args.product_overrides_json,
+        )
+        if not isinstance(product_overrides, dict):
+            raise ValueError("ข้อมูลจับคู่สินค้าต้องเป็น Object")
+
         if args.preview:
-            result = build_preview(args.pdf, args.template, args.start_iv)
+            result = build_preview(
+                args.pdf,
+                args.template,
+                args.start_iv,
+                product_overrides,
+            )
         else:
             if not args.output:
                 parser.error("ต้องระบุ --output เมื่อไม่ได้ใช้ --preview")
@@ -47,6 +63,7 @@ def main() -> int:
                 args.start_iv,
                 args.output,
                 quantity_overrides=quantity_overrides,
+                product_overrides=product_overrides,
             )
 
         print(json.dumps({"success": True, "data": result}, ensure_ascii=True))

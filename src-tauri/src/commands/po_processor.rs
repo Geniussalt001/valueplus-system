@@ -18,6 +18,7 @@ pub struct PoProcessorInput {
     start_iv: String,
     output_path: Option<String>,
     quantity_overrides: Option<Value>,
+    product_overrides: Option<Value>,
 }
 
 #[derive(
@@ -122,6 +123,12 @@ fn validate_input(
         }
     }
 
+    if let Some(product_overrides) = &input.product_overrides {
+        if !product_overrides.is_object() {
+            return Err("ข้อมูลจับคู่สินค้าไม่ถูกต้อง".to_string());
+        }
+    }
+
     Ok(())
 }
 
@@ -170,6 +177,15 @@ fn run_python(
         .arg(
             &input.start_iv,
         );
+
+    let product_overrides = input
+        .product_overrides
+        .clone()
+        .unwrap_or_else(|| Value::Object(serde_json::Map::new()));
+
+    command
+        .arg("--product-overrides-json")
+        .arg(product_overrides.to_string());
 
     if preview_only {
         command.arg(

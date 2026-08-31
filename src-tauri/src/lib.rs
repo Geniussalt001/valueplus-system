@@ -5,6 +5,7 @@ mod python_engine;
 use commands::daily_so::{
     preview_daily_so,
     process_daily_so,
+    setup_daily_so_product,
 };
 
 use commands::apps_script_outbox::{
@@ -155,6 +156,7 @@ pub fn run() {
                 process_express_summary,
                 preview_daily_so,
                 process_daily_so,
+                setup_daily_so_product,
                 preview_receivables_freight,
                 process_receivables_freight,
                 preview_monthly_sales,

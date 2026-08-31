@@ -5,9 +5,14 @@ import { poProcessorService } from "../services/poProcessorService";
 import { showAppToast } from "../services/appToast";
 
 import type {
+  PoProductMatch,
   PoPreviewResult,
   PoQuantityOverrides,
 } from "../types/poProcessor.types";
+
+type ProductAssignments = Record<string, string>;
+const productAssignmentsStorageKey =
+  "valueplus.daily-picking.product-assignments.v1";
 
 import {
   poQuantityOverrideKey,
@@ -53,6 +58,8 @@ export function usePoProcessor() {
   ] = useState<
     PoQuantityOverrides
   >({});
+  const [productAssignments, setProductAssignments] =
+    useState<ProductAssignments>(loadProductAssignments);
 
   useEffect(() => {
     let active = true;
@@ -171,6 +178,7 @@ export function usePoProcessor() {
           pdfPath,
           templatePath,
           startIv,
+          productOverrides: productAssignments,
         });
 
       setPreview(result);
@@ -208,6 +216,7 @@ export function usePoProcessor() {
           startIv,
           outputPath: paths.outputPath,
           quantityOverrides,
+          productOverrides: productAssignments,
         });
 
       setPreview(result);
@@ -240,6 +249,76 @@ export function usePoProcessor() {
       );
     } catch (requestError) {
       setError(getErrorMessage(requestError));
+    }
+  }
+
+  async function saveProductAssignment(
+    item: PoProductMatch,
+    templateName: string,
+  ) {
+    const nextAssignments: ProductAssignments = {
+      ...productAssignments,
+      [`name:${item.pdf_name}`]: templateName,
+    };
+    if (item.barcode) {
+      nextAssignments[`barcode:${item.barcode}`] = templateName;
+    }
+
+    setActivity("previewing");
+    setError("");
+    try {
+      const result = await poProcessorService.preview({
+        pdfPath,
+        templatePath,
+        startIv,
+        productOverrides: nextAssignments,
+      });
+      setProductAssignments(nextAssignments);
+      window.localStorage.setItem(
+        productAssignmentsStorageKey,
+        JSON.stringify(nextAssignments),
+      );
+      setPreview(result);
+      setSuccess("บันทึกการจับคู่สินค้าแล้ว");
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+      throw requestError;
+    } finally {
+      setActivity("idle");
+    }
+  }
+
+  async function validateProductAssignment(
+    item: PoProductMatch,
+    templateName: string,
+  ) {
+    const candidateAssignments: ProductAssignments = {
+      ...productAssignments,
+      [`name:${item.pdf_name}`]: templateName,
+    };
+    if (item.barcode) {
+      candidateAssignments[`barcode:${item.barcode}`] = templateName;
+    }
+    const result = await poProcessorService.preview({
+      pdfPath,
+      templatePath,
+      startIv,
+      productOverrides: candidateAssignments,
+    });
+    const occurrences = result.records.flatMap(
+      (record) => record.items.filter(
+        (candidate) =>
+          candidate.barcode === item.barcode &&
+          candidate.pdf_name === item.pdf_name,
+      ),
+    );
+    if (
+      occurrences.length === 0 ||
+      occurrences.some((candidate) => !candidate.matched)
+    ) {
+      throw new Error(
+        "สินค้าที่เลือกยังไม่มีในชีตคลังปลายทางครบทุก PO กรุณาเพิ่มสินค้าใน Template ใบจัดก่อน",
+      );
     }
   }
 
@@ -410,6 +489,7 @@ export function usePoProcessor() {
     printModalOpen,
     adjustmentModalOpen,
     quantityOverrides,
+    productAssignments,
     hasQuantityOverrides:
       Object.keys(
         quantityOverrides,
@@ -422,6 +502,8 @@ export function usePoProcessor() {
     buildPreview,
     exportWorkbook,
     openSavedFolder,
+    saveProductAssignment,
+    validateProductAssignment,
     openAdjustmentModal,
     closeAdjustmentModal,
     setQuantityOverride,
@@ -431,6 +513,21 @@ export function usePoProcessor() {
     closePrintModal,
     printWorkbook,
   };
+}
+
+function loadProductAssignments(): ProductAssignments {
+  try {
+    const value = window.localStorage.getItem(
+      productAssignmentsStorageKey,
+    );
+    if (!value) return {};
+    const parsed: unknown = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as ProductAssignments
+      : {};
+  } catch {
+    return {};
+  }
 }
 
 function getSingleDocumentDate(

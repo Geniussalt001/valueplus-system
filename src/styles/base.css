@@ -276,3 +276,12 @@ button {
     background: rgb(3 16 31 / 92%);
   }
 }
+.vp-product-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  color: #0f172a;
+  outline: none;
+}

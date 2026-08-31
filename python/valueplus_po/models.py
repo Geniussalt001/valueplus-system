@@ -23,6 +23,7 @@ class PoDocument:
 @dataclass
 class ProductMatch:
     barcode: str
+    cpall_code: str
     pdf_name: str
     data_name: str | None
     target_name: str | None
@@ -50,4 +51,3 @@ class PoPreview:
         result["matched_count"] = sum(item.matched for item in self.items)
         result["item_count"] = len(self.items)
         return result
-
