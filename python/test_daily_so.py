@@ -100,6 +100,66 @@ class DailySoWorkbookTest(unittest.TestCase):
             ],
         )
 
+    def test_cpall_code_keeps_strawberry_separate_from_blueberry(self):
+        products = [
+            TemplateProduct(
+                item_code="01-0000-24",
+                item_name="ยูมิยูมิ บลูเบอร์รี่เค้ก 52 กรัม",
+                price=9.76,
+                row_number=2,
+                normalized_name="บลูเบอร์รี่เค้ก",
+            ),
+            TemplateProduct(
+                item_code="01-0000-40",
+                item_name="ยูมิยูมิ ซอฟท์เค้กวิทสตอเบอร์รี่ฟิลลิ่ง 52 กรัม",
+                price=9.76,
+                row_number=3,
+                normalized_name="ซอฟท์เค้กวิทสตอเบอร์รี่ฟิลลิ่ง",
+            ),
+        ]
+        documents = [
+            PdfDocument(
+                po_number="B012600040",
+                document_date="02/09/2026",
+                warehouse="สำโรง",
+                items=[
+                    PdfItem(
+                        barcode="6002634",
+                        pdf_name="Hบลูเบอร์รี่เค้กUM 52.00 G.",
+                        quantity=10,
+                        price=9.76,
+                        page_number=1,
+                    ),
+                    PdfItem(
+                        barcode="6002953",
+                        pdf_name="Hสตรอเบอร์รี่เค้กUM 52.00 G.",
+                        quantity=20,
+                        price=9.76,
+                        page_number=1,
+                    ),
+                ],
+            ),
+        ]
+
+        result = _build_preview(
+            pdf_path=Path("input.pdf"),
+            template_path=Path("template.xlsx"),
+            documents=documents,
+            template_products=products,
+            warehouse_overrides={},
+        )
+
+        records = {
+            record["item_code"]: record
+            for record in result["groups"][0]["records"]
+        }
+        self.assertEqual(records["01-0000-24"]["quantity"], 10)
+        self.assertEqual(records["01-0000-24"]["barcodes"], ["6002634"])
+        self.assertEqual(records["01-0000-40"]["quantity"], 20)
+        self.assertEqual(records["01-0000-40"]["barcodes"], ["6002953"])
+        self.assertEqual(records["01-0000-40"]["match_method"], "barcode")
+        self.assertEqual(result["error_count"], 0)
+
     def test_reads_large_quantities_wrapped_by_cpall_pdf(self):
         cases = [
             ("13,330", ".00", 13330.0),
