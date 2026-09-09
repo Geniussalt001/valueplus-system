@@ -25,7 +25,7 @@ const RECEIVABLES_CONFIG = {
   ],
 };
 
-function saveCreditNotesMonthly(input) {
+function saveCreditNotesMonthlyFreeFormV2(input) {
   const records =
     input && Array.isArray(input.records)
       ? input.records
@@ -39,7 +39,7 @@ function saveCreditNotesMonthly(input) {
 
   const normalized =
     records.map(
-      normalizeCreditNoteRecord,
+      normalizeCreditNoteRecordFreeFormV2,
     );
 
   const period =
@@ -206,7 +206,7 @@ function saveCreditNotesMonthly(input) {
   }
 }
 
-function normalizeCreditNoteRecord(
+function normalizeCreditNoteRecordFreeFormV2(
   record,
 ) {
   const creditNoteNumber =
@@ -272,13 +272,13 @@ function normalizeCreditNoteRecord(
     );
 
   const appliedInvoice =
-    normalizeAppliedInvoice(
+    normalizeAppliedInvoiceFreeFormV2(
       record.applied_invoice,
     );
 
   if (!appliedInvoice) {
     throw new Error(
-      "กรุณาระบุ Inv. ที่ใช้ลดหนี้ให้ถูกต้อง: " +
+      "กรุณากรอก Inv. ที่ใช้ลดหนี้ [FREEFORM-V2]: " +
         creditNoteNumber,
     );
   }
@@ -313,7 +313,7 @@ function normalizeCreditNoteInvoice(
     .replace(/\s+/g, "");
 }
 
-function normalizeAppliedInvoice(
+function normalizeAppliedInvoiceFreeFormV2(
   value,
 ) {
   return String(value || "").trim();
@@ -368,7 +368,7 @@ function readExistingCreditNotes(
             row[4],
           ),
         appliedInvoice:
-          normalizeAppliedInvoice(
+          normalizeAppliedInvoiceFreeFormV2(
             row[5],
           ),
       };

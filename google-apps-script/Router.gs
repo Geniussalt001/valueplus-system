@@ -291,11 +291,13 @@ function doPost(event) {
         break;
 
       case "receivables.saveCreditNotes":
+      case "receivables.saveCreditNotes":
+      case "receivables.saveCreditNotesV2":
         requireOfficeOrHeadOfficeSession(
           session,
         );
         data =
-          saveCreditNotesMonthly(
+          saveCreditNotesMonthlyFreeFormV2(
             request.data,
           );
         break;
@@ -516,6 +518,7 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "monthlySales.saveSnapshot",
   "doDelivery.save",
   "doDelivery.saveMaster",
+  "receivables.saveCreditNotesV2",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",
@@ -552,6 +555,7 @@ const PERSISTENT_REPLAY_ACTIONS = [
   "monthlySales.saveSnapshot",
   "doDelivery.save",
   "doDelivery.saveMaster",
+  "receivables.saveCreditNotesV2",
   "receivables.saveCreditNotes",
   "receivables.archiveUpdate",
   "worldwide.upload",

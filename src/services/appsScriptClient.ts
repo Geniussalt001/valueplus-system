@@ -102,7 +102,7 @@ export const APPS_SCRIPT_SYNC_COMPLETED_EVENT =
   "valueplus-apps-script-sync-completed";
 
 const appsScriptApiUrl =
-  "https://script.google.com/macros/s/AKfycbzfx8fhFPMV5n-gKkUf1kxupVPkF8TNlWYqIhh6K7nu6rqoF_g-KHsDOdddhjv75VxV/exec";
+  "https://script.google.com/macros/s/AKfycby85dFFXEJ1kOwl4xlWsBiHyNk6uBhUtlM2bLm55cswf8Cy8tbO6L90_c7ia21RV20b/exec";
 
 const developmentApiToken =
   import.meta.env
@@ -577,7 +577,7 @@ const queueableMutationActions =
     "archive.registerUpload",
     "receivables.saveMonthly",
     "monthlySales.saveSnapshot",
-    "receivables.saveCreditNotes",
+    "receivables.saveCreditNotesV2",
     "receivables.archiveUpdate",
     "worldwide.upload",
     "worldwide.acknowledge",

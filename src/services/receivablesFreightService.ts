@@ -188,7 +188,7 @@ export const receivablesFreightService = {
     return callAppsScript<
       ReceivablesMonthlySheetResult
     >(
-      "receivables.saveCreditNotes",
+      "receivables.saveCreditNotesV2",
       {
         records: records.map(
           (record) => {
