@@ -102,7 +102,7 @@ export const APPS_SCRIPT_SYNC_COMPLETED_EVENT =
   "valueplus-apps-script-sync-completed";
 
 const appsScriptApiUrl =
-  "https://script.google.com/macros/s/AKfycbyWfv89ZvnV5XAEAyramIwIVQSa8R3-O062VEaMBbFUyZq_NcECw-cMv-BZGiuNGTld/exec";
+  "https://script.google.com/macros/s/AKfycbzlh6rDUGKAJ5jWSELmpiHXd-5QlNQtcYc5XQ0Bmf28GtgqZnQjQxMJ8XfNytm24vXn/exec";
 
 const developmentApiToken =
   import.meta.env

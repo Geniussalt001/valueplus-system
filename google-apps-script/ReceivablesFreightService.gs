@@ -266,11 +266,6 @@ function normalizeCreditNoteRecordFreeFormV2(
     );
   }
 
-  const referenceInvoice =
-    normalizeCreditNoteInvoice(
-      record.reference_invoice,
-    );
-
   const appliedInvoice =
     normalizeAppliedInvoiceFreeFormV2(
       record.applied_invoice,
@@ -291,7 +286,7 @@ function normalizeCreditNoteRecordFreeFormV2(
     customer: customer,
     amount: amount,
     referenceInvoice:
-      referenceInvoice,
+      appliedInvoice,
     appliedInvoice:
       appliedInvoice,
     month: parsedDate.month,
