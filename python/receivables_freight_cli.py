@@ -336,7 +336,15 @@ def parse_credit_note_records(csv_path, template_url):
             "customer": customer,
             "amount": amount or 0,
             "reference_invoice": reference_invoice,
-            "applied_invoice": reference_invoice,
+            "applied_invoice": (
+                applied_invoices[0]
+                if len(applied_invoices) == 1
+                else (
+                    reference_invoice
+                    if reference_invoice.startswith("VPR")
+                    else ""
+                )
+            ),
             "status": status,
             "message": ", ".join(issues),
         })
@@ -450,7 +458,7 @@ def export_credit_note_workbook(result, template_url, output_path):
                 record["customer"],
                 record["amount"],
                 record["reference_invoice"],
-                record["reference_invoice"],
+                record["applied_invoice"],
                 -abs(record["amount"]),
             )
 

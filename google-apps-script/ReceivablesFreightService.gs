@@ -105,16 +105,33 @@ function saveCreditNotesMonthly(input) {
     );
 
     const inserted = [];
+    const updated = [];
     const duplicates = [];
 
     normalized.forEach(
       function (record) {
-        if (
+        const existingRecord =
           existingByNumber[
             record.creditNoteNumber
-          ]
-        ) {
-          duplicates.push(
+          ];
+
+        if (existingRecord) {
+          if (
+            creditNoteRecordsEqual(
+              existingRecord,
+              record,
+            )
+          ) {
+            duplicates.push(
+              record.creditNoteNumber,
+            );
+            return;
+          }
+
+          existingByNumber[
+            record.creditNoteNumber
+          ] = record;
+          updated.push(
             record.creditNoteNumber,
           );
           return;
@@ -163,6 +180,8 @@ function saveCreditNotesMonthly(input) {
         normalized.length,
       insertedCount:
         inserted.length,
+      updatedCount:
+        updated.length,
       duplicateCount:
         duplicates.length,
       duplicates: duplicates,
@@ -249,9 +268,20 @@ function normalizeCreditNoteRecord(
 
   const referenceInvoice =
     normalizeCreditNoteInvoice(
-      record.reference_invoice ||
-        record.applied_invoice,
+      record.reference_invoice,
     );
+
+  const appliedInvoice =
+    normalizeCreditNoteInvoice(
+      record.applied_invoice,
+    );
+
+  if (!/^VPR\d+$/.test(appliedInvoice)) {
+    throw new Error(
+      "กรุณาระบุ Inv. ที่ใช้ลดหนี้ให้ถูกต้อง: " +
+        creditNoteNumber,
+    );
+  }
 
   return {
     date:
@@ -263,7 +293,7 @@ function normalizeCreditNoteRecord(
     referenceInvoice:
       referenceInvoice,
     appliedInvoice:
-      referenceInvoice,
+      appliedInvoice,
     month: parsedDate.month,
     buddhistYear:
       parsedDate.buddhistYear,
@@ -329,11 +359,11 @@ function readExistingCreditNotes(
           ),
         referenceInvoice:
           normalizeCreditNoteInvoice(
-            row[4] || row[5],
+            row[4],
           ),
         appliedInvoice:
           normalizeCreditNoteInvoice(
-            row[4] || row[5],
+            row[5],
           ),
       };
     });
@@ -359,6 +389,19 @@ function compareCreditNoteRecords(
 
   return (
     firstNumber - secondNumber
+  );
+}
+
+function creditNoteRecordsEqual(
+  first,
+  second,
+) {
+  return (
+    first.date === second.date &&
+    first.customer === second.customer &&
+    Number(first.amount) === Number(second.amount) &&
+    first.referenceInvoice === second.referenceInvoice &&
+    first.appliedInvoice === second.appliedInvoice
   );
 }
 
@@ -424,7 +467,7 @@ function writeCreditNoteRows(
             record.customer,
             record.amount,
             record.referenceInvoice,
-            record.referenceInvoice,
+            record.appliedInvoice,
             -Math.abs(record.amount),
           ];
         },

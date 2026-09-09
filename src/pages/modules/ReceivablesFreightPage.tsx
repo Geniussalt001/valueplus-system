@@ -70,15 +70,19 @@ export function ReceivablesFreightPage({
   const [success, setSuccess] =
     useState("");
 
+  const isCreditNoteMode =
+    mode === "credit-notes";
+
   const canExport = Boolean(
     result &&
       result.record_count > 0 &&
       result.review_count === 0 &&
-      result.error_count === 0,
+      result.error_count === 0 &&
+      (!isCreditNoteResult(result) ||
+        result.records.every((record) =>
+          isValidAppliedInvoice(record.applied_invoice),
+        )),
   );
-
-  const isCreditNoteMode =
-    mode === "credit-notes";
 
   function switchMode(
     nextMode: ReceivablesMode,
@@ -188,6 +192,11 @@ export function ReceivablesFreightPage({
                 : " IV"
             }เดิม ${saved.duplicateCount.toLocaleString()} รายการ (ไม่บันทึกซ้ำ)`
           : "";
+      const updatedNote =
+        isCreditNoteMode &&
+        (saved.updatedCount ?? 0) > 0
+          ? ` · แก้ไขใบลดหนี้เดิม ${(saved.updatedCount ?? 0).toLocaleString()} รายการ`
+          : "";
 
       setSuccess(
         `${saved.created ? "สร้าง" : "อัปเดต"} ${saved.spreadsheetName} เรียบร้อย · เพิ่ม ${saved.insertedCount.toLocaleString()} ${
@@ -198,7 +207,7 @@ export function ReceivablesFreightPage({
           isCreditNoteMode
             ? ""
             : ` · เว้น IV ที่ยังไม่มี ${saved.missingCount.toLocaleString()} ตำแหน่ง`
-        }${duplicateNote}`,
+        }${updatedNote}${duplicateNote}`,
       );
     } catch (requestError) {
       if (
@@ -639,8 +648,17 @@ function CreditNoteTable({
                 }}
                 placeholder="คีย์เลข VPR ด้วยตนเอง"
                 aria-label={`Inv. ที่ใช้ลดหนี้ ${record.credit_note_number}`}
-                className="h-10 w-full rounded-lg border border-blue-200 bg-white px-3 font-medium uppercase text-blue-700 outline-none transition placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={`h-10 w-full rounded-lg border bg-white px-3 font-medium uppercase outline-none transition placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:ring-2 ${
+                  isValidAppliedInvoice(record.applied_invoice)
+                    ? "border-blue-200 text-blue-700 focus:border-blue-500 focus:ring-blue-100"
+                    : "border-red-300 text-red-700 focus:border-red-500 focus:ring-red-100"
+                }`}
               />
+              {!isValidAppliedInvoice(record.applied_invoice) && (
+                <p className="mt-1 text-[11px] text-red-600">
+                  กรุณากรอกเลข VPR ที่ใช้ลดหนี้จริงก่อนบันทึก
+                </p>
+              )}
             </td>
             <td className="px-4 py-3">
               <StatusBadge status={record.status} message={record.message} />
@@ -729,6 +747,14 @@ function normalizeManualInvoice(
     .toUpperCase()
     .replace(/^IV(?=VPR)/, "")
     .replace(/\s+/g, "");
+}
+
+function isValidAppliedInvoice(
+  value: string,
+) {
+  return /^VPR\d+$/.test(
+    normalizeManualInvoice(value),
+  );
 }
 
 function Stat({

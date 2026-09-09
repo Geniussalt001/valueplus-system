@@ -188,8 +188,11 @@ export const receivablesFreightService = {
           (record) => {
             const referenceInvoice =
               normalizeCreditNoteInvoice(
-                record.reference_invoice ||
-                  record.applied_invoice,
+                record.reference_invoice,
+              );
+            const appliedInvoice =
+              normalizeCreditNoteInvoice(
+                record.applied_invoice,
               );
 
             return {
@@ -201,7 +204,7 @@ export const receivablesFreightService = {
               reference_invoice:
                 referenceInvoice,
               applied_invoice:
-                referenceInvoice,
+                appliedInvoice,
             };
           },
         ),

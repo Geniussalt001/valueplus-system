@@ -89,6 +89,7 @@ export const poArchiveService = {
     }
 
     let uploadedFileId = "";
+    let preparedFolderId = "";
 
     try {
       const metadata =
@@ -132,6 +133,9 @@ export const poArchiveService = {
         return prepared.result;
       }
 
+      preparedFolderId =
+        prepared.folderId;
+
       const uploaded =
         await uploadPdfWithGateway(
           input.path,
@@ -169,6 +173,8 @@ export const poArchiveService = {
           input.warehouse,
         fileId:
           uploadedFileId,
+        folderId:
+          preparedFolderId,
       },
     );
   },

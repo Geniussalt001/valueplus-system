@@ -272,54 +272,63 @@ function preparePoArchiveUpload(
     );
   }
 
-  const poNumber =
-    normalizeText(
-      input.poNumber,
-    );
-  const duplicateRow =
-    findArchiveRowByPoNumber(
-      poNumber,
-    );
+  const prepareLock =
+    LockService.getScriptLock();
 
-  if (duplicateRow) {
+  prepareLock.waitLock(30000);
+
+  try {
+    const poNumber =
+      normalizeText(
+        input.poNumber,
+      );
+    const duplicateRow =
+      findArchiveRowByPoNumber(
+        poNumber,
+      );
+
+    if (duplicateRow) {
+      return {
+        status: "duplicate",
+        result:
+          createArchiveDuplicateResult(
+            duplicateRow,
+          ),
+      };
+    }
+
+    const documentDate =
+      parseArchiveDate(
+        input.documentDate,
+      );
+    const destinationFolder =
+      getArchiveDestinationFolder(
+        documentDate,
+      );
+    const fileName =
+      sanitizeFileName(
+        input.fileName,
+      );
+    const duplicateFiles =
+      destinationFolder
+        .getFilesByName(fileName);
+
+    if (duplicateFiles.hasNext()) {
+      throw new Error(
+        "พบชื่อไฟล์ซ้ำใน Google Drive: " +
+          fileName,
+      );
+    }
+
     return {
-      status: "duplicate",
-      result:
-        createArchiveDuplicateResult(
-          duplicateRow,
-        ),
+      status: "ready",
+      folderId:
+        destinationFolder.getId(),
+      fileName: fileName,
     };
+  } finally {
+    prepareLock.releaseLock();
   }
-
-  const documentDate =
-    parseArchiveDate(
-      input.documentDate,
-    );
-  const destinationFolder =
-    getArchiveDestinationFolder(
-      documentDate,
-    );
-  const fileName =
-    sanitizeFileName(
-      input.fileName,
-    );
-  const duplicateFiles =
-    destinationFolder
-      .getFilesByName(fileName);
-
-  if (duplicateFiles.hasNext()) {
-    throw new Error(
-      "พบชื่อไฟล์ซ้ำใน Google Drive: " +
-        fileName,
-    );
-  }
-
-  return {
-    status: "ready",
-    folderId:
-      destinationFolder.getId(),
-    fileName: fileName,
-  };
 }
 
 function registerPoArchiveUpload(
@@ -330,7 +339,8 @@ function registerPoArchiveUpload(
     !input ||
     !input.fileId ||
     !input.poNumber ||
-    !input.documentDate
+    !input.documentDate ||
+    !input.folderId
   ) {
     throw new Error(
       "ข้อมูลยืนยันไฟล์อัปโหลดไม่ครบถ้วน",
@@ -360,17 +370,15 @@ function registerPoArchiveUpload(
     );
   }
 
-  const expectedFolder =
-    getArchiveDestinationFolder(
-      documentDate,
-    );
+  const expectedFolderId =
+    String(input.folderId);
   let belongsToFolder = false;
   const parents = file.getParents();
 
   while (parents.hasNext()) {
     if (
       parents.next().getId() ===
-      expectedFolder.getId()
+      expectedFolderId
     ) {
       belongsToFolder = true;
       break;

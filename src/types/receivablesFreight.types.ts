@@ -54,6 +54,7 @@ export interface ReceivablesMonthlySheetResult {
   created: boolean;
   sourceCount: number;
   insertedCount: number;
+  updatedCount?: number;
   duplicateCount: number;
   duplicates: string[];
   missingCount: number;
