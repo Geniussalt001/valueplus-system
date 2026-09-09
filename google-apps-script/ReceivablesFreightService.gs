@@ -272,11 +272,11 @@ function normalizeCreditNoteRecord(
     );
 
   const appliedInvoice =
-    normalizeCreditNoteInvoice(
+    normalizeAppliedInvoice(
       record.applied_invoice,
     );
 
-  if (!/^VPR\d+$/.test(appliedInvoice)) {
+  if (!appliedInvoice) {
     throw new Error(
       "กรุณาระบุ Inv. ที่ใช้ลดหนี้ให้ถูกต้อง: " +
         creditNoteNumber,
@@ -311,6 +311,12 @@ function normalizeCreditNoteInvoice(
       "",
     )
     .replace(/\s+/g, "");
+}
+
+function normalizeAppliedInvoice(
+  value,
+) {
+  return String(value || "").trim();
 }
 
 function readExistingCreditNotes(
@@ -362,7 +368,7 @@ function readExistingCreditNotes(
             row[4],
           ),
         appliedInvoice:
-          normalizeCreditNoteInvoice(
+          normalizeAppliedInvoice(
             row[5],
           ),
       };

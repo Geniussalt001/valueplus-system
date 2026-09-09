@@ -646,9 +646,9 @@ function CreditNoteTable({
                     event.target.value,
                   );
                 }}
-                placeholder="คีย์เลข VPR ด้วยตนเอง"
+                placeholder="กรอก Inv. ที่ใช้ลดหนี้"
                 aria-label={`Inv. ที่ใช้ลดหนี้ ${record.credit_note_number}`}
-                className={`h-10 w-full rounded-lg border bg-white px-3 font-medium uppercase outline-none transition placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:ring-2 ${
+                className={`h-10 w-full rounded-lg border bg-white px-3 font-medium outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:ring-2 ${
                   isValidAppliedInvoice(record.applied_invoice)
                     ? "border-blue-200 text-blue-700 focus:border-blue-500 focus:ring-blue-100"
                     : "border-red-300 text-red-700 focus:border-red-500 focus:ring-red-100"
@@ -656,7 +656,7 @@ function CreditNoteTable({
               />
               {!isValidAppliedInvoice(record.applied_invoice) && (
                 <p className="mt-1 text-[11px] text-red-600">
-                  กรุณากรอกเลข VPR ที่ใช้ลดหนี้จริงก่อนบันทึก
+                  กรุณากรอก Inv. ที่ใช้ลดหนี้ก่อนบันทึก
                 </p>
               )}
             </td>
@@ -742,19 +742,15 @@ function isCreditNoteResult(
 function normalizeManualInvoice(
   value: string,
 ) {
-  return value
-    .trimStart()
-    .toUpperCase()
-    .replace(/^IV(?=VPR)/, "")
-    .replace(/\s+/g, "");
+  return value.trimStart();
 }
 
 function isValidAppliedInvoice(
   value: string,
 ) {
-  return /^VPR\d+$/.test(
-    normalizeManualInvoice(value),
-  );
+  return normalizeManualInvoice(value)
+    .trim()
+    .length > 0;
 }
 
 function Stat({

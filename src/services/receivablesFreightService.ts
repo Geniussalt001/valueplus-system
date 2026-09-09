@@ -85,6 +85,12 @@ function normalizeCreditNoteInvoice(
     .replace(/\s+/g, "");
 }
 
+function normalizeAppliedInvoice(
+  value: string,
+): string {
+  return String(value || "").trim();
+}
+
 export const receivablesFreightService = {
   async selectCsv(): Promise<string | null> {
     const desktopPath =
@@ -191,7 +197,7 @@ export const receivablesFreightService = {
                 record.reference_invoice,
               );
             const appliedInvoice =
-              normalizeCreditNoteInvoice(
+              normalizeAppliedInvoice(
                 record.applied_invoice,
               );
 
