@@ -291,7 +291,6 @@ function doPost(event) {
         break;
 
       case "receivables.saveCreditNotes":
-      case "receivables.saveCreditNotes":
       case "receivables.saveCreditNotesV2":
         requireOfficeOrHeadOfficeSession(
           session,
