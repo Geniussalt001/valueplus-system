@@ -24,6 +24,14 @@ const pdfFilter = [
   },
 ];
 
+export interface SalesBillingProductMapping {
+  cpall_code: string;
+  barcode: string;
+  pdf_name: string;
+  express_code: string;
+  keyword: string;
+}
+
 async function getCatalogPath():
   Promise<string>
 {
@@ -35,6 +43,15 @@ async function getCatalogPath():
 }
 
 export const salesBillingService = {
+  async listProductMappings(): Promise<SalesBillingProductMapping[]> {
+    const catalogPath = await getCatalogPath();
+
+    return invoke<SalesBillingProductMapping[]>(
+      "list_sales_billing_products",
+      { catalogPath },
+    );
+  },
+
   async selectPdf(): Promise<string | null> {
     const selected = await open({
       multiple: false,

@@ -1348,6 +1348,9 @@ export function DailyPickingPage({
                 logs.length === 0
               }
               className="
+                daily-picking-clear-log
+                vp-action-button
+                vp-action-danger
                 flex
                 items-center
                 gap-1.5

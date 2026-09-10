@@ -14,7 +14,10 @@ from valueplus_billing.express_plan import assign_iv_numbers
 from valueplus_billing.models import ProductItem, PurchaseOrder
 from valueplus_billing.product_database import ProductDatabase
 from valueplus_billing.runtime_paths import product_db_path
-from valueplus_billing.product_mapping_store import save_product_mapping
+from valueplus_billing.product_mapping_store import (
+    load_product_mappings,
+    save_product_mapping,
+)
 
 
 def write_json(payload: dict[str, Any]) -> None:
@@ -328,6 +331,9 @@ def build_parser() -> argparse.ArgumentParser:
     mapping_parser.add_argument("--pdf-name", required=True)
     mapping_parser.add_argument("--express-code", required=True)
 
+    list_mappings_parser = subparsers.add_parser("list-products")
+    list_mappings_parser.add_argument("--catalog", required=True)
+
     execute_parser = subparsers.add_parser("execute")
     execute_parser.add_argument("--request", required=True)
     execute_parser.add_argument("--control", required=True)
@@ -355,6 +361,11 @@ def main() -> int:
                 pdf_name=args.pdf_name,
                 express_code=args.express_code,
             )
+            write_json({"success": True, "data": data})
+            return 0
+
+        if args.command == "list-products":
+            data = load_product_mappings(Path(args.catalog))
             write_json({"success": True, "data": data})
             return 0
 

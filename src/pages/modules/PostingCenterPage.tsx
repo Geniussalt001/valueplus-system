@@ -4,10 +4,8 @@ import type {
 import {
   ArrowLeft,
   ArrowRight,
-  CalendarRange,
   FileSpreadsheet,
   Globe2,
-  MapPinned,
   HandCoins,
   Layers3,
 } from "lucide-react";
@@ -45,22 +43,6 @@ const postingMenus = [
     description: "บันทึกเลข IV, PO, SO และไฟล์ PDF พร้อมติดตามการตอบรับ",
     icon: Globe2,
     color: "#7560b8",
-  },
-  {
-    route: "do-delivery" as const,
-    title: "วิเคราะห์ยอดจัดส่ง DO",
-    subtitle: "DO DELIVERY ANALYTICS",
-    description: "นำเข้าใบคุมส่งสินค้า วิเคราะห์คลัง สายรถ สาขา พื้นที่ และสินค้า",
-    icon: MapPinned,
-    color: "#0f8f82",
-  },
-  {
-    route: "monthly-sales-posting" as const,
-    title: "ลงยอดขายรายเดือน",
-    subtitle: "MONTHLY SALES POSTING",
-    description: "พื้นที่สำหรับรวบรวม ตรวจสอบ และบันทึกยอดขายประจำเดือน",
-    icon: CalendarRange,
-    color: "#c87917",
   },
 ];
 

@@ -655,6 +655,81 @@ body {
   transform: translateY(-1px) !important;
 }
 
+/* High-contrast controls for the bright workspace theme. */
+.dashboard button.daily-picking-clear-log {
+  border-color: #d53a50 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #b51632, #d53a50) !important;
+  box-shadow: 0 7px 17px rgb(181 22 50 / 16%) !important;
+}
+
+.dashboard button.daily-picking-clear-log * {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+.dashboard button.daily-picking-clear-log:hover:not(:disabled) {
+  border-color: #981e33 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #981e33, #c72e48) !important;
+}
+
+.dashboard button.daily-picking-clear-log:disabled {
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  background: #e2e8f0 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
+
+.dashboard button.express-csv-upload {
+  border-color: #2369d8 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #174b9b, #2369d8) !important;
+  box-shadow: 0 9px 22px rgb(35 105 216 / 20%) !important;
+}
+
+.dashboard button.express-csv-upload .express-csv-upload-title,
+.dashboard button.express-csv-upload .express-csv-upload-path {
+  color: #ffffff !important;
+}
+
+.dashboard button.express-csv-upload .express-csv-upload-icon {
+  border-color: rgb(255 255 255 / 34%) !important;
+  color: #174b9b !important;
+  background: #ffffff !important;
+}
+
+.dashboard button.express-csv-upload:hover:not(:disabled) {
+  border-color: #12366f !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #12366f, #1f5fc5) !important;
+}
+
+.dashboard button.express-csv-process-button {
+  border-color: #087d65 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #087d65, #0aa985) !important;
+  box-shadow: 0 9px 22px rgb(10 169 133 / 19%) !important;
+}
+
+.dashboard button.express-csv-process-button,
+.dashboard button.express-csv-process-button * {
+  color: #ffffff !important;
+  stroke: currentColor !important;
+}
+
+.dashboard button.express-csv-process-button:hover:not(:disabled) {
+  border-color: #066451 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #066451, #078b70) !important;
+}
+
+.dashboard button.express-csv-upload:disabled,
+.dashboard button.express-csv-process-button:disabled {
+  opacity: 0.62 !important;
+}
+
 .dashboard button.vp-next-process,
 .dashboard button.vp-action-wms {
   border-color: #5f54ad !important;
@@ -710,6 +785,17 @@ body {
   background-position: center !important;
 }
 
+.login-hybrid::after {
+  position: absolute;
+  inset: -25%;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 30%, rgb(35 105 216 / 10%), transparent 18%),
+    radial-gradient(circle at 88% 76%, rgb(181 22 50 / 9%), transparent 20%);
+  animation: login-ambient-drift 12s ease-in-out infinite alternate;
+}
+
 .login-hybrid-vignette {
   background:
     linear-gradient(
@@ -732,6 +818,7 @@ body {
   box-shadow:
     0 30px 80px rgb(20 35 60 / 14%),
     inset 0 1px 0 #ffffff !important;
+  animation: login-card-arrive 700ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
 }
 
 .login-hybrid-card::before {
@@ -778,6 +865,62 @@ body {
 
 .login-account-card:nth-child(1) {
   border-left: 4px solid var(--vp-blue) !important;
+}
+
+.login-account-card {
+  position: relative;
+  overflow: hidden;
+  animation: login-option-arrive 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.login-account-card:nth-child(1) { animation-delay: 300ms; }
+.login-account-card:nth-child(2) { animation-delay: 390ms; }
+
+.login-account-card::after {
+  position: absolute;
+  top: -80%;
+  left: -35%;
+  width: 28%;
+  height: 260%;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 78%), transparent);
+  opacity: 0;
+  transform: rotate(18deg);
+}
+
+.login-account-card:hover::after {
+  opacity: 1;
+  animation: login-card-shine 750ms ease-out;
+}
+
+.login-hybrid .status-light {
+  animation: login-ready-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes login-card-arrive {
+  from { opacity: 0; transform: translateY(22px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes login-option-arrive {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes login-ambient-drift {
+  from { transform: translate3d(-1.5%, -1%, 0) scale(0.98); }
+  to { transform: translate3d(1.5%, 1%, 0) scale(1.04); }
+}
+
+@keyframes login-card-shine {
+  from { left: -35%; }
+  to { left: 125%; }
+}
+
+@keyframes login-ready-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(16 185 129 / 24%); }
+  50% { box-shadow: 0 0 0 7px rgb(16 185 129 / 0%); }
 }
 
 .login-account-card:nth-child(2) {
@@ -937,10 +1080,17 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-hybrid,
+  .login-hybrid::after,
+  .login-hybrid-card,
+  .login-account-card,
+  .login-account-card:hover::after,
+  .login-hybrid .status-light,
   .dashboard-metric,
   .module-card,
   .sidebar-item,
   .top-module-button {
     transition: none !important;
+    animation: none !important;
   }
 }

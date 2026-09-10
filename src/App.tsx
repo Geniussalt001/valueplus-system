@@ -80,11 +80,6 @@ import {
 } from "./pages/modules/PostingCenterPage";
 
 import {
-  MonthlySalesPostingPage,
-} from "./pages/modules/MonthlySalesPostingPage";
-import { DoDeliveryPage } from "./pages/modules/DoDeliveryPage";
-
-import {
   startAppsScriptOutboxSync,
 } from "./services/appsScriptClient";
 
@@ -364,16 +359,6 @@ function App() {
             onBack={backToPostingCenter}
           />
         );
-
-      case "monthly-sales-posting":
-        return (
-          <MonthlySalesPostingPage
-            onBack={backToPostingCenter}
-          />
-        );
-
-      case "do-delivery":
-        return <DoDeliveryPage onBack={backToPostingCenter} />;
 
       case "po-data":
         return (

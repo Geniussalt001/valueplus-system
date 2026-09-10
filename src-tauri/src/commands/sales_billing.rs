@@ -146,6 +146,44 @@ pub async fn save_sales_billing_product(
 }
 
 #[tauri::command]
+pub async fn list_sales_billing_products(
+    catalog_path: String,
+) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if catalog_path.trim().is_empty() {
+            return Err("ไม่พบตำแหน่งฐานข้อมูลสินค้า".to_string());
+        }
+
+        let output = engine_command("sales-billing", "sales_billing_cli.py")?
+            .arg("list-products")
+            .arg("--catalog")
+            .arg(catalog_path.trim())
+            .output()
+            .map_err(|error| format!("อ่านรายการสินค้าที่ตั้งค่าแล้วไม่สำเร็จ: {}", error))?;
+
+        let text = if output.stdout.is_empty() {
+            String::from_utf8_lossy(&output.stderr).trim().to_string()
+        } else {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        };
+        let response: PythonResponse = serde_json::from_str(&text)
+            .map_err(|error| format!("อ่านผลรายการสินค้าไม่สำเร็จ: {}\n{}", error, text))?;
+
+        if !output.status.success() || !response.success {
+            return Err(response
+                .message
+                .unwrap_or_else(|| "อ่านรายการสินค้าที่ตั้งค่าแล้วไม่สำเร็จ".to_string()));
+        }
+
+        response
+            .data
+            .ok_or_else(|| "ระบบไม่ได้ส่งรายการสินค้ากลับมา".to_string())
+    })
+    .await
+    .map_err(|error| format!("ระบบอ่านรายการสินค้าหยุดทำงาน: {}", error))?
+}
+
+#[tauri::command]
 pub async fn run_sales_billing(
     app: AppHandle,
     input: SalesBillingRunInput,

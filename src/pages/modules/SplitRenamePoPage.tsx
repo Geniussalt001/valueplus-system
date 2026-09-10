@@ -24,6 +24,7 @@ import type {
 import type { PoProductMatch } from "../../types/poProcessor.types";
 import { dailySoService } from "../../services/dailySoService";
 import { salesBillingService } from "../../services/salesBillingService";
+import type { SalesBillingProductMapping } from "../../services/salesBillingService";
 import { productCatalogService } from "../../services/productCatalogService";
 
 import {
@@ -86,6 +87,21 @@ export function SplitRenamePoPage({
     "idle";
   const [setupItem, setSetupItem] = useState<PoProductMatch | null>(null);
   const [savingSetup, setSavingSetup] = useState(false);
+  const [configuredProducts, setConfiguredProducts] = useState<SalesBillingProductMapping[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    void salesBillingService.listProductMappings()
+      .then((products) => {
+        if (active) setConfiguredProducts(products);
+      })
+      .catch(() => {
+        // The setup list remains usable if the local catalog is unavailable.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const previewProducts = useMemo(() => {
     const products = new Map<string, PoProductMatch>();
@@ -98,8 +114,12 @@ export function SplitRenamePoPage({
         }
       }
     }
-    return Array.from(products.values());
-  }, [processor.preview]);
+    return Array.from(products.values()).filter(
+      (item) => !configuredProducts.some(
+        (product) => productMatchesPreviewItem(product, item),
+      ),
+    );
+  }, [configuredProducts, processor.preview]);
 
   async function saveProductSetup(form: ProductSetupForm) {
     if (!setupItem || savingSetup) return;
@@ -144,6 +164,17 @@ export function SplitRenamePoPage({
         pdfName: setupItem.pdf_name,
         expressCode: form.expressCode,
       });
+
+      setConfiguredProducts((current) => [
+        ...current.filter((product) => !productMatchesPreviewItem(product, setupItem)),
+        {
+          cpall_code: form.cpallCode,
+          barcode: setupItem.barcode.length === 13 ? setupItem.barcode : "",
+          pdf_name: setupItem.pdf_name,
+          express_code: form.expressCode,
+          keyword: setupItem.pdf_name,
+        },
+      ]);
 
       if (existing) {
         await productCatalogService.update({
@@ -745,7 +776,7 @@ export function SplitRenamePoPage({
                 <PackagePlus className="text-amber-600" size={22} />
                 <div>
                   <h3 className="font-semibold">ตั้งค่าสินค้าและรหัส Express</h3>
-                  <p className="mt-1 text-xs text-slate-600">เลือกสินค้าใหม่เพื่อตั้งชื่อและรหัส Express ครั้งเดียว สินค้าที่รอตรวจสอบต้องตั้งค่าให้ครบก่อนสร้างไฟล์</p>
+                  <p className="mt-1 text-xs text-slate-600">แสดงเฉพาะสินค้าที่ยังตั้งค่าไม่ครบ เมื่อตั้งค่าใบจัดและรหัส Express แล้วรายการจะหายอัตโนมัติ</p>
                 </div>
               </div>
               <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -798,6 +829,22 @@ export function SplitRenamePoPage({
         </section>
       )}
     </div>
+  );
+}
+
+function normalizedProductName(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("th");
+}
+
+function productMatchesPreviewItem(
+  product: SalesBillingProductMapping,
+  item: PoProductMatch,
+) {
+  const itemCodes = [item.cpall_code, item.barcode].filter(Boolean);
+  return (
+    itemCodes.includes(product.cpall_code) ||
+    (Boolean(product.barcode) && itemCodes.includes(product.barcode)) ||
+    normalizedProductName(product.pdf_name) === normalizedProductName(item.pdf_name)
   );
 }
 
