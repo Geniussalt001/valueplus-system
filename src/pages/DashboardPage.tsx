@@ -14,6 +14,7 @@ import {
 import {
   ProductSpotlight,
 } from "../components/dashboard/ProductSpotlight";
+import { AppVersionBadge } from "../components/common/AppVersionBadge";
 
 import {
   systemModules,
@@ -67,7 +68,7 @@ export function DashboardPage({
 
   const workspaceTitle =
     workspaceScope === "retail"
-      ? "ระบบงานฝั่ง Retail"
+      ? "ระบบงานคลังสินค้า Warehouse"
       : "ระบบงานสำนักงานใหญ่";
 
   const WorkspaceIcon =
@@ -87,16 +88,19 @@ export function DashboardPage({
 
   return (
     <div className="dashboard-home mx-auto max-w-[1600px] px-5 py-6 lg:px-8 lg:py-8">
-      <section className="dashboard-heading mb-6">
-        <p className="text-[10px] font-semibold tracking-[0.22em] text-blue-600">
-          VALUEPLUS CONTROL CENTER
-        </p>
-        <h2 className="mt-2 text-2xl font-bold tracking-[-0.02em] lg:text-3xl">
-          Dashboard ภาพรวม
-        </h2>
-        <p className="mt-1.5 text-sm text-slate-500">
-          ภาพรวมระบบงาน เอกสาร และสถานะการให้บริการ
-        </p>
+      <section className="dashboard-heading mb-6 flex items-start justify-between gap-5">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.22em] text-blue-600">
+            VALUEPLUS CONTROL CENTER
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-[-0.02em] lg:text-3xl">
+            Dashboard ภาพรวม
+          </h2>
+          <p className="mt-1.5 text-sm text-slate-500">
+            ภาพรวมระบบงาน เอกสาร และสถานะการให้บริการ
+          </p>
+        </div>
+        <AppVersionBadge className="dashboard-version-badge" />
       </section>
 
       <ProductSpotlight />

@@ -27,7 +27,7 @@ function getDisplayLocation(
     .toUpperCase();
 
   if (userCode === "OFFICE") {
-    return "Office";
+    return "Warehouse";
   }
 
   if (userCode === "HEADOFFICE") {

@@ -28,6 +28,7 @@ import {
 import {
   IndeterminateProgressBar,
 } from "../components/common/IndeterminateProgressBar";
+import { AppVersionBadge } from "../components/common/AppVersionBadge";
 
 import {
   activateAppsScript,
@@ -44,10 +45,10 @@ interface LoginPageProps {
 const accounts = [
   {
     code: "OFFICE",
-    label: "สำนักงาน",
-    englishLabel: "OFFICE",
+    label: "คลังสินค้า",
+    englishLabel: "WAREHOUSE",
     description:
-      "สำหรับจัดการและประมวลผลงานประจำวัน",
+      "สำหรับจัดการคลังสินค้าและประมวลผลงานประจำวัน",
     icon: Warehouse,
   },
   {
@@ -261,7 +262,7 @@ export function LoginPage({
             </h1>
 
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกส่วนงาน Office หรือ Head Office
+              เลือกส่วนงาน Warehouse หรือ Head Office
               เพื่อเข้าสู่ระบบได้ทันที
             </p>
           </div>
@@ -459,9 +460,10 @@ export function LoginPage({
           )}
 
           <div className="mt-8 flex items-center justify-between gap-4 text-[11px]">
-            <span className="text-slate-500">
-              VALUEPLUS RETAIL CO., LTD.
-            </span>
+            <div className="flex flex-col items-start gap-2">
+              <span className="text-slate-500">VALUEPLUS RETAIL CO., LTD.</span>
+              <AppVersionBadge />
+            </div>
             <span className="flex items-center gap-2.5 font-medium text-emerald-700">
               <span
                 className="status-light status-online"

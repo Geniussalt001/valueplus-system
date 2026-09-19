@@ -912,7 +912,7 @@ function requireOfficeSession(
       "OFFICE"
   ) {
     throw new Error(
-      "เฉพาะฝั่ง Retail เท่านั้นที่บันทึกเอกสารได้",
+      "เฉพาะคลังสินค้า Warehouse เท่านั้นที่บันทึกเอกสารได้",
     );
   }
 }
@@ -935,7 +935,7 @@ function requireOfficeOrHeadOfficeSession(
     userCode !== "HEADOFFICE"
   ) {
     throw new Error(
-      "เฉพาะฝั่ง Retail หรือสำนักงานใหญ่เท่านั้นที่บันทึกลดหนี้ได้",
+      "เฉพาะคลังสินค้า Warehouse หรือสำนักงานใหญ่เท่านั้นที่บันทึกลดหนี้ได้",
     );
   }
 }
