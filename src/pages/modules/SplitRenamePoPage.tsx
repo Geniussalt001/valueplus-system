@@ -13,6 +13,7 @@ import {
   Printer,
   ScanSearch,
   PackagePlus,
+  CheckCircle2,
 } from "lucide-react";
 
 import {
@@ -88,6 +89,7 @@ export function SplitRenamePoPage({
   const [setupItem, setSetupItem] = useState<PoProductMatch | null>(null);
   const [savingSetup, setSavingSetup] = useState(false);
   const [configuredProducts, setConfiguredProducts] = useState<SalesBillingProductMapping[]>([]);
+  const [completingProductKey, setCompletingProductKey] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -103,7 +105,7 @@ export function SplitRenamePoPage({
     };
   }, []);
 
-  const previewProducts = useMemo(() => {
+  const allPreviewProducts = useMemo(() => {
     const products = new Map<string, PoProductMatch>();
     for (const record of processor.preview?.records ?? []) {
       for (const item of record.items) {
@@ -114,12 +116,16 @@ export function SplitRenamePoPage({
         }
       }
     }
-    return Array.from(products.values()).filter(
+    return Array.from(products.values());
+  }, [processor.preview]);
+
+  const previewProducts = useMemo(() => {
+    return allPreviewProducts.filter(
       (item) => !configuredProducts.some(
         (product) => productMatchesPreviewItem(product, item),
       ),
     );
-  }, [configuredProducts, processor.preview]);
+  }, [allPreviewProducts, configuredProducts]);
 
   async function saveProductSetup(form: ProductSetupForm) {
     if (!setupItem || savingSetup) return;
@@ -165,17 +171,6 @@ export function SplitRenamePoPage({
         expressCode: form.expressCode,
       });
 
-      setConfiguredProducts((current) => [
-        ...current.filter((product) => !productMatchesPreviewItem(product, setupItem)),
-        {
-          cpall_code: form.cpallCode,
-          barcode: setupItem.barcode.length === 13 ? setupItem.barcode : "",
-          pdf_name: setupItem.pdf_name,
-          express_code: form.expressCode,
-          keyword: setupItem.pdf_name,
-        },
-      ]);
-
       if (existing) {
         await productCatalogService.update({
           productCode: form.expressCode,
@@ -207,12 +202,27 @@ export function SplitRenamePoPage({
         setupItem,
         form.templateName,
       );
+      const completedItem = setupItem;
+      const completedKey = productPreviewKey(completedItem);
       setSetupItem(null);
+      setCompletingProductKey(completedKey);
       showAppToast({
         tone: "success",
-        title: "ตั้งค่าสินค้าใหม่เรียบร้อยแล้ว",
-        message: `${form.expressCode} — ${form.displayName}`,
+        title: "ตั้งค่าสินค้าเรียบร้อย",
+        message: `บันทึกเข้าฐานข้อมูลแล้ว • ${form.expressCode} — ${form.displayName}`,
       });
+      await waitForProductAnimation();
+      setConfiguredProducts((current) => [
+        ...current.filter((product) => !productMatchesPreviewItem(product, completedItem)),
+        {
+          cpall_code: form.cpallCode,
+          barcode: completedItem.barcode.length === 13 ? completedItem.barcode : "",
+          pdf_name: completedItem.pdf_name,
+          express_code: form.expressCode,
+          keyword: completedItem.pdf_name,
+        },
+      ]);
+      setCompletingProductKey("");
     } catch (reason) {
       showAppToast({
         tone: "error",
@@ -781,12 +791,19 @@ export function SplitRenamePoPage({
               </div>
               <div className="mt-4 grid gap-3 lg:grid-cols-2">
                 {previewProducts.map((item) => (
-                  <button key={`${item.barcode}|${item.pdf_name}`} type="button" disabled={busy} onClick={() => setSetupItem(item)} className="flex items-center justify-between rounded-xl border border-amber-200 bg-white p-4 text-left hover:border-amber-400 disabled:opacity-50">
+                  <button key={productPreviewKey(item)} type="button" disabled={busy || completingProductKey === productPreviewKey(item)} onClick={() => setSetupItem(item)} className={`product-setup-card flex items-center justify-between rounded-xl border border-amber-200 bg-white p-4 text-left hover:border-amber-400 disabled:opacity-50 ${completingProductKey === productPreviewKey(item) ? "product-setup-card-complete" : ""}`}>
                     <span><span className="block text-sm font-semibold">{item.pdf_name}</span><span className="mt-1 block text-xs text-slate-500">CPALL/Barcode {item.barcode || "-"} • {item.matched ? "จับคู่ใบจัดแล้ว" : "รอตรวจสอบ"}</span></span>
-                    <span className={`rounded-lg px-3 py-2 text-xs font-semibold text-white ${item.matched ? "bg-cyan-600" : "bg-amber-500"}`}>{item.matched ? "ตั้งค่า Express" : "ตั้งค่าสินค้า"}</span>
+                    {completingProductKey === productPreviewKey(item) ? <span className="product-setup-complete-label"><CheckCircle2 size={16} /> บันทึกแล้ว</span> : <span className={`rounded-lg px-3 py-2 text-xs font-semibold text-white ${item.matched ? "bg-cyan-600" : "bg-amber-500"}`}>{item.matched ? "ตั้งค่า Express" : "ตั้งค่าสินค้า"}</span>}
                   </button>
                 ))}
               </div>
+            </section>
+          )}
+
+          {allPreviewProducts.length > 0 && previewProducts.length === 0 && (
+            <section className="product-setup-ready rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-900">
+              <CheckCircle2 size={22} />
+              <div><h3 className="font-semibold">สินค้าทั้งหมดพร้อมใช้งาน</h3><p className="mt-1 text-xs text-emerald-700">ตั้งค่าใบจัดและรหัส Express ครบเรียบร้อยแล้ว</p></div>
             </section>
           )}
 
@@ -834,6 +851,14 @@ export function SplitRenamePoPage({
 
 function normalizedProductName(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("th");
+}
+
+function productPreviewKey(item: PoProductMatch) {
+  return `${item.barcode}|${item.pdf_name}`;
+}
+
+function waitForProductAnimation() {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, 520));
 }
 
 function productMatchesPreviewItem(

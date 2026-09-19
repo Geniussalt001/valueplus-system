@@ -76,7 +76,7 @@ function getWorkspaceName(
     .toUpperCase();
 
   if (userCode === "OFFICE") {
-    return "Office";
+    return "Warehouse";
   }
 
   if (userCode === "HEADOFFICE") {
@@ -209,8 +209,8 @@ export function AppLayout({
               >
                 <ShoppingBag size={15} />
                 <span className="top-workspace-copy">
-                  <strong>Retail</strong>
-                  <small>งานหน้าร้าน</small>
+                  <strong>คลังสินค้า</strong>
+                  <small>Warehouse</small>
                 </span>
               </button>
               <button
