@@ -8,6 +8,7 @@ from pathlib import Path
 import pdfplumber
 
 from valueplus_common.cpall_pdf import (
+    CPALL_PO_NUMBER_PATTERN,
     normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
     repair_cpall_extracted_text,
@@ -18,7 +19,9 @@ from .models import ProductItem, PurchaseOrder
 from .product_database import ProductDatabase
 
 
-PO_PATTERN = re.compile(r"\bB\d{9}\b")
+PO_PATTERN = re.compile(
+    rf"\b{CPALL_PO_NUMBER_PATTERN}\b",
+)
 DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{4}|\d{2}))")
 WAREHOUSE_PATTERN = re.compile(
     r"นำส่ง\s*:\s*(WB\d+)\s+(.+?)(?:\s{2,}อ้างถึง|\n)"

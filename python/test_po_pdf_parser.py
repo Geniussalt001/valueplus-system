@@ -8,6 +8,7 @@ from openpyxl import Workbook
 from valueplus_po.pdf_parser import (
     DATE_PATTERN,
     ITEM_PATTERN,
+    PO_PATTERN,
     _normalize_wrapped_decimal_values,
 )
 
@@ -27,6 +28,17 @@ from valueplus_po.product_matcher import match_products
 
 
 class PoPdfParserTest(unittest.TestCase):
+    def test_po_number_accepts_legacy_and_new_alphanumeric_formats(self):
+        legacy = PO_PATTERN.search("เลขที่ : B012600039")
+        new_format = PO_PATTERN.search("เลขที่ : B012A00015")
+
+        self.assertIsNotNone(legacy)
+        self.assertIsNotNone(new_format)
+        assert legacy is not None
+        assert new_format is not None
+        self.assertEqual(legacy.group(1), "B012600039")
+        self.assertEqual(new_format.group(1), "B012A00015")
+
     def test_saved_mapping_matches_a_different_pdf_product_name(self):
         name = "ยูมิยูมิ เค้กรูปอุ้งเท้าแมว 50 กรัม"
         product = TemplateProduct(

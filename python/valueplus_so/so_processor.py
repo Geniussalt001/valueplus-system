@@ -14,6 +14,7 @@ import pdfplumber
 from openpyxl import load_workbook
 
 from valueplus_common import (
+    CPALL_PO_NUMBER_PATTERN,
     normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
     repair_cpall_extracted_text,
@@ -21,7 +22,7 @@ from valueplus_common import (
 
 
 PO_PATTERN = re.compile(
-    r"เลขที่\s*:\s*([A-Z]\d+)",
+    rf"เลขที่\s*:\s*({CPALL_PO_NUMBER_PATTERN})\b",
 )
 
 DATE_PATTERN = re.compile(

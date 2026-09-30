@@ -3,6 +3,9 @@ from __future__ import annotations
 import re
 
 
+CPALL_PO_NUMBER_PATTERN = r"[A-Z][A-Z0-9]{9}"
+
+
 ITEM_ROW_QUANTITY_PATTERN = re.compile(
     r"^(?P<prefix>\s*\d+\s+\d{7}(?:\d{6})?\s+.+?\s+1\s+)"
     r"(?P<quantity>\d[\d,]*)"
