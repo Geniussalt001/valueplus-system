@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 from valueplus_billing.cpall_parser import (
     ITEM_PATTERN,
     NEW_ITEM_PATTERN,
+    PO_PATTERN,
     _parse_number,
 )
 from valueplus_common.cpall_pdf import normalize_wrapped_item_quantities
@@ -22,6 +23,16 @@ from valueplus_billing.runtime_paths import product_db_path
 
 
 class SalesBillingRulesTest(unittest.TestCase):
+    def test_po_number_accepts_legacy_and_new_alphanumeric_formats(self) -> None:
+        self.assertEqual(
+            PO_PATTERN.search("เลขที่ : B012600039").group(0),
+            "B012600039",
+        )
+        self.assertEqual(
+            PO_PATTERN.search("เลขที่ : B012A00015").group(0),
+            "B012A00015",
+        )
+
     def test_increment_iv_keeps_number_width(self) -> None:
         self.assertEqual(increment_iv("VPR6907001", 0), "VPR6907001")
         self.assertEqual(increment_iv("VPR6907001", 24), "VPR6907025")

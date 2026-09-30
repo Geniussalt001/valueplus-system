@@ -5,6 +5,7 @@ from pathlib import Path
 import pdfplumber
 
 from valueplus_common.cpall_pdf import (
+    CPALL_PO_NUMBER_PATTERN,
     normalize_cpall_document_date,
     normalize_wrapped_item_quantities,
     repair_cpall_extracted_text,
@@ -14,7 +15,9 @@ from .models import PdfItem, PoDocument
 from .normalizers import normalize_warehouse
 
 
-PO_PATTERN = re.compile(r"เลขที่\s*:\s*([A-Z]\d+)")
+PO_PATTERN = re.compile(
+    rf"เลขที่\s*:\s*({CPALL_PO_NUMBER_PATTERN})\b",
+)
 DATE_PATTERN = re.compile(r"วันที่\s*:\s*(\d{2}/\d{2}/(?:\d{4}|\d{2}))")
 WAREHOUSE_PATTERN = re.compile(
     r"(?:คลัง|ศูนย์กระจายสินค้า)\s+BDC\s+(.+?)(?:\s+คลังดี|\s+อ้างถึง|\n)",
