@@ -10,6 +10,8 @@ pub struct Branch {
     name: String,
     address: String,
     route: String,
+    #[serde(default)]
+    bdc: String,
 }
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Line {
@@ -17,6 +19,10 @@ pub struct Line {
     name: String,
     quantity: f64,
     unit: String,
+    #[serde(default, rename = "orderedQuantity")]
+    ordered_quantity: Option<f64>,
+    #[serde(default, rename = "packSize")]
+    pack_size: String,
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,6 +33,8 @@ pub struct Note {
     lines: Vec<Line>,
     remark: String,
     prepared_by: String,
+    #[serde(default)]
+    vendor: String,
 }
 #[derive(Default, Deserialize, Serialize)]
 pub struct Store {
@@ -98,6 +106,9 @@ pub fn save_branch_delivery_note(app: tauri::AppHandle, mut note: Note) -> Resul
     if note.lines.is_empty() || note.lines.len() > 240 { return Err("กรุณาระบุสินค้า 1–240 รายการ".into()); }
     if note.remark.chars().count() > 180 || note.prepared_by.chars().count() > 100 { return Err("ข้อความยาวเกินพื้นที่เอกสาร".into()); }
     for line in &note.lines {
+        if line.ordered_quantity.is_some_and(|value| !value.is_finite() || value < 0.0 || value > 999999.0 || (value * 1000.0 - (value * 1000.0).round()).abs() > 0.0001) || line.pack_size.chars().count() > 30 {
+            return Err("กรุณาตรวจจำนวนสั่งและขนาดบรรจุ".into());
+        }
         if line.code.trim().is_empty() || line.name.trim().is_empty() || line.unit.trim().is_empty() || !line.quantity.is_finite() || line.quantity <= 0.0 || line.quantity > 999999.0 || (line.quantity * 1000.0 - (line.quantity * 1000.0).round()).abs() > 0.0001 {
             return Err("กรุณาตรวจรหัสสินค้า ชื่อ จำนวน (ทศนิยมไม่เกิน 3 ตำแหน่ง) และหน่วย".into());
         }
