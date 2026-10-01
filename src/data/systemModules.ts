@@ -14,6 +14,17 @@ import type {
 export const systemModules:
   SystemModule[] = [
     {
+      id: 8,
+      route: "branch-delivery",
+      title: "ใบส่งของสาขา",
+      subtitle: "BRANCH DELIVERY NOTE",
+      description: "เลือกสินค้าจากฐานข้อมูล กรอกจำนวน และออกใบส่งของสาขาไม่มีราคา",
+      icon: ClipboardList,
+      color: "#b32436",
+      status: "online",
+      workspaces: ["retail"],
+    },
+    {
       id: 1,
       route:
         "daily-picking",

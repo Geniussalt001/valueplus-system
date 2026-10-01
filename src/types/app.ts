@@ -8,6 +8,7 @@ export type WorkspaceScope =
 
 export type WorkRoute =
   | "dashboard"
+  | "branch-delivery"
   | "daily-posting"
   | "daily-picking"
   | "daily-so"
