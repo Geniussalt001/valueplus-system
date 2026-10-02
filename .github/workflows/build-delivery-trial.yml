@@ -1,0 +1,166 @@
+name: Build Branch Delivery Trial
+
+on:
+  push:
+    branches:
+      - feature/branch-delivery-note
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trial:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "11.13.1"
+          run_install: false
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build bundled ValuePlus Engine
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r python/requirements.txt pyinstaller
+          New-Item -ItemType Directory -Path src-tauri/binaries -Force | Out-Null
+          New-Item -ItemType Directory -Path build/valueplus-engine -Force | Out-Null
+          New-Item -ItemType Directory -Path build/valueplus-engine-spec -Force | Out-Null
+          $billingDataPath = (Resolve-Path -LiteralPath "python/valueplus_billing/data").Path
+          $hubTemplatePath = (Resolve-Path -LiteralPath "python/hub_delivery_template.xlsx").Path
+          python -m unittest discover -s python -p test_hub_delivery.py
+          if ($LASTEXITCODE -ne 0) { throw "HUB import/export checks failed" }
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --name valueplus-engine `
+            --distpath src-tauri/binaries `
+            --workpath build/valueplus-engine `
+            --specpath build/valueplus-engine-spec `
+            --paths python `
+            --hidden-import pythoncom `
+            --hidden-import pywintypes `
+            --hidden-import win32timezone `
+            --hidden-import win32com.client `
+            --hidden-import pyautogui `
+            --hidden-import pygetwindow `
+            --add-data "$billingDataPath;valueplus_billing/data" `
+            --add-data "$hubTemplatePath;." `
+            python/valueplus_engine.py
+
+          $source = "src-tauri/binaries/valueplus-engine.exe"
+          $target = "src-tauri/binaries/valueplus-engine-x86_64-pc-windows-msvc.exe"
+
+          if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "PyInstaller did not create $source"
+          }
+
+          Move-Item -LiteralPath $source -Destination $target -Force
+
+          $encodingTest = & $target encoding-test
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Bundled ValuePlus Engine encoding test failed to run"
+          }
+
+          if ($encodingTest -notmatch "ทดสอบภาษาไทย" -or
+              $encodingTest -notmatch "มหาชัย" -or
+              $encodingTest -notmatch "เชียงใหม่") {
+            throw "Bundled ValuePlus Engine did not return valid Thai UTF-8 text: $encodingTest"
+          }
+
+          & $target product-catalog --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Bundled ValuePlus Engine self-test failed"
+          }
+
+          & $target receivables-freight --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Receivables and freight engine self-test failed"
+          }
+
+          & $target sales-billing --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Sales billing engine self-test failed"
+          }
+          & $target hub-delivery --help
+          if ($LASTEXITCODE -ne 0) { throw "HUB bundled engine self-test failed" }
+          python scripts/hub-engine-fixture.py
+          '{"date":"2026-10-02","codes":["10001"]}' | & $target hub-delivery --action export --data-dir build/hub-engine-data --output-dir build/hub-engine-output
+          if ($LASTEXITCODE -ne 0) { throw "Frozen HUB export failed" }
+          python -c "from pathlib import Path; from openpyxl import load_workbook; p=next(Path('build/hub-engine-output').glob('*.xlsx')); s=load_workbook(p,data_only=True).worksheets[0]; assert s['M13'].value==s['N13'].value==50; assert s['C7'].value=='WB07'; assert s['M11'].value=='<-----ราคาขายปลีก------->'; print('PASS: frozen HUB export')"
+          if ($LASTEXITCODE -ne 0) { throw "Frozen HUB workbook checks failed" }
+
+      - name: Verify HUB document and render print preview
+        shell: pwsh
+        run: |
+          node scripts/verify-hub-delivery.mjs
+          if ($LASTEXITCODE -ne 0) { throw "HUB document checks failed" }
+          $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          node scripts/preview-hub-page.mjs
+          if ($LASTEXITCODE -ne 0) { throw "HUB page render failed" }
+          $pagePath = (Resolve-Path build/hub-preview/hub-page.html).Path
+          $pageUri = ([System.Uri]$pagePath).AbsoluteUri
+          $pagePng = Join-Path (Split-Path $pagePath) "hub-page.png"
+          Start-Process -FilePath $chrome -ArgumentList @("--headless", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--window-size=1440,1200", "--screenshot=$pagePng", $pageUri) -Wait
+          $htmlPath = (Resolve-Path build/hub-preview/hub-test.html).Path
+          $pdfPath = Join-Path (Split-Path $htmlPath) "hub-test.pdf"
+          $pngPath = Join-Path (Split-Path $htmlPath) "hub-test.png"
+          $uri = ([System.Uri]$htmlPath).AbsoluteUri
+          Start-Process -FilePath $chrome -ArgumentList @("--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", "--print-to-pdf=$pdfPath", $uri) -Wait
+          Start-Process -FilePath $chrome -ArgumentList @("--headless", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--window-size=900,1200", "--screenshot=$pngPath", $uri) -Wait
+          python -c "from pypdf import PdfReader; r=PdfReader('build/hub-preview/hub-test.pdf'); assert len(r.pages)==2, 'Expected exactly two A4 pages'; print('PASS: two A4 pages rendered')"
+          if ($LASTEXITCODE -ne 0) { throw "HUB print pagination failed" }
+
+      - name: Upload HUB print preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: HUB-Print-Preview
+          path: build/hub-preview/*
+          if-no-files-found: error
+
+      - name: Build trial installer
+        shell: pwsh
+        env:
+          VITE_DRIVE_GATEWAY_URL: https://valueplus-drive-gateway.oilfacebook22.workers.dev
+        run: |
+          '{"bundle":{"createUpdaterArtifacts":false}}' | Set-Content -Encoding utf8 trial-config.json
+          pnpm tauri build --bundles nsis --config trial-config.json
+          if ($LASTEXITCODE -ne 0) { throw "Trial installer build failed" }
+
+      - name: Upload trial installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ValuePlus-Branch-Delivery-Trial-Windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 14

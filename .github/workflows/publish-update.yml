@@ -77,6 +77,7 @@ jobs:
           New-Item -ItemType Directory -Path build/valueplus-engine -Force | Out-Null
           New-Item -ItemType Directory -Path build/valueplus-engine-spec -Force | Out-Null
           $billingDataPath = (Resolve-Path -LiteralPath "python/valueplus_billing/data").Path
+          $hubTemplatePath = (Resolve-Path -LiteralPath "python/hub_delivery_template.xlsx").Path
           python -m PyInstaller `
             --noconfirm `
             --clean `
@@ -93,6 +94,7 @@ jobs:
             --hidden-import pyautogui `
             --hidden-import pygetwindow `
             --add-data "$billingDataPath;valueplus_billing/data" `
+            --add-data "$hubTemplatePath;." `
             python/valueplus_engine.py
 
           $source = "src-tauri/binaries/valueplus-engine.exe"

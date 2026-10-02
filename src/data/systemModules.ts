@@ -14,6 +14,17 @@ import type {
 export const systemModules:
   SystemModule[] = [
     {
+      id: 8,
+      route: "branch-delivery",
+      title: "ใบส่งของ HUB",
+      subtitle: "BRANCH DELIVERY NOTE",
+      description: "แนบข้อมูล HUB เลือกวันที่และสาขาพร้อมส่ง ออกใบส่งของ Excel รายวัน",
+      icon: ClipboardList,
+      color: "#b32436",
+      status: "online",
+      workspaces: ["retail"],
+    },
+    {
       id: 1,
       route:
         "daily-picking",

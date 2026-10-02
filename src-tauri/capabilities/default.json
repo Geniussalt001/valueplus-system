@@ -29,6 +29,12 @@
         },
         {
           "path": "$HOME/Desktop/รายงาน SOรายวัน/**/*"
+        },
+        {
+          "path": "$DESKTOP/ValuePlus Delivery Notes/*.html"
+        },
+        {
+          "path": "$DESKTOP/ValuePlus Delivery Notes/*.xlsx"
         }
       ]
     },

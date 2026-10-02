@@ -30,6 +30,7 @@ import {
 import {
   DashboardPage,
 } from "./pages/DashboardPage";
+import { HubDeliveryPage } from "./pages/modules/HubDeliveryPage";
 
 import {
   LoginPage,
@@ -281,6 +282,8 @@ function App() {
 
   const renderPage = () => {
     switch (route) {
+      case "branch-delivery":
+        return <HubDeliveryPage onBack={backToDashboard} />;
       case "daily-posting":
         return (
           <PostingCenterPage
