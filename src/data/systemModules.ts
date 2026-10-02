@@ -16,9 +16,9 @@ export const systemModules:
     {
       id: 8,
       route: "branch-delivery",
-      title: "ใบส่งของสาขา",
+      title: "ใบส่งของ HUB",
       subtitle: "BRANCH DELIVERY NOTE",
-      description: "เลือกสินค้าจากฐานข้อมูล กรอกจำนวน และออกใบส่งของสาขาไม่มีราคา",
+      description: "แนบข้อมูล HUB เลือกวันที่และสาขาพร้อมส่ง ออกใบส่งของ Excel รายวัน",
       icon: ClipboardList,
       color: "#b32436",
       status: "online",

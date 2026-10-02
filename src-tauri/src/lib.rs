@@ -2,6 +2,7 @@ mod commands;
 mod default_files;
 mod python_engine;
 use commands::branch_delivery::{load_branch_delivery, save_delivery_branch, save_branch_delivery_note, export_branch_delivery_html};
+use commands::hub_delivery::hub_delivery_command;
 
 use commands::daily_so::{
     preview_daily_so,
@@ -147,6 +148,7 @@ pub fn run() {
                 clear_connection_token,
                 manage_product_catalog,
                 load_branch_delivery,
+                hub_delivery_command,
                 save_delivery_branch,
                 save_branch_delivery_note,
                 export_branch_delivery_html,

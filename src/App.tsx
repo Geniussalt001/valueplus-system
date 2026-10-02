@@ -30,7 +30,7 @@ import {
 import {
   DashboardPage,
 } from "./pages/DashboardPage";
-import { BranchDeliveryPage } from "./pages/modules/BranchDeliveryPage";
+import { HubDeliveryPage } from "./pages/modules/HubDeliveryPage";
 
 import {
   LoginPage,
@@ -283,7 +283,7 @@ function App() {
   const renderPage = () => {
     switch (route) {
       case "branch-delivery":
-        return <BranchDeliveryPage onBack={backToDashboard} preparedBy={currentUser.displayName || currentUser.userCode} />;
+        return <HubDeliveryPage onBack={backToDashboard} />;
       case "daily-posting":
         return (
           <PostingCenterPage

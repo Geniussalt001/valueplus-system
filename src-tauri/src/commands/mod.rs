@@ -1,5 +1,6 @@
 pub mod apps_script_outbox;
 pub mod branch_delivery;
+pub mod hub_delivery;
 pub mod connection_credentials;
 pub mod daily_so;
 pub mod monthly_sales;

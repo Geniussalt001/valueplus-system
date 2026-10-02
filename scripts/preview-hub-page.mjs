@@ -1,0 +1,18 @@
+import fs from 'node:fs/promises';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const source=await fs.readFile('src/pages/modules/HubDeliveryPage.tsx','utf8');
+let js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.React}}).outputText;
+js='import React from "react";\n'+js;
+js=js.replace(/import \{ hubDeliveryService as service \}[^;]+;/,'const service = {};').replace(/import "\.\/hubDelivery.css";/,'');
+js=js.replaceAll('from "react"','from '+JSON.stringify(import.meta.resolve('react')));
+const {HubDeliveryPage}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const branches=Array.from({length:10},(_,i)=>({code:String(10001+i),name:'สาขาทดลอง '+(i+1),bdc:i<5?'WB07':'WB05',route:String(i%5+1),ready:true,flood:false,items:[{code:'6000001',name:'สินค้าทดลอง A',quantity:50},{code:'6000002',name:'สินค้าทดลอง B',quantity:30}]}));
+const store={settings:{company:'บริษัท แวลู่พลัส รีเทล จำกัด',address:'',vendor:'2047094 บจ. แวลู่พลัส รีเทล',preparedBy:''},source:{name:'Hub_ข้อมูลทดลอง.xlsx',importedAt:'2026-10-02T06:00:00'},branches,history:[],templateName:'เทมเพลต HUB ของ ValuePlus'};
+const css=await fs.readFile('src/pages/modules/hubDelivery.css','utf8');
+const markup=renderToStaticMarkup(React.createElement(HubDeliveryPage,{onBack(){},initialStore:store}));
+if(!markup.includes('10001') || !markup.includes('10 สาขาที่เลือก')) throw Error('Loaded HUB page did not render its branch selection');
+await fs.mkdir('build/hub-preview',{recursive:true});
+await fs.writeFile('build/hub-preview/hub-page.html','<!doctype html><html lang="th"><meta charset="utf-8"><style>body{margin:0;background:#f5f7fb;font-family:Tahoma,Arial,sans-serif}*{box-sizing:border-box}'+css+'</style>'+markup+'</html>');
+console.log('Rendered actual HUB page with 10 synthetic ready branches');

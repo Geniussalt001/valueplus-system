@@ -52,6 +52,9 @@ jobs:
           New-Item -ItemType Directory -Path build/valueplus-engine -Force | Out-Null
           New-Item -ItemType Directory -Path build/valueplus-engine-spec -Force | Out-Null
           $billingDataPath = (Resolve-Path -LiteralPath "python/valueplus_billing/data").Path
+          $hubTemplatePath = (Resolve-Path -LiteralPath "python/hub_delivery_template.xlsx").Path
+          python -m unittest discover -s python -p test_hub_delivery.py
+          if ($LASTEXITCODE -ne 0) { throw "HUB import/export checks failed" }
           python -m PyInstaller `
             --noconfirm `
             --clean `
@@ -68,6 +71,7 @@ jobs:
             --hidden-import pyautogui `
             --hidden-import pygetwindow `
             --add-data "$billingDataPath;valueplus_billing/data" `
+            --add-data "$hubTemplatePath;." `
             python/valueplus_engine.py
 
           $source = "src-tauri/binaries/valueplus-engine.exe"
@@ -108,6 +112,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "Sales billing engine self-test failed"
           }
+          & $target hub-delivery --help
+          if ($LASTEXITCODE -ne 0) { throw "HUB bundled engine self-test failed" }
+          python scripts/hub-engine-fixture.py
+          '{"date":"2026-10-02","codes":["10001"]}' | & $target hub-delivery --action export --data-dir build/hub-engine-data --output-dir build/hub-engine-output
+          if ($LASTEXITCODE -ne 0) { throw "Frozen HUB export failed" }
+          python -c "from pathlib import Path; from openpyxl import load_workbook; p=next(Path('build/hub-engine-output').glob('*.xlsx')); s=load_workbook(p,data_only=True).worksheets[0]; assert s['M13'].value==s['N13'].value==50; assert s['C7'].value=='WB07'; assert s['M11'].value=='<-----ราคาขายปลีก------->'; print('PASS: frozen HUB export')"
+          if ($LASTEXITCODE -ne 0) { throw "Frozen HUB workbook checks failed" }
 
       - name: Verify HUB document and render print preview
         shell: pwsh
@@ -115,6 +126,12 @@ jobs:
           node scripts/verify-hub-delivery.mjs
           if ($LASTEXITCODE -ne 0) { throw "HUB document checks failed" }
           $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          node scripts/preview-hub-page.mjs
+          if ($LASTEXITCODE -ne 0) { throw "HUB page render failed" }
+          $pagePath = (Resolve-Path build/hub-preview/hub-page.html).Path
+          $pageUri = ([System.Uri]$pagePath).AbsoluteUri
+          $pagePng = Join-Path (Split-Path $pagePath) "hub-page.png"
+          Start-Process -FilePath $chrome -ArgumentList @("--headless", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--window-size=1440,1200", "--screenshot=$pagePng", $pageUri) -Wait
           $htmlPath = (Resolve-Path build/hub-preview/hub-test.html).Path
           $pdfPath = Join-Path (Split-Path $htmlPath) "hub-test.pdf"
           $pngPath = Join-Path (Split-Path $htmlPath) "hub-test.png"
