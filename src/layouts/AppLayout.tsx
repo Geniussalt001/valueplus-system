@@ -157,13 +157,13 @@ export function AppLayout({
     "daily-posting",
     "daily-so",
     "receivables-freight",
-    "retail-worldwide-po",
+    "worldwide-sales",
   ];
 
   const routeTitles: Partial<Record<WorkRoute, string>> = {
     "daily-so": "ลงยอด SO รายวัน",
     "receivables-freight": "ลงยอดลูกหนี้–ค่าขนส่ง",
-    "retail-worldwide-po": "ลงยอด PO รีเทลขายเวิร์ลไวด์",
+    "worldwide-sales": "ลงยอดขาย เวิร์ลไวด์",
   };
 
   const pageTitle =

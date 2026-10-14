@@ -43,7 +43,7 @@ export const systemModules:
       subtitle:
         "POSTING CENTER",
       description:
-        "ศูนย์รวมงานลงยอด SO ลูกหนี้–ค่าขนส่ง PO รีเทลขายเวิร์ลไวด์ และยอดขายรายเดือน",
+        "ศูนย์รวมงานลงยอด SO ลูกหนี้–ค่าขนส่ง และยอดขายเวิร์ลไวด์",
       icon:
         Layers3,
       color:
@@ -106,7 +106,7 @@ export const systemModules:
       subtitle:
         "DAILY SUMMARY",
       description:
-        "เลือกสรุปยอด Express หรือสรุปยอดตุ๊กตา",
+        "สรุปยอด Express และจัดการข้อมูลสินค้าที่ใช้ร่วมกัน",
       icon:
         BarChart3,
       color:
@@ -127,7 +127,7 @@ export const systemModules:
       subtitle:
         "DOCUMENT ARCHIVE CENTER",
       description:
-        "ศูนย์รวมแฟ้มเอกสาร PO Seven ลูกหนี้ ค่าขนส่ง และแฟ้มงานสำหรับสำนักงานใหญ่",
+        "ศูนย์รวมแฟ้มเอกสาร PO Seven และลูกหนี้–ค่าขนส่ง",
       icon:
         FolderArchive,
       color:

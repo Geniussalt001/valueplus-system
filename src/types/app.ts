@@ -11,10 +11,10 @@ export type WorkRoute =
   | "daily-posting"
   | "daily-picking"
   | "daily-so"
+  | "worldwide-sales"
   | "sales-billing"
   | "split-rename-po"
   | "daily-summary"
-  | "retail-worldwide-po"
   | "po-data"
   | "product-catalog"
   | "receivables-freight";

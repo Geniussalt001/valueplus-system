@@ -23,10 +23,6 @@ use commands::connection_credentials::{
     save_connection_token,
 };
 
-use commands::doll_summary::{
-    manage_doll_summary,
-};
-
 use commands::express_summary::{
     process_express_summary,
 };
@@ -39,8 +35,6 @@ use commands::monthly_sales::{
     preview_monthly_sales,
     process_monthly_sales,
 };
-use commands::do_delivery::preview_do_delivery;
-use commands::do_branch_master::preview_do_branch_master;
 
 use commands::pdf_splitter::{
     split_po_pdf,
@@ -145,7 +139,6 @@ pub fn run() {
                 save_connection_token,
                 clear_connection_token,
                 manage_product_catalog,
-                manage_doll_summary,
                 preview_po_documents,
                 process_po_documents,
                 print_po_workbook,
@@ -162,8 +155,6 @@ pub fn run() {
                 process_receivables_freight,
                 preview_monthly_sales,
                 process_monthly_sales,
-                preview_do_delivery,
-                preview_do_branch_master,
                 open_receivables_sheet_editor,
                 preview_sales_billing,
                 run_sales_billing,
