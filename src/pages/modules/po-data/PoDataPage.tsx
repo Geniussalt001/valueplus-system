@@ -8,7 +8,6 @@ import {
   ArrowRight,
   FileArchive,
   FolderArchive,
-  Globe2,
   Link2,
   LockKeyhole,
   Truck,
@@ -26,10 +25,6 @@ import {
   ReceivablesArchivePage,
 } from "./ReceivablesArchivePage";
 
-import {
-  WorldwideRetailPage,
-} from "../WorldwideRetailPage";
-
 interface PoDataPageProps {
   currentUser: AppUser;
   onBack: () => void;
@@ -38,7 +33,6 @@ interface PoDataPageProps {
 type ArchiveSection =
   | "po-seven"
   | "receivables"
-  | "worldwide"
   | null;
 
 export function PoDataPage({
@@ -74,23 +68,6 @@ export function PoDataPage({
   ) {
     return (
       <ReceivablesArchivePage
-        onBack={() => {
-          setSelectedSection(
-            null,
-          );
-        }}
-      />
-    );
-  }
-
-  if (
-    selectedSection ===
-    "worldwide"
-  ) {
-    return (
-      <WorldwideRetailPage
-        currentUser={currentUser}
-        archiveOnly
         onBack={() => {
           setSelectedSection(
             null,
@@ -236,24 +213,6 @@ export function PoDataPage({
           }}
         />
 
-        <ArchiveFolderCard
-          title="แฟ้มข้อมูล รีเทลขายเวิร์ลไวด์"
-          subtitle="RETAIL WORLDWIDE ARCHIVE"
-          description="แฟ้ม IV, PO และ SO พร้อมสถานะตอบรับจากสำนักงานใหญ่"
-          icon={
-            <Globe2
-              size={25}
-            />
-          }
-          accent="violet"
-          status="พร้อมใช้งาน"
-          features={[]}
-          onClick={() => {
-            setSelectedSection(
-              "worldwide",
-            );
-          }}
-        />
       </section>
 
     </div>

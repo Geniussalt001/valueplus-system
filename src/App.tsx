@@ -72,12 +72,12 @@ import {
 } from "./pages/modules/SalesBillingPage";
 
 import {
-  WorldwideRetailPage,
-} from "./pages/modules/WorldwideRetailPage";
-
-import {
   PostingCenterPage,
 } from "./pages/modules/PostingCenterPage";
+
+import {
+  WorldwideSalesPage,
+} from "./pages/modules/WorldwideSalesPage";
 
 import {
   startAppsScriptOutboxSync,
@@ -352,10 +352,9 @@ function App() {
           />
         );
 
-      case "retail-worldwide-po":
+      case "worldwide-sales":
         return (
-          <WorldwideRetailPage
-            currentUser={currentUser}
+          <WorldwideSalesPage
             onBack={backToPostingCenter}
           />
         );

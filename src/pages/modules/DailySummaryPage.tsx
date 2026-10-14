@@ -5,7 +5,6 @@ import {
 import {
   ArrowLeft,
   BarChart3,
-  Gift,
   PackageSearch,
   Truck,
 } from "lucide-react";
@@ -13,10 +12,6 @@ import {
 import {
   ExpressSummaryPage,
 } from "./express/ExpressSummaryPage";
-
-import {
-  DollSummaryPage,
-} from "./doll/DollSummaryPage";
 
 import {
   ProductCatalogPage,
@@ -29,7 +24,6 @@ interface DailySummaryPageProps {
 
 type SummaryMode =
   | "express"
-  | "doll"
   | "catalog";
 
 export function DailySummaryPage({
@@ -46,15 +40,6 @@ export function DailySummaryPage({
   if (selectedMode === "express") {
     return (
       <ExpressSummaryPage
-        onBack={backToSummaryMenu}
-        onNextProcess={onNextProcess}
-      />
-    );
-  }
-
-  if (selectedMode === "doll") {
-    return (
-      <DollSummaryPage
         onBack={backToSummaryMenu}
         onNextProcess={onNextProcess}
       />
@@ -92,7 +77,7 @@ export function DailySummaryPage({
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-            เลือกประเภทงานสรุปยอด หรือจัดการรายการสินค้าที่ใช้ร่วมกัน
+            เลือกสรุปยอด Express หรือจัดการรายการสินค้าที่ใช้ร่วมกัน
           </p>
         </div>
 
@@ -101,7 +86,7 @@ export function DailySummaryPage({
         </div>
       </header>
 
-      <section className="vp-summary-choice-grid mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+      <section className="vp-summary-choice-grid mt-10 grid gap-6 lg:grid-cols-2">
         <button
           type="button"
           onClick={() => {
@@ -126,34 +111,6 @@ export function DailySummaryPage({
 
             <p className="summary-choice-description mt-4 text-sm leading-6">
               เข้าสู่กระบวนการอ่านไฟล์และสรุปยอด Express
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedMode("doll");
-          }}
-          className="vp-summary-menu-card summary-choice summary-choice-doll group relative min-h-[280px] overflow-hidden rounded-3xl p-8 text-left transition duration-300 hover:-translate-y-1"
-        >
-          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-3xl transition group-hover:bg-white/20" />
-
-          <div className="summary-choice-icon relative flex h-16 w-16 items-center justify-center rounded-2xl border">
-            <Gift size={30} />
-          </div>
-
-          <div className="relative mt-12">
-            <p className="summary-choice-eyebrow text-[10px] font-semibold tracking-[0.22em]">
-              DOLL SUMMARY
-            </p>
-
-            <h3 className="mt-3 text-2xl font-semibold">
-              สรุปยอดตุ๊กตา
-            </h3>
-
-            <p className="summary-choice-description mt-4 text-sm leading-6">
-              เข้าสู่กระบวนการคีย์และสรุปยอดตุ๊กตา
             </p>
           </div>
         </button>
