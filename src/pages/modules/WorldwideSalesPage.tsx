@@ -19,7 +19,6 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [productName, setProductName] = useState("");
   const [weightGrams, setWeightGrams] = useState("");
-  const [piecesPerCarton, setPiecesPerCarton] = useState("");
   const [part, setPart] = useState<"retail" | "worldwide">("retail");
   const [salesDate, setSalesDate] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [selectedStoreId, setSelectedStoreId] = useState("");
@@ -63,7 +62,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
     const keyword = productSearchTerm.trim().toLocaleLowerCase("th");
     if (!keyword) return products;
     return products.filter((product) =>
-      `${product.name} ${product.weightGrams} ${product.piecesPerCarton}`
+      `${product.name} ${product.weightGrams}`
         .toLocaleLowerCase("th")
         .includes(keyword),
     );
@@ -96,19 +95,17 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
   const resetProductForm = () => {
     setProductName("");
     setWeightGrams("");
-    setPiecesPerCarton("");
     setIsAddingProduct(false);
   };
 
   const addProduct = async () => {
     const name = productName.trim();
     const grams = Number(weightGrams);
-    const pieces = Number(piecesPerCarton);
-    if (!name || !Number.isFinite(grams) || grams <= 0 || !Number.isInteger(pieces) || pieces <= 0) return;
+    if (!name || !Number.isFinite(grams) || grams <= 0) return;
     setIsSavingProduct(true);
     setErrorMessage("");
     try {
-      const product = await worldwideSalesService.createProduct(name, grams, pieces);
+      const product = await worldwideSalesService.createProduct(name, grams);
       setProducts((current) => [...current, product].sort((a, b) => a.name.localeCompare(b.name, "th")));
       resetProductForm();
       setSaveMessage("เพิ่มสินค้าในฐานข้อมูลเรียบร้อยแล้ว");
@@ -147,10 +144,25 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
         storeId: selectedStoreId,
         items: selectedProductIds.map((productId) => ({ productId, cartons: Number(cartonsByProduct[productId]) })),
       });
+      const selectedStore = stores.find((store) => store.id === selectedStoreId);
+      if (!selectedStore) throw new Error("ไม่พบข้อมูลร้านค้าที่เลือก");
+      const selectedProducts = selectedProductIds.map((productId) => {
+        const product = products.find((candidate) => candidate.id === productId);
+        if (!product) throw new Error("ไม่พบข้อมูลสินค้าที่เลือก");
+        return { ...product, cartons: Number(cartonsByProduct[productId]) };
+      });
+      const excelResult = await worldwideSalesService.updateMonthlyExcel({
+        saleId: result.saleId,
+        part,
+        date: salesDate,
+        store: selectedStore,
+        items: selectedProducts,
+        createdAt: result.createdAt,
+      });
       setSelectedProductIds([]);
       setCartonsByProduct({});
       setSalesCount((current) => current + 1);
-      setSaveMessage(`บันทึก ${result.itemCount} รายการ รวม ${result.totalCartons.toLocaleString("th-TH")} ลังเรียบร้อยแล้ว`);
+      setSaveMessage(`บันทึก ${result.itemCount} รายการ รวม ${result.totalCartons.toLocaleString("th-TH")} ลัง และอัปเดตไฟล์ ${excelResult.outputPath} เรียบร้อยแล้ว`);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -167,7 +179,6 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
           </button>
           <p className="text-[10px] font-semibold tracking-[0.24em] text-violet-700">WORLDWIDE SALES</p>
           <h2 className="mt-2 text-3xl font-semibold text-slate-900">ลงยอดขาย เวิร์ลไวด์</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">จัดการข้อมูลร้านค้าและสินค้า ก่อนเริ่มกระบวนการลงยอดขาย</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <ManagementButton active={section === "stores"} icon={<Store size={18} />} label="จัดการร้านค้า" onClick={() => setSection("stores")} />
@@ -179,6 +190,27 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
       {isLoading ? <div className="mt-8 flex min-h-64 items-center justify-center rounded-3xl border border-slate-200 bg-white text-sm font-semibold text-slate-500"><LoaderCircle size={22} className="mr-3 animate-spin text-violet-600" /> กำลังโหลดฐานข้อมูล...</div> : null}
 
       {!isLoading && section === "entry" ? (
+        <section className="mt-6 rounded-2xl border border-cyan-200 bg-white p-2 shadow-sm">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <PartButton
+              active={part === "retail"}
+              tone="retail"
+              title="Valueplus Retail"
+              icon={<Store size={18} />}
+              onClick={() => { setPart("retail"); setSaveMessage(""); }}
+            />
+            <PartButton
+              active={part === "worldwide"}
+              tone="worldwide"
+              title="Valueplus Worldwide"
+              icon={<Building2 size={18} />}
+              onClick={() => { setPart("worldwide"); setSaveMessage(""); }}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {!isLoading && section === "entry" ? (
         <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
           <div className="flex items-center gap-4 border-b border-slate-100 p-6 lg:px-8">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><ClipboardList size={23} /></span>
@@ -186,22 +218,14 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
           </div>
 
           <div className="p-6 lg:p-8">
-            <div>
-              <p className="text-xs font-semibold text-slate-600">เลือก PART ที่ทำงาน</p>
-              <div className="mt-3 grid max-w-2xl gap-3 sm:grid-cols-2">
-                <PartButton active={part === "retail"} title="Retail" description="บริษัทรีเทล" onClick={() => { setPart("retail"); setSaveMessage(""); }} />
-                <PartButton active={part === "worldwide"} title="Worldwide" description="บริษัทเวิร์ลไวด์" onClick={() => { setPart("worldwide"); setSaveMessage(""); }} />
-              </div>
-            </div>
-
-            <div className="mt-7 grid gap-5 lg:grid-cols-2">
+            <div className="grid gap-5 lg:grid-cols-2">
               <label className="block"><span className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-600"><CalendarDays size={15} /> วันที่</span><input type="date" value={salesDate} onChange={(event) => { setSalesDate(event.target.value); setSaveMessage(""); }} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100" /></label>
               <label className="block"><span className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-600"><Store size={15} /> ชื่อร้านค้า</span><select value={selectedStoreId} onChange={(event) => { setSelectedStoreId(event.target.value); setSaveMessage(""); }} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"><option value="">เลือกร้านค้า</option>{stores.map((store) => <option key={store.id} value={store.id}>{store.name} — {store.province}</option>)}</select>{!stores.length ? <button type="button" onClick={() => setSection("stores")} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ เพิ่มร้านค้าก่อนเริ่มลงยอด</button> : null}</label>
             </div>
 
             <div className="mt-7">
               <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold text-slate-600">รายการสินค้า</p><p className="mt-1 text-xs text-slate-400">เลือกได้หลายรายการ และกรอกจำนวนลังแยกแต่ละสินค้า</p></div><span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">เลือกแล้ว {selectedProductIds.length} รายการ</span></div>
-              {products.length ? <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200"><div className="grid grid-cols-[52px_1fr_150px_180px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>เลือก</span><span>สินค้า</span><span>บรรจุ</span><span>จำนวน (ลัง)</span></div>{products.map((product) => { const selected = selectedProductIds.includes(product.id); return <div key={product.id} className={`grid grid-cols-[52px_1fr_150px_180px] items-center border-t border-slate-100 px-5 py-3 text-sm ${selected ? "bg-violet-50/50" : "bg-white"}`}><input type="checkbox" checked={selected} onChange={() => toggleProduct(product.id)} className="h-5 w-5 rounded border-slate-300 accent-violet-700" /><div><p className="font-semibold text-slate-800">{product.name}</p><p className="text-xs text-slate-400">{product.weightGrams.toLocaleString("th-TH")} กรัม</p></div><span className="text-slate-600">{product.piecesPerCarton} ชิ้น / ลัง</span><input type="number" min="1" step="1" disabled={!selected} value={cartonsByProduct[product.id] || ""} onChange={(event) => { setCartonsByProduct((current) => ({ ...current, [product.id]: event.target.value })); setSaveMessage(""); }} placeholder="จำนวนลัง" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400" /></div>; })}</div> : <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center"><Boxes size={25} className="mx-auto text-slate-400" /><p className="mt-3 text-sm font-semibold text-slate-700">ยังไม่มีข้อมูลสินค้า</p><button type="button" onClick={() => setSection("products")} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ เพิ่มสินค้าก่อนเริ่มลงยอด</button></div>}
+              {products.length ? <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200"><div className="grid grid-cols-[52px_1fr_200px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>เลือก</span><span>สินค้า</span><span>จำนวน (ลัง)</span></div>{products.map((product) => { const selected = selectedProductIds.includes(product.id); return <div key={product.id} className={`grid grid-cols-[52px_1fr_200px] items-center border-t border-slate-100 px-5 py-3 text-sm ${selected ? "bg-violet-50/50" : "bg-white"}`}><input type="checkbox" checked={selected} onChange={() => toggleProduct(product.id)} className="h-5 w-5 rounded border-slate-300 accent-violet-700" /><div><p className="font-semibold text-slate-800">{product.name}</p><p className="text-xs text-slate-400">{product.weightGrams.toLocaleString("th-TH")} กรัม</p></div><input type="number" min="1" step="1" disabled={!selected} value={cartonsByProduct[product.id] || ""} onChange={(event) => { setCartonsByProduct((current) => ({ ...current, [product.id]: event.target.value })); setSaveMessage(""); }} placeholder="จำนวนลัง" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400" /></div>; })}</div> : <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center"><Boxes size={25} className="mx-auto text-slate-400" /><p className="mt-3 text-sm font-semibold text-slate-700">ยังไม่มีข้อมูลสินค้า</p><button type="button" onClick={() => setSection("products")} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ เพิ่มสินค้าก่อนเริ่มลงยอด</button></div>}
             </div>
 
             <div className="mt-7 flex flex-col justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
@@ -281,14 +305,13 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
           {isAddingProduct ? (
             <div className="border-b border-cyan-100 bg-cyan-50/60 p-6 lg:px-8">
               <div className="flex items-center justify-between gap-4">
-                <div><h4 className="font-semibold text-slate-900">เพิ่มสินค้าใหม่</h4><p className="mt-1 text-xs text-slate-500">กรอกชื่อสินค้า น้ำหนัก และจำนวนชิ้นต่อลัง</p></div>
+                <div><h4 className="font-semibold text-slate-900">เพิ่มสินค้าใหม่</h4><p className="mt-1 text-xs text-slate-500">กรอกชื่อสินค้าและน้ำหนัก</p></div>
                 <button type="button" onClick={resetProductForm} className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:text-slate-900" aria-label="ปิดแบบฟอร์มเพิ่มสินค้า"><X size={17} /></button>
               </div>
-              <div className="mt-5 grid gap-4 xl:grid-cols-[1.4fr_.7fr_.7fr_auto] xl:items-end">
+              <div className="mt-5 grid gap-4 xl:grid-cols-[1.4fr_.7fr_auto] xl:items-end">
                 <ProductField label="ชื่อสินค้า" placeholder="เช่น เค้กช็อกโกแลต" value={productName} onChange={setProductName} />
                 <ProductField label="น้ำหนัก (กรัม)" placeholder="เช่น 55" value={weightGrams} onChange={setWeightGrams} numeric />
-                <ProductField label="จำนวนชิ้น / ลัง" placeholder="เช่น 24" value={piecesPerCarton} onChange={setPiecesPerCarton} numeric integer />
-                <button type="button" disabled={!productName.trim() || Number(weightGrams) <= 0 || !Number.isInteger(Number(piecesPerCarton)) || Number(piecesPerCarton) <= 0 || isSavingProduct} onClick={addProduct} className="inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">{isSavingProduct ? <LoaderCircle size={17} className="animate-spin" /> : null}{isSavingProduct ? "กำลังบันทึก..." : "บันทึกสินค้า"}</button>
+                <button type="button" disabled={!productName.trim() || Number(weightGrams) <= 0 || isSavingProduct} onClick={addProduct} className="inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">{isSavingProduct ? <LoaderCircle size={17} className="animate-spin" /> : null}{isSavingProduct ? "กำลังบันทึก..." : "บันทึกสินค้า"}</button>
               </div>
             </div>
           ) : null}
@@ -296,18 +319,17 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
           <div className="p-6 lg:px-8">
             <label className="relative block max-w-2xl">
               <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="search" value={productSearchTerm} onChange={(event) => setProductSearchTerm(event.target.value)} placeholder="ค้นหาจากชื่อสินค้า น้ำหนัก หรือจำนวนต่อลัง..." className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-100" />
+              <input type="search" value={productSearchTerm} onChange={(event) => setProductSearchTerm(event.target.value)} placeholder="ค้นหาจากชื่อสินค้าหรือน้ำหนัก..." className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-100" />
             </label>
 
             {filteredProducts.length ? (
               <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
-                <div className="grid grid-cols-[72px_1fr_180px_180px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>ลำดับ</span><span>ชื่อสินค้า</span><span>น้ำหนัก</span><span>บรรจุ / ลัง</span></div>
+                <div className="grid grid-cols-[72px_1fr_180px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>ลำดับ</span><span>ชื่อสินค้า</span><span>น้ำหนัก</span></div>
                 {filteredProducts.map((product, index) => (
-                  <div key={product.id} className="grid grid-cols-[72px_1fr_180px_180px] items-center border-t border-slate-100 px-5 py-4 text-sm">
+                  <div key={product.id} className="grid grid-cols-[72px_1fr_180px] items-center border-t border-slate-100 px-5 py-4 text-sm">
                     <span className="text-slate-400">{index + 1}</span>
                     <span className="font-semibold text-slate-800">{product.name}</span>
                     <span className="text-slate-600">{product.weightGrams.toLocaleString("th-TH")} กรัม</span>
-                    <span className="text-slate-600">{product.piecesPerCarton.toLocaleString("th-TH")} ชิ้น / ลัง</span>
                   </div>
                 ))}
               </div>
@@ -329,8 +351,9 @@ function ManagementButton({ active, icon, label, onClick }: { active: boolean; i
   return <button type="button" onClick={onClick} className={`inline-flex min-w-44 items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold shadow-sm transition ${active ? "border-violet-700 bg-violet-700 text-white shadow-violet-200" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"}`}>{icon}{label}</button>;
 }
 
-function PartButton({ active, title, description, onClick }: { active: boolean; title: string; description: string; onClick: () => void; }) {
-  return <button type="button" onClick={onClick} className={`rounded-2xl border p-4 text-left transition ${active ? "border-violet-600 bg-violet-600 text-white shadow-lg shadow-violet-200" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300"}`}><span className="block text-base font-semibold">{title}</span><span className={`mt-1 block text-xs ${active ? "text-violet-100" : "text-slate-400"}`}>{description}</span></button>;
+function PartButton({ active, tone, title, icon, onClick }: { active: boolean; tone: "retail" | "worldwide"; title: string; icon: ReactNode; onClick: () => void; }) {
+  const isRetail = tone === "retail";
+  return <button type="button" onClick={onClick} className={`group relative flex min-h-[88px] items-center gap-4 overflow-hidden rounded-xl border px-5 py-4 text-left transition ${active ? isRetail ? "border-cyan-400 bg-gradient-to-r from-cyan-50 to-sky-50 text-cyan-950 shadow-[0_10px_28px_rgba(8,145,178,0.13)]" : "border-violet-400 bg-gradient-to-r from-violet-50 to-fuchsia-50 text-violet-950 shadow-[0_10px_28px_rgba(124,58,237,0.13)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"}`}><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${active ? isRetail ? "bg-cyan-600 text-white shadow-md shadow-cyan-200" : "bg-violet-600 text-white shadow-md shadow-violet-200" : "bg-slate-100 text-slate-500"}`}>{icon}</span><span className="min-w-0 flex-1 font-semibold">{title}</span>{active ? <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${isRetail ? "bg-cyan-100 text-cyan-800" : "bg-violet-100 text-violet-800"}`}>กำลังใช้งาน</span> : null}</button>;
 }
 
 function StoreField({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (value: string) => void; }) {

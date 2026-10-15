@@ -56,6 +56,7 @@ import product_catalog_cli
 import receivables_freight_cli
 import sales_billing_cli
 import split_po_cli
+import worldwide_sales_report_cli
 
 
 def encoding_test() -> int:
@@ -83,6 +84,7 @@ COMMANDS = {
     "receivables-freight": receivables_freight_cli.main,
     "sales-billing": sales_billing_cli.main,
     "split-po": split_po_cli.main,
+    "worldwide-sales-report": worldwide_sales_report_cli.main,
     "encoding-test": encoding_test,
 }
 

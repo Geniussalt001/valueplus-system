@@ -73,6 +73,10 @@ use commands::sales_billing::{
     save_sales_billing_product,
 };
 
+use commands::worldwide_sales_report::{
+    update_worldwide_sales_report,
+};
+
 #[tauri::command]
 fn greet(
     name: &str,
@@ -161,6 +165,7 @@ pub fn run() {
                 control_sales_billing,
                 list_sales_billing_products,
                 save_sales_billing_product,
+                update_worldwide_sales_report,
             ],
         )
         .run(
