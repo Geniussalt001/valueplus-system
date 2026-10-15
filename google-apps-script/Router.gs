@@ -276,6 +276,41 @@ function doPost(event) {
           );
         break;
 
+      case "worldwideSales.bootstrap":
+        data =
+          getWorldwideSalesBootstrap();
+        break;
+
+      case "worldwideSales.storeCreate":
+        requireOfficeOrHeadOfficeSession(
+          session,
+        );
+        data = createWorldwideStore(
+          request.data,
+          session.userCode,
+        );
+        break;
+
+      case "worldwideSales.productCreate":
+        requireOfficeOrHeadOfficeSession(
+          session,
+        );
+        data = createWorldwideProduct(
+          request.data,
+          session.userCode,
+        );
+        break;
+
+      case "worldwideSales.saleCreate":
+        requireOfficeOrHeadOfficeSession(
+          session,
+        );
+        data = createWorldwideSale(
+          request.data,
+          session.userCode,
+        );
+        break;
+
       case "doDelivery.save":
         requireOfficeOrHeadOfficeSession(session);
         data = saveDoDelivery(request.data, session.userCode);
@@ -515,6 +550,9 @@ const IDEMPOTENT_MUTATION_ACTIONS = [
   "archive.registerUpload",
   "receivables.saveMonthly",
   "monthlySales.saveSnapshot",
+  "worldwideSales.storeCreate",
+  "worldwideSales.productCreate",
+  "worldwideSales.saleCreate",
   "doDelivery.save",
   "doDelivery.saveMaster",
   "receivables.saveCreditNotesV2",
@@ -552,6 +590,9 @@ const PERSISTENT_REPLAY_ACTIONS = [
   "archive.registerUpload",
   "receivables.saveMonthly",
   "monthlySales.saveSnapshot",
+  "worldwideSales.storeCreate",
+  "worldwideSales.productCreate",
+  "worldwideSales.saleCreate",
   "doDelivery.save",
   "doDelivery.saveMaster",
   "receivables.saveCreditNotesV2",

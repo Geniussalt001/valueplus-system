@@ -1,10 +1,10 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Boxes, Building2, CalendarDays, CheckCircle2, ClipboardList, MapPin, Plus, Save, Search, Store, X } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { AlertCircle, ArrowLeft, Boxes, Building2, CalendarDays, CheckCircle2, ClipboardList, LoaderCircle, MapPin, Plus, Save, Search, Store, X } from "lucide-react";
+
+import { worldwideSalesService } from "../../services/worldwideSalesService";
+import type { WorldwideProduct, WorldwideStore } from "../../types/worldwideSales.types";
 
 interface WorldwideSalesPageProps { onBack: () => void; }
-interface WorldwideStore { id: number; name: string; province: string; }
-interface WorldwideProduct { id: number; name: string; weightGrams: number; piecesPerCarton: number; }
-interface SalesEntry { id: number; part: "retail" | "worldwide"; date: string; storeId: number; items: Array<{ productId: number; cartons: number }>; }
 type ManagementSection = "entry" | "stores" | "products";
 
 export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
@@ -23,10 +23,33 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
   const [part, setPart] = useState<"retail" | "worldwide">("retail");
   const [salesDate, setSalesDate] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [selectedStoreId, setSelectedStoreId] = useState("");
-  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
-  const [cartonsByProduct, setCartonsByProduct] = useState<Record<number, string>>({});
-  const [salesEntries, setSalesEntries] = useState<SalesEntry[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [cartonsByProduct, setCartonsByProduct] = useState<Record<string, string>>({});
+  const [salesCount, setSalesCount] = useState(0);
   const [saveMessage, setSaveMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSavingStore, setIsSavingStore] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [isSavingSale, setIsSavingSale] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    worldwideSalesService.bootstrap()
+      .then((data) => {
+        if (!active) return;
+        setStores(data.stores);
+        setProducts(data.products);
+        setSalesCount(data.salesCount);
+      })
+      .catch((error: unknown) => {
+        if (active) setErrorMessage(getErrorMessage(error));
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   const filteredStores = useMemo(() => {
     const keyword = searchTerm.trim().toLocaleLowerCase("th");
@@ -52,12 +75,22 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
     setIsAddingStore(false);
   };
 
-  const addStore = () => {
+  const addStore = async () => {
     const name = storeName.trim();
     const storeProvince = province.trim();
     if (!name || !storeProvince) return;
-    setStores((current) => [...current, { id: Date.now(), name, province: storeProvince }]);
-    resetStoreForm();
+    setIsSavingStore(true);
+    setErrorMessage("");
+    try {
+      const store = await worldwideSalesService.createStore(name, storeProvince);
+      setStores((current) => [...current, store].sort((a, b) => a.name.localeCompare(b.name, "th")));
+      resetStoreForm();
+      setSaveMessage("เพิ่มร้านค้าในฐานข้อมูลเรียบร้อยแล้ว");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsSavingStore(false);
+    }
   };
 
   const resetProductForm = () => {
@@ -67,16 +100,26 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
     setIsAddingProduct(false);
   };
 
-  const addProduct = () => {
+  const addProduct = async () => {
     const name = productName.trim();
     const grams = Number(weightGrams);
     const pieces = Number(piecesPerCarton);
     if (!name || !Number.isFinite(grams) || grams <= 0 || !Number.isInteger(pieces) || pieces <= 0) return;
-    setProducts((current) => [...current, { id: Date.now(), name, weightGrams: grams, piecesPerCarton: pieces }]);
-    resetProductForm();
+    setIsSavingProduct(true);
+    setErrorMessage("");
+    try {
+      const product = await worldwideSalesService.createProduct(name, grams, pieces);
+      setProducts((current) => [...current, product].sort((a, b) => a.name.localeCompare(b.name, "th")));
+      resetProductForm();
+      setSaveMessage("เพิ่มสินค้าในฐานข้อมูลเรียบร้อยแล้ว");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsSavingProduct(false);
+    }
   };
 
-  const toggleProduct = (productId: number) => {
+  const toggleProduct = (productId: string) => {
     setSaveMessage("");
     setSelectedProductIds((current) =>
       current.includes(productId)
@@ -92,18 +135,27 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
     selectedProductIds.every((id) => Number.isInteger(Number(cartonsByProduct[id])) && Number(cartonsByProduct[id]) > 0),
   );
 
-  const saveSales = () => {
+  const saveSales = async () => {
     if (!canSaveSales) return;
-    setSalesEntries((current) => [...current, {
-      id: Date.now(),
-      part,
-      date: salesDate,
-      storeId: Number(selectedStoreId),
-      items: selectedProductIds.map((productId) => ({ productId, cartons: Number(cartonsByProduct[productId]) })),
-    }]);
-    setSelectedProductIds([]);
-    setCartonsByProduct({});
-    setSaveMessage("บันทึกข้อมูลยอดขายเรียบร้อยแล้ว");
+    setIsSavingSale(true);
+    setErrorMessage("");
+    setSaveMessage("");
+    try {
+      const result = await worldwideSalesService.createSale({
+        part,
+        date: salesDate,
+        storeId: selectedStoreId,
+        items: selectedProductIds.map((productId) => ({ productId, cartons: Number(cartonsByProduct[productId]) })),
+      });
+      setSelectedProductIds([]);
+      setCartonsByProduct({});
+      setSalesCount((current) => current + 1);
+      setSaveMessage(`บันทึก ${result.itemCount} รายการ รวม ${result.totalCartons.toLocaleString("th-TH")} ลังเรียบร้อยแล้ว`);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsSavingSale(false);
+    }
   };
 
   return (
@@ -123,11 +175,14 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
         </div>
       </header>
 
-      {section === "entry" ? (
+      {errorMessage ? <div className="mt-5 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700"><AlertCircle size={19} className="mt-0.5 shrink-0" /><span className="flex-1">{errorMessage}</span><button type="button" onClick={() => setErrorMessage("")} className="font-semibold">ปิด</button></div> : null}
+      {isLoading ? <div className="mt-8 flex min-h-64 items-center justify-center rounded-3xl border border-slate-200 bg-white text-sm font-semibold text-slate-500"><LoaderCircle size={22} className="mr-3 animate-spin text-violet-600" /> กำลังโหลดฐานข้อมูล...</div> : null}
+
+      {!isLoading && section === "entry" ? (
         <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
           <div className="flex items-center gap-4 border-b border-slate-100 p-6 lg:px-8">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><ClipboardList size={23} /></span>
-            <div><p className="text-[10px] font-semibold tracking-[0.2em] text-violet-600">SALES ENTRY</p><h3 className="mt-1 text-xl font-semibold text-slate-900">บันทึกยอดขาย</h3><p className="mt-1 text-xs text-slate-500">บันทึกแล้ว {salesEntries.length} รายการในรอบนี้</p></div>
+            <div><p className="text-[10px] font-semibold tracking-[0.2em] text-violet-600">SALES ENTRY</p><h3 className="mt-1 text-xl font-semibold text-slate-900">บันทึกยอดขาย</h3><p className="mt-1 text-xs text-slate-500">ฐานข้อมูลมีรายการขายแล้ว {salesCount.toLocaleString("th-TH")} รายการ</p></div>
           </div>
 
           <div className="p-6 lg:p-8">
@@ -151,11 +206,11 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
 
             <div className="mt-7 flex flex-col justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
               <div>{saveMessage ? <p className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700"><CheckCircle2 size={18} />{saveMessage}</p> : <p className="text-xs text-slate-400">กรอกข้อมูลและจำนวนลังให้ครบก่อนบันทึก</p>}</div>
-              <button type="button" disabled={!canSaveSales} onClick={saveSales} className="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"><Save size={18} /> บันทึกข้อมูล</button>
+              <button type="button" disabled={!canSaveSales || isSavingSale} onClick={saveSales} className="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">{isSavingSale ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />} {isSavingSale ? "กำลังบันทึก..." : "บันทึกข้อมูล"}</button>
             </div>
           </div>
         </section>
-      ) : section === "stores" ? (
+      ) : !isLoading && section === "stores" ? (
         <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col justify-between gap-5 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:px-8">
             <div className="flex items-center gap-4">
@@ -178,7 +233,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
               <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
                 <StoreField label="ชื่อร้านค้า" placeholder="เช่น ร้านตัวอย่าง เชียงใหม่" value={storeName} onChange={setStoreName} />
                 <StoreField label="จังหวัด" placeholder="เช่น เชียงใหม่" value={province} onChange={setProvince} />
-                <button type="button" disabled={!storeName.trim() || !province.trim()} onClick={addStore} className="h-[46px] rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">บันทึกร้านค้า</button>
+                <button type="button" disabled={!storeName.trim() || !province.trim() || isSavingStore} onClick={addStore} className="inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">{isSavingStore ? <LoaderCircle size={17} className="animate-spin" /> : null}{isSavingStore ? "กำลังบันทึก..." : "บันทึกร้านค้า"}</button>
               </div>
             </div>
           ) : null}
@@ -209,7 +264,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
             )}
           </div>
         </section>
-      ) : (
+      ) : !isLoading ? (
         <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col justify-between gap-5 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:px-8">
             <div className="flex items-center gap-4">
@@ -233,7 +288,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
                 <ProductField label="ชื่อสินค้า" placeholder="เช่น เค้กช็อกโกแลต" value={productName} onChange={setProductName} />
                 <ProductField label="น้ำหนัก (กรัม)" placeholder="เช่น 55" value={weightGrams} onChange={setWeightGrams} numeric />
                 <ProductField label="จำนวนชิ้น / ลัง" placeholder="เช่น 24" value={piecesPerCarton} onChange={setPiecesPerCarton} numeric integer />
-                <button type="button" disabled={!productName.trim() || Number(weightGrams) <= 0 || !Number.isInteger(Number(piecesPerCarton)) || Number(piecesPerCarton) <= 0} onClick={addProduct} className="h-[46px] rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">บันทึกสินค้า</button>
+                <button type="button" disabled={!productName.trim() || Number(weightGrams) <= 0 || !Number.isInteger(Number(piecesPerCarton)) || Number(piecesPerCarton) <= 0 || isSavingProduct} onClick={addProduct} className="inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">{isSavingProduct ? <LoaderCircle size={17} className="animate-spin" /> : null}{isSavingProduct ? "กำลังบันทึก..." : "บันทึกสินค้า"}</button>
               </div>
             </div>
           ) : null}
@@ -265,7 +320,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
             )}
           </div>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -284,4 +339,10 @@ function StoreField({ label, placeholder, value, onChange }: { label: string; pl
 
 function ProductField({ label, placeholder, value, onChange, numeric = false, integer = false }: { label: string; placeholder: string; value: string; onChange: (value: string) => void; numeric?: boolean; integer?: boolean; }) {
   return <label className="block"><span className="mb-2 block text-xs font-semibold text-slate-600">{label}</span><input type={numeric ? "number" : "text"} min={numeric ? 1 : undefined} step={integer ? 1 : numeric ? "any" : undefined} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="h-[46px] w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100" /></label>;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error && error.message
+    ? error.message
+    : "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง";
 }
