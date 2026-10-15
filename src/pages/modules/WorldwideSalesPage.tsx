@@ -22,6 +22,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
   const [part, setPart] = useState<"retail" | "worldwide">("retail");
   const [salesDate, setSalesDate] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [selectedStoreId, setSelectedStoreId] = useState("");
+  const [salesProductSearchTerm, setSalesProductSearchTerm] = useState("");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [cartonsByProduct, setCartonsByProduct] = useState<Record<string, string>>({});
   const [salesCount, setSalesCount] = useState(0);
@@ -67,6 +68,16 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
         .includes(keyword),
     );
   }, [productSearchTerm, products]);
+
+  const filteredSalesProducts = useMemo(() => {
+    const keyword = salesProductSearchTerm.trim().toLocaleLowerCase("th");
+    if (!keyword) return products;
+    return products.filter((product) =>
+      `${product.name} ${product.weightGrams} ${product.weightGrams} กรัม`
+        .toLocaleLowerCase("th")
+        .includes(keyword),
+    );
+  }, [products, salesProductSearchTerm]);
 
   const resetStoreForm = () => {
     setStoreName("");
@@ -225,7 +236,16 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
 
             <div className="mt-7">
               <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold text-slate-600">รายการสินค้า</p><p className="mt-1 text-xs text-slate-400">เลือกได้หลายรายการ และกรอกจำนวนลังแยกแต่ละสินค้า</p></div><span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">เลือกแล้ว {selectedProductIds.length} รายการ</span></div>
-              {products.length ? <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200"><div className="grid grid-cols-[52px_1fr_200px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>เลือก</span><span>สินค้า</span><span>จำนวน (ลัง)</span></div>{products.map((product) => { const selected = selectedProductIds.includes(product.id); return <div key={product.id} className={`grid grid-cols-[52px_1fr_200px] items-center border-t border-slate-100 px-5 py-3 text-sm ${selected ? "bg-violet-50/50" : "bg-white"}`}><input type="checkbox" checked={selected} onChange={() => toggleProduct(product.id)} className="h-5 w-5 rounded border-slate-300 accent-violet-700" /><div><p className="font-semibold text-slate-800">{product.name}</p><p className="text-xs text-slate-400">{product.weightGrams.toLocaleString("th-TH")} กรัม</p></div><input type="number" min="1" step="1" disabled={!selected} value={cartonsByProduct[product.id] || ""} onChange={(event) => { setCartonsByProduct((current) => ({ ...current, [product.id]: event.target.value })); setSaveMessage(""); }} placeholder="จำนวนลัง" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400" /></div>; })}</div> : <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center"><Boxes size={25} className="mx-auto text-slate-400" /><p className="mt-3 text-sm font-semibold text-slate-700">ยังไม่มีข้อมูลสินค้า</p><button type="button" onClick={() => setSection("products")} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ เพิ่มสินค้าก่อนเริ่มลงยอด</button></div>}
+              {products.length ? (
+                <>
+                  <label className="relative mt-4 block">
+                    <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input type="search" value={salesProductSearchTerm} onChange={(event) => setSalesProductSearchTerm(event.target.value)} placeholder="ค้นหาสินค้าจากชื่อหรือน้ำหนัก เช่น เค้ก หรือ 55 กรัม..." className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-11 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100" />
+                    {salesProductSearchTerm ? <button type="button" onClick={() => setSalesProductSearchTerm("")} aria-label="ล้างคำค้นสินค้า" className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"><X size={15} /></button> : null}
+                  </label>
+                  {filteredSalesProducts.length ? <div className="mt-3 max-h-[460px] overflow-auto rounded-2xl border border-slate-200"><div className="sticky top-0 z-10 grid grid-cols-[52px_1fr_200px] bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500"><span>เลือก</span><span>สินค้า</span><span>จำนวน (ลัง)</span></div>{filteredSalesProducts.map((product) => { const selected = selectedProductIds.includes(product.id); return <div key={product.id} className={`grid grid-cols-[52px_1fr_200px] items-center border-t border-slate-100 px-5 py-3 text-sm ${selected ? "bg-violet-50/50" : "bg-white"}`}><input type="checkbox" checked={selected} onChange={() => toggleProduct(product.id)} className="h-5 w-5 rounded border-slate-300 accent-violet-700" /><div><p className="font-semibold text-slate-800">{product.name}</p><p className="text-xs text-slate-400">{product.weightGrams.toLocaleString("th-TH")} กรัม</p></div><input type="number" min="1" step="1" disabled={!selected} value={cartonsByProduct[product.id] || ""} onChange={(event) => { setCartonsByProduct((current) => ({ ...current, [product.id]: event.target.value })); setSaveMessage(""); }} placeholder="จำนวนลัง" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-100 disabled:text-slate-400" /></div>; })}</div> : <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center"><Search size={24} className="mx-auto text-slate-400" /><p className="mt-3 text-sm font-semibold text-slate-700">ไม่พบสินค้าที่ค้นหา</p><p className="mt-1 text-xs text-slate-500">ลองค้นหาด้วยชื่อสินค้า หรือน้ำหนักกรัมอื่น</p></div>}
+                </>
+              ) : <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center"><Boxes size={25} className="mx-auto text-slate-400" /><p className="mt-3 text-sm font-semibold text-slate-700">ยังไม่มีข้อมูลสินค้า</p><button type="button" onClick={() => setSection("products")} className="mt-2 text-xs font-semibold text-violet-700 hover:text-violet-900">+ เพิ่มสินค้าก่อนเริ่มลงยอด</button></div>}
             </div>
 
             <div className="mt-7 flex flex-col justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
