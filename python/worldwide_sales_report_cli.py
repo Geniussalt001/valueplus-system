@@ -1,23 +1,21 @@
 import argparse
-import calendar
 import json
-import sys
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.chart import BarChart, DoughnutChart, Reference
-from openpyxl.formatting.rule import ColorScaleRule
+from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.worksheet.datavalidation import DataValidation
 
 
 DATA_SHEET = "ข้อมูลรวม"
 SUMMARY_SHEET = "สรุป"
 DATA_HEADERS = [
-    "รหัสรายการ", "วันที่", "บริษัท", "ร้านค้า", "จังหวัด",
-    "สินค้า", "น้ำหนัก (กรัม)", "จำนวน (ลัง)", "บันทึกเมื่อ",
+    "วันที่", "บริษัท", "ร้านค้า", "จังหวัด", "สินค้า",
+    "น้ำหนัก (กรัม)", "จำนวน (ลัง)", "_SALE_ID",
 ]
+VISIBLE_DATA_COLUMNS = 7
 THAI_MONTHS = [
     "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม",
     "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม",
@@ -26,10 +24,23 @@ THAI_MONTHS = [
 HEADER_FILL = PatternFill("solid", fgColor="6D28D9")
 HEADER_FONT = Font(color="FFFFFF", bold=True)
 THIN_BORDER = Border(bottom=Side(style="thin", color="E2E8F0"))
+LIGHT_FILL = PatternFill("solid", fgColor="F8FAFC")
 
 
 def company_label(part):
     return "Valueplus Retail" if str(part).lower() == "retail" else "Valueplus Worldwide"
+
+
+def normalize_existing_date(value):
+    if isinstance(value, datetime):
+        return value
+    text = str(value or "").strip()
+    for date_format in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(text, date_format)
+        except ValueError:
+            continue
+    return value
 
 
 def normalize_payload(payload):
@@ -63,44 +74,113 @@ def normalize_payload(payload):
 
 def ensure_data_sheet(workbook):
     sheet = workbook[DATA_SHEET] if DATA_SHEET in workbook.sheetnames else workbook.create_sheet(DATA_SHEET, 0)
-    if sheet.max_row == 1 and not sheet.cell(1, 1).value:
+    if sheet.cell(1, 1).value == "รหัสรายการ":
+        migrated_rows = []
+        for row in sheet.iter_rows(min_row=2, max_col=9, values_only=True):
+            if not row[0]:
+                continue
+            migrated_rows.append([
+                normalize_existing_date(row[1]), row[2], row[3], row[4], row[5],
+                row[6], row[7], row[0],
+            ])
+        sheet.delete_rows(1, sheet.max_row)
+        sheet.append(DATA_HEADERS)
+        for row in migrated_rows:
+            sheet.append(row)
+    elif sheet.max_row == 1 and not sheet.cell(1, 1).value:
         for column, value in enumerate(DATA_HEADERS, 1):
             sheet.cell(1, column, value)
     else:
         for column, value in enumerate(DATA_HEADERS, 1):
             sheet.cell(1, column, value)
-    for cell in sheet[1]:
+
+    for cell in sheet[1][:VISIBLE_DATA_COLUMNS]:
         cell.fill = HEADER_FILL
         cell.font = HEADER_FONT
         cell.alignment = Alignment(horizontal="center", vertical="center")
+    sheet.row_dimensions[1].height = 25
     sheet.freeze_panes = "A2"
-    sheet.auto_filter.ref = f"A1:I{max(sheet.max_row, 2)}"
-    widths = [24, 14, 24, 32, 18, 34, 16, 16, 22]
+    sheet.auto_filter.ref = f"A1:G{max(sheet.max_row, 2)}"
+    sheet.sheet_view.showGridLines = False
+    sheet.sheet_view.zoomScale = 90
+    sheet.sheet_properties.pageSetUpPr.fitToPage = True
+    sheet.page_setup.orientation = "landscape"
+    sheet.page_setup.fitToWidth = 1
+    sheet.page_setup.fitToHeight = 0
+    sheet.print_title_rows = "1:1"
+    sheet.print_area = f"A1:G{max(sheet.max_row, 2)}"
+    sheet.column_dimensions["H"].hidden = True
+    widths = [14, 24, 32, 20, 38, 18, 16]
     for index, width in enumerate(widths, 1):
         sheet.column_dimensions[chr(64 + index)].width = width
+    for row in range(2, sheet.max_row + 1):
+        sheet.cell(row, 1).number_format = "dd/mm/yyyy"
+        sheet.cell(row, 6).number_format = "#,##0.##"
+        sheet.cell(row, 7).number_format = "#,##0"
     return sheet
 
 
 def replace_sale_rows(sheet, record):
     for row in range(sheet.max_row, 1, -1):
-        if str(sheet.cell(row, 1).value or "") == record["saleId"]:
+        if str(sheet.cell(row, 8).value or "") == record["saleId"]:
             sheet.delete_rows(row)
 
     for item in record["items"]:
         sheet.append([
-            record["saleId"], record["date"], record["company"],
-            record["store"], record["province"], item["name"],
-            item["weightGrams"], item["cartons"],
-            record["createdAt"] or datetime.now(),
+            record["date"], record["company"], record["store"],
+            record["province"], item["name"], item["weightGrams"],
+            item["cartons"], record["saleId"],
         ])
         row = sheet.max_row
-        sheet.cell(row, 2).number_format = "dd/mm/yyyy"
-        sheet.cell(row, 7).number_format = "#,##0.00"
-        sheet.cell(row, 8).number_format = "#,##0"
-        for cell in sheet[row]:
+        sheet.cell(row, 1).number_format = "dd/mm/yyyy"
+        sheet.cell(row, 6).number_format = "#,##0.##"
+        sheet.cell(row, 7).number_format = "#,##0"
+        if row % 2 == 1:
+            for cell in sheet[row][:VISIBLE_DATA_COLUMNS]:
+                cell.fill = LIGHT_FILL
+        for cell in sheet[row][:VISIBLE_DATA_COLUMNS]:
             cell.border = THIN_BORDER
             cell.alignment = Alignment(vertical="center")
-    sheet.auto_filter.ref = f"A1:I{max(sheet.max_row, 2)}"
+    sheet.auto_filter.ref = f"A1:G{max(sheet.max_row, 2)}"
+
+
+def read_report_rows(data_sheet):
+    rows = []
+    for row in data_sheet.iter_rows(min_row=2, max_col=8, values_only=True):
+        if not row[0] or not row[4]:
+            continue
+        rows.append({
+            "date": row[0], "company": str(row[1] or ""),
+            "store": str(row[2] or ""), "province": str(row[3] or ""),
+            "product": str(row[4] or ""), "weight": float(row[5] or 0),
+            "cartons": int(row[6] or 0), "saleId": str(row[7] or ""),
+        })
+    return rows
+
+
+def style_table_header(sheet, row, start_column, headers):
+    for offset, value in enumerate(headers):
+        cell = sheet.cell(row, start_column + offset, value)
+        cell.fill = HEADER_FILL
+        cell.font = HEADER_FONT
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    sheet.row_dimensions[row].height = 23
+
+
+def style_kpi(sheet, start_column, label, value, fill_color, font_color):
+    end_column = start_column + 2
+    sheet.merge_cells(start_row=3, start_column=start_column, end_row=3, end_column=end_column)
+    sheet.merge_cells(start_row=4, start_column=start_column, end_row=5, end_column=end_column)
+    label_cell = sheet.cell(3, start_column, label)
+    value_cell = sheet.cell(4, start_column, value)
+    for row in range(3, 6):
+        for column in range(start_column, end_column + 1):
+            sheet.cell(row, column).fill = PatternFill("solid", fgColor=fill_color)
+    label_cell.font = Font(name="Tahoma", bold=True, color=font_color, size=10)
+    value_cell.font = Font(name="Tahoma", bold=True, color=font_color, size=18)
+    label_cell.alignment = Alignment(horizontal="center", vertical="center")
+    value_cell.alignment = Alignment(horizontal="center", vertical="center")
+    value_cell.number_format = "#,##0"
 
 
 def rebuild_summary(workbook, data_sheet, month, buddhist_year):
@@ -108,75 +188,60 @@ def rebuild_summary(workbook, data_sheet, month, buddhist_year):
         del workbook[SUMMARY_SHEET]
     sheet = workbook.create_sheet(SUMMARY_SHEET, 1)
     sheet.sheet_view.showGridLines = False
-    sheet.freeze_panes = "A10"
+    rows = read_report_rows(data_sheet)
+    total_cartons = sum(row["cartons"] for row in rows)
+    sale_ids = {row["saleId"] for row in rows if row["saleId"]}
+    stores = {row["store"] for row in rows}
+    products = {row["product"] for row in rows}
 
-    sheet.merge_cells("A1:H1")
+    sheet.merge_cells("A1:L1")
     sheet["A1"] = f"สรุปรายงานยอดขาย ประจำเดือน{THAI_MONTHS[month]} {buddhist_year}"
     sheet["A1"].fill = PatternFill("solid", fgColor="312E81")
-    sheet["A1"].font = Font(color="FFFFFF", bold=True, size=18)
-    sheet["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    sheet["A1"].font = Font(name="Tahoma", color="FFFFFF", bold=True, size=16)
+    sheet["A1"].alignment = Alignment(horizontal="left", vertical="center")
     sheet.row_dimensions[1].height = 34
 
-    products = sorted({str(data_sheet.cell(row, 6).value or "") for row in range(2, data_sheet.max_row + 1) if data_sheet.cell(row, 6).value})
-    product_values = ["ทั้งหมด", *products]
-    for row, value in enumerate(product_values, 2):
-        sheet.cell(row, 10, value)
-    sheet["K2"] = "ทั้งหมด"
-    sheet["K3"] = "Valueplus Retail"
-    sheet["K4"] = "Valueplus Worldwide"
-    sheet.column_dimensions["J"].hidden = True
-    sheet.column_dimensions["K"].hidden = True
+    style_kpi(sheet, 1, "ยอดรวม (ลัง)", total_cartons, "EDE9FE", "5B21B6")
+    style_kpi(sheet, 4, "จำนวนบิล", len(sale_ids), "E0F2FE", "0369A1")
+    style_kpi(sheet, 7, "จำนวนร้านค้า", len(stores), "DCFCE7", "15803D")
+    style_kpi(sheet, 10, "จำนวนสินค้า", len(products), "FEF3C7", "B45309")
 
-    sheet["A3"] = "เลือกสินค้า"
-    sheet["B3"] = "ทั้งหมด"
-    sheet["A4"] = "เลือกบริษัท"
-    sheet["B4"] = "ทั้งหมด"
-    for address in ("A3", "A4"):
-        sheet[address].font = Font(bold=True, color="475569")
-    for address in ("B3", "B4"):
-        sheet[address].fill = PatternFill("solid", fgColor="F0FDFA")
-        sheet[address].font = Font(bold=True, color="0F766E")
-        sheet[address].alignment = Alignment(horizontal="center")
-    product_validation = DataValidation(
-        type="list",
-        formula1=f"='{SUMMARY_SHEET}'!$J$2:$J${len(product_values) + 1}",
-    )
-    company_validation = DataValidation(type="list", formula1=f"='{SUMMARY_SHEET}'!$K$2:$K$4")
-    sheet.add_data_validation(product_validation)
-    sheet.add_data_validation(company_validation)
-    product_validation.add(sheet["B3"])
-    company_validation.add(sheet["B4"])
+    company_totals = defaultdict(int)
+    product_totals = defaultdict(int)
+    product_weights = {}
+    daily_totals = defaultdict(int)
+    for item in rows:
+        company_totals[item["company"]] += item["cartons"]
+        product_totals[item["product"]] += item["cartons"]
+        product_weights[item["product"]] = item["weight"]
+        daily_totals[item["date"]] += item["cartons"]
 
-    cards = [
-        ("A6", "ยอดรวม (ลัง)", "B6", '=IF(AND($B$3="ทั้งหมด",$B$4="ทั้งหมด"),SUM(\'ข้อมูลรวม\'!$H:$H),IF($B$3="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$C:$C,$B$4),IF($B$4="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$F:$F,$B$3),SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$F:$F,$B$3,\'ข้อมูลรวม\'!$C:$C,$B$4))))'),
-        ("C6", "จำนวนรายการ", "D6", '=IF(AND($B$3="ทั้งหมด",$B$4="ทั้งหมด"),COUNTA(\'ข้อมูลรวม\'!$A:A)-1,IF($B$3="ทั้งหมด",COUNTIF(\'ข้อมูลรวม\'!$C:C,$B$4),IF($B$4="ทั้งหมด",COUNTIF(\'ข้อมูลรวม\'!$F:F,$B$3),COUNTIFS(\'ข้อมูลรวม\'!$F:F,$B$3,\'ข้อมูลรวม\'!$C:C,$B$4))))'),
-    ]
-    for label_cell, label, value_cell, formula in cards:
-        sheet[label_cell] = label
-        sheet[value_cell] = formula
-        sheet[label_cell].fill = PatternFill("solid", fgColor="EDE9FE")
-        sheet[value_cell].fill = PatternFill("solid", fgColor="F5F3FF")
-        sheet[label_cell].font = Font(bold=True, color="5B21B6")
-        sheet[value_cell].font = Font(bold=True, color="312E81", size=15)
-        sheet[value_cell].number_format = "#,##0"
+    sheet["A8"] = "สรุปยอดตามสินค้า"
+    sheet["A8"].font = Font(name="Tahoma", bold=True, size=12, color="312E81")
+    style_table_header(sheet, 9, 1, ["สินค้า", "น้ำหนัก (กรัม)", "จำนวน (ลัง)"])
+    product_rows = sorted(product_totals.items(), key=lambda item: (-item[1], item[0]))
+    for index, (product, cartons) in enumerate(product_rows, 10):
+        sheet.cell(index, 1, product)
+        sheet.cell(index, 2, product_weights[product]).number_format = "#,##0.##"
+        sheet.cell(index, 3, cartons).number_format = "#,##0"
+        if index % 2 == 0:
+            for column in range(1, 4):
+                sheet.cell(index, column).fill = LIGHT_FILL
 
-    headers = ["วันที่", "ร้านค้า", "จังหวัด", "สินค้า", "จำนวน (ลัง)"]
-    for column, value in enumerate(headers, 1):
-        cell = sheet.cell(10, column, value)
-        cell.fill = HEADER_FILL
-        cell.font = HEADER_FONT
-        cell.alignment = Alignment(horizontal="center")
-    sheet["A11"] = '=IFERROR(FILTER(CHOOSE({1,2,3,4,5},\'ข้อมูลรวม\'!B2:B5000,\'ข้อมูลรวม\'!D2:D5000,\'ข้อมูลรวม\'!E2:E5000,\'ข้อมูลรวม\'!F2:F5000,\'ข้อมูลรวม\'!H2:H5000),((\'ข้อมูลรวม\'!F2:F5000=$B$3)+($B$3="ทั้งหมด"))*((\'ข้อมูลรวม\'!C2:C5000=$B$4)+($B$4="ทั้งหมด"))),"ไม่พบข้อมูล")'
-    sheet["A11"].number_format = "dd/mm/yyyy"
+    sheet["E8"] = "สรุปยอดตามบริษัท"
+    sheet["E8"].font = Font(name="Tahoma", bold=True, size=12, color="312E81")
+    style_table_header(sheet, 9, 5, ["บริษัท", "จำนวน (ลัง)"])
+    for index, company in enumerate(("Valueplus Retail", "Valueplus Worldwide"), 10):
+        sheet.cell(index, 5, company)
+        sheet.cell(index, 6, company_totals[company]).number_format = "#,##0"
 
-    days_in_month = calendar.monthrange(buddhist_year - 543, month)[1]
-    for day in range(1, days_in_month + 1):
-        row = day + 1
-        sheet.cell(row, 13, datetime(buddhist_year - 543, month, day))
-        sheet.cell(row, 13).number_format = "d"
-        sheet.cell(row, 14, f'=IFERROR(IF(MONTH(M{row})<>{month},0,IF(AND($B$3="ทั้งหมด",$B$4="ทั้งหมด"),SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$B:$B,M{row}),IF($B$3="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$B:$B,M{row},\'ข้อมูลรวม\'!$C:$C,$B$4),IF($B$4="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$B:$B,M{row},\'ข้อมูลรวม\'!$F:$F,$B$3),SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$B:$B,M{row},\'ข้อมูลรวม\'!$F:$F,$B$3,\'ข้อมูลรวม\'!$C:$C,$B$4))))),0)')
-    sheet["M1"] = "วัน"
-    sheet["N1"] = "จำนวนลัง"
+    sheet["E14"] = "ยอดขายรายวัน"
+    sheet["E14"].font = Font(name="Tahoma", bold=True, size=12, color="312E81")
+    style_table_header(sheet, 15, 5, ["วันที่", "จำนวน (ลัง)"])
+    daily_rows = sorted(daily_totals.items(), key=lambda item: item[0])
+    for index, (date_value, cartons) in enumerate(daily_rows, 16):
+        sheet.cell(index, 5, date_value).number_format = "dd/mm/yyyy"
+        sheet.cell(index, 6, cartons).number_format = "#,##0"
 
     chart = BarChart()
     chart.type = "col"
@@ -184,34 +249,61 @@ def rebuild_summary(workbook, data_sheet, month, buddhist_year):
     chart.title = "ยอดขายรายวัน (ลัง)"
     chart.y_axis.title = "จำนวนลัง"
     chart.x_axis.title = "วันที่"
-    chart.add_data(
-        Reference(sheet, min_col=14, min_row=1, max_row=days_in_month + 1),
-        titles_from_data=True,
-    )
-    chart.set_categories(
-        Reference(sheet, min_col=13, min_row=2, max_row=days_in_month + 1),
-    )
-    chart.height = 8
-    chart.width = 15
-    sheet.add_chart(chart, "G3")
+    if daily_rows:
+        chart.add_data(Reference(sheet, min_col=6, min_row=15, max_row=15 + len(daily_rows)), titles_from_data=True)
+        chart.set_categories(Reference(sheet, min_col=5, min_row=16, max_row=15 + len(daily_rows)))
+    chart.height = 7
+    chart.width = 12
+    chart.legend = None
+    sheet.add_chart(chart, "G8")
 
-    sheet["P1"] = "บริษัท"
-    sheet["Q1"] = "จำนวนลัง"
-    sheet["P2"] = "Valueplus Retail"
-    sheet["P3"] = "Valueplus Worldwide"
-    sheet["Q2"] = '=IF($B$3="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$C:$C,P2),SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$C:$C,P2,\'ข้อมูลรวม\'!$F:$F,$B$3))'
-    sheet["Q3"] = '=IF($B$3="ทั้งหมด",SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$C:$C,P3),SUMIFS(\'ข้อมูลรวม\'!$H:$H,\'ข้อมูลรวม\'!$C:$C,P3,\'ข้อมูลรวม\'!$F:$F,$B$3))'
-    company_chart = DoughnutChart()
-    company_chart.title = "สัดส่วนยอดขายตามบริษัท"
-    company_chart.add_data(Reference(sheet, min_col=17, min_row=1, max_row=3), titles_from_data=True)
-    company_chart.set_categories(Reference(sheet, min_col=16, min_row=2, max_row=3))
-    company_chart.height = 7
-    company_chart.width = 10
-    sheet.add_chart(company_chart, "G19")
+    top_product_count = min(len(product_rows), 10)
+    product_chart = BarChart()
+    product_chart.type = "bar"
+    product_chart.style = 10
+    product_chart.title = "10 อันดับสินค้าสูงสุด (ลัง)"
+    product_chart.x_axis.title = "จำนวนลัง"
+    if top_product_count:
+        product_chart.add_data(Reference(sheet, min_col=3, min_row=9, max_row=9 + top_product_count), titles_from_data=True)
+        product_chart.set_categories(Reference(sheet, min_col=1, min_row=10, max_row=9 + top_product_count))
+    product_chart.height = 7.5
+    product_chart.width = 12
+    product_chart.legend = None
+    sheet.add_chart(product_chart, "G24")
 
-    for column, width in {"A": 15, "B": 28, "C": 20, "D": 32, "E": 16, "F": 3, "G": 16, "H": 16}.items():
+    detail_start = max(43, 11 + len(product_rows), 17 + len(daily_rows))
+    sheet.cell(detail_start, 1, "รายละเอียดการขาย (ใช้ตัวกรองที่หัวตารางเพื่อเลือกบริษัท ร้านค้า หรือสินค้า)")
+    sheet.cell(detail_start, 1).font = Font(name="Tahoma", bold=True, size=12, color="312E81")
+    detail_header = detail_start + 1
+    detail_headers = ["วันที่", "บริษัท", "ร้านค้า", "จังหวัด", "สินค้า", "น้ำหนัก (กรัม)", "จำนวน (ลัง)"]
+    style_table_header(sheet, detail_header, 1, detail_headers)
+    for index, item in enumerate(sorted(rows, key=lambda entry: (entry["date"], entry["store"], entry["product"])), detail_header + 1):
+        values = [item["date"], item["company"], item["store"], item["province"], item["product"], item["weight"], item["cartons"]]
+        for column, value in enumerate(values, 1):
+            sheet.cell(index, column, value)
+        sheet.cell(index, 1).number_format = "dd/mm/yyyy"
+        sheet.cell(index, 6).number_format = "#,##0.##"
+        sheet.cell(index, 7).number_format = "#,##0"
+        if index % 2 == 0:
+            for column in range(1, 8):
+                sheet.cell(index, column).fill = LIGHT_FILL
+    sheet.auto_filter.ref = f"A{detail_header}:G{max(detail_header + len(rows), detail_header + 1)}"
+    sheet.freeze_panes = None
+
+    for column, width in {"A": 34, "B": 18, "C": 16, "D": 24, "E": 24, "F": 16, "G": 3, "H": 15, "I": 16, "J": 14, "K": 14, "L": 14}.items():
         sheet.column_dimensions[column].width = width
-    sheet.conditional_formatting.add("E11:E5000", ColorScaleRule(start_type="min", start_color="DCFCE7", end_type="max", end_color="16A34A"))
+    for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=12):
+        for cell in row:
+            if cell.value is not None and cell.font.name != "Tahoma":
+                cell.font = Font(name="Tahoma", size=10, bold=cell.font.bold, color=cell.font.color)
+            if cell.value is not None:
+                cell.alignment = Alignment(vertical="center", horizontal=cell.alignment.horizontal)
+    sheet.sheet_properties.pageSetUpPr.fitToPage = True
+    sheet.page_setup.orientation = "landscape"
+    sheet.page_setup.fitToWidth = 1
+    sheet.page_setup.fitToHeight = 0
+    sheet.sheet_view.zoomScale = 85
+    sheet.print_area = f"A1:R{max(detail_header + len(rows), detail_header + 1)}"
     return sheet
 
 
