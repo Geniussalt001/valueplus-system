@@ -9,8 +9,7 @@ const WORLDWIDE_SALES_CONFIG = {
   ],
   PRODUCT_HEADERS: [
     "PRODUCT_ID", "PRODUCT_NAME", "WEIGHT_GRAMS",
-    "PIECES_PER_CARTON", "ACTIVE", "CREATED_AT",
-    "UPDATED_AT", "UPDATED_BY",
+    "ACTIVE", "CREATED_AT", "UPDATED_AT", "UPDATED_BY",
   ],
   SALES_HEADERS: [
     "SALE_ID", "PART", "SALE_DATE", "STORE_ID",
@@ -18,7 +17,7 @@ const WORLDWIDE_SALES_CONFIG = {
   ],
   ITEM_HEADERS: [
     "SALE_ID", "PRODUCT_ID", "PRODUCT_NAME", "WEIGHT_GRAMS",
-    "PIECES_PER_CARTON", "CARTONS", "TOTAL_PIECES",
+    "CARTONS",
   ],
 };
 
@@ -75,11 +74,8 @@ function createWorldwideStore(input, userCode) {
 function createWorldwideProduct(input, userCode) {
   const name = cleanWorldwideSalesText(input && input.name, 200);
   const weightGrams = Number(input && input.weightGrams);
-  const piecesPerCarton = Number(input && input.piecesPerCarton);
-
-  if (!name || !Number.isFinite(weightGrams) || weightGrams <= 0 ||
-      !Number.isInteger(piecesPerCarton) || piecesPerCarton <= 0) {
-    throw new Error("กรุณากรอกชื่อสินค้า น้ำหนัก และจำนวนชิ้นต่อลังให้ถูกต้อง");
+  if (!name || !Number.isFinite(weightGrams) || weightGrams <= 0) {
+    throw new Error("กรุณากรอกชื่อสินค้าและน้ำหนักให้ถูกต้อง");
   }
 
   const lock = LockService.getScriptLock();
@@ -89,8 +85,7 @@ function createWorldwideProduct(input, userCode) {
     const database = getWorldwideSalesDatabase();
     const duplicate = readWorldwideProducts(database.products).some(function (product) {
       return normalizeWorldwideSalesKey(product.name) === normalizeWorldwideSalesKey(name) &&
-        product.weightGrams === weightGrams &&
-        product.piecesPerCarton === piecesPerCarton;
+        product.weightGrams === weightGrams;
     });
 
     if (duplicate) {
@@ -102,12 +97,11 @@ function createWorldwideProduct(input, userCode) {
       id: createWorldwideSalesId("PRD"),
       name: name,
       weightGrams: weightGrams,
-      piecesPerCarton: piecesPerCarton,
     };
 
     database.products.appendRow([
       product.id, product.name, product.weightGrams,
-      product.piecesPerCarton, true, now, now, String(userCode || ""),
+      true, now, now, String(userCode || ""),
     ]);
     SpreadsheetApp.flush();
     return product;
@@ -182,8 +176,7 @@ function createWorldwideSale(input, userCode) {
     const itemRows = normalizedItems.map(function (item) {
       return [
         saleId, item.product.id, item.product.name,
-        item.product.weightGrams, item.product.piecesPerCarton,
-        item.cartons, item.cartons * item.product.piecesPerCarton,
+        item.product.weightGrams, item.cartons,
       ];
     });
     database.items.getRange(
@@ -197,9 +190,6 @@ function createWorldwideSale(input, userCode) {
       itemCount: itemRows.length,
       totalCartons: normalizedItems.reduce(function (sum, item) {
         return sum + item.cartons;
-      }, 0),
-      totalPieces: normalizedItems.reduce(function (sum, item) {
-        return sum + item.cartons * item.product.piecesPerCarton;
       }, 0),
       createdAt: now.toISOString(),
     };
@@ -221,6 +211,7 @@ function getWorldwideSalesDatabase() {
 function ensureWorldwideSalesSheet(spreadsheet, name, headers) {
   let sheet = spreadsheet.getSheetByName(name);
   if (!sheet) sheet = spreadsheet.insertSheet(name);
+  migrateWorldwideSalesUnits(sheet, name);
   if (sheet.getMaxColumns() < headers.length) {
     sheet.insertColumnsAfter(sheet.getMaxColumns(), headers.length - sheet.getMaxColumns());
   }
@@ -232,6 +223,39 @@ function ensureWorldwideSalesSheet(spreadsheet, name, headers) {
     .setHorizontalAlignment("center");
   sheet.setFrozenRows(1);
   return sheet;
+}
+
+function migrateWorldwideSalesUnits(sheet, name) {
+  if (sheet.getLastRow() < 1) return;
+
+  if (name === WORLDWIDE_SALES_CONFIG.PRODUCT_SHEET) {
+    const header = sheet.getRange(1, 1, 1, Math.min(sheet.getMaxColumns(), 8)).getDisplayValues()[0];
+    if (header[3] !== "PIECES_PER_CARTON") return;
+    const rowCount = Math.max(sheet.getLastRow() - 1, 0);
+    if (rowCount > 0) {
+      const rows = sheet.getRange(2, 1, rowCount, 8).getValues().map(function (row) {
+        return [row[0], row[1], row[2], row[4], row[5], row[6], row[7]];
+      });
+      sheet.getRange(2, 1, rowCount, 8).clearContent();
+      sheet.getRange(2, 1, rows.length, 7).setValues(rows);
+    }
+    sheet.getRange(1, 1, 1, 8).clearContent();
+    return;
+  }
+
+  if (name === WORLDWIDE_SALES_CONFIG.ITEM_SHEET) {
+    const header = sheet.getRange(1, 1, 1, Math.min(sheet.getMaxColumns(), 7)).getDisplayValues()[0];
+    if (header[4] !== "PIECES_PER_CARTON") return;
+    const rowCount = Math.max(sheet.getLastRow() - 1, 0);
+    if (rowCount > 0) {
+      const rows = sheet.getRange(2, 1, rowCount, 7).getValues().map(function (row) {
+        return [row[0], row[1], row[2], row[3], row[5]];
+      });
+      sheet.getRange(2, 1, rowCount, 7).clearContent();
+      sheet.getRange(2, 1, rows.length, 5).setValues(rows);
+    }
+    sheet.getRange(1, 1, 1, 7).clearContent();
+  }
 }
 
 function readWorldwideStores(sheet) {
@@ -249,11 +273,11 @@ function readWorldwideProducts(sheet) {
   if (sheet.getLastRow() < 2) return [];
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, WORLDWIDE_SALES_CONFIG.PRODUCT_HEADERS.length)
     .getValues()
-    .filter(function (row) { return Boolean(row[0]) && row[4] !== false; })
+    .filter(function (row) { return Boolean(row[0]) && row[3] !== false; })
     .map(function (row) {
       return {
         id: String(row[0]), name: String(row[1]),
-        weightGrams: Number(row[2]), piecesPerCarton: Number(row[3]),
+        weightGrams: Number(row[2]),
       };
     })
     .sort(function (a, b) { return a.name.localeCompare(b.name, "th"); });

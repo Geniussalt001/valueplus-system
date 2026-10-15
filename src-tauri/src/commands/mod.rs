@@ -11,3 +11,4 @@ pub mod print_processor;
 pub mod product_catalog;
 pub mod receivables_freight;
 pub mod sales_billing;
+pub mod worldwide_sales_report;

@@ -10,7 +10,6 @@ export interface WorldwideProduct {
   id: string;
   name: string;
   weightGrams: number;
-  piecesPerCarton: number;
 }
 
 export interface WorldwideSalesBootstrap {
@@ -33,6 +32,5 @@ export interface WorldwideSaleResult {
   saleId: string;
   itemCount: number;
   totalCartons: number;
-  totalPieces: number;
   createdAt: string;
 }
