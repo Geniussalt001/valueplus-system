@@ -151,6 +151,7 @@ def preview_daily_so(
     template_path: str | Path,
     warehouse_overrides: dict[str, str] | None = None,
     product_overrides: dict[str, str] | None = None,
+    price_overrides: dict[str, float] | None = None,
 ) -> dict:
     source_pdf = _validate_file(
         pdf_path,
@@ -172,7 +173,7 @@ def preview_daily_so(
         source_template,
     )
 
-    return _build_preview(
+    preview = _build_preview(
         source_pdf,
         source_template,
         documents,
@@ -180,6 +181,15 @@ def preview_daily_so(
         warehouse_overrides or {},
         product_overrides or {},
     )
+
+    _apply_price_overrides(
+        preview["groups"],
+        price_overrides or {},
+    )
+    preview["error_count"] = len(preview["unknown_warehouses"]) + sum(
+        group["error_count"] for group in preview["groups"]
+    )
+    return preview
 
 
 def process_daily_so(
@@ -189,12 +199,14 @@ def process_daily_so(
     quantity_overrides: dict[str, float] | None = None,
     warehouse_overrides: dict[str, str] | None = None,
     product_overrides: dict[str, str] | None = None,
+    price_overrides: dict[str, float] | None = None,
 ) -> dict:
     preview = preview_daily_so(
         pdf_path,
         template_path,
         warehouse_overrides,
         product_overrides,
+        price_overrides,
     )
 
     if preview["error_count"] > 0:
@@ -248,6 +260,65 @@ def process_daily_so(
     )
 
     return preview
+
+
+def _apply_price_overrides(
+    groups: list[dict],
+    overrides: dict[str, float],
+) -> None:
+    """Force one price per item inside each WMS output group and merge rows."""
+    for group in groups:
+        merged: OrderedDict[str, dict] = OrderedDict()
+
+        for record in group["records"]:
+            override_key = f'{group["code"]}|{record["item_code"]}'
+            if override_key in overrides and record["item_code"]:
+                try:
+                    selected_price = float(overrides[override_key])
+                except (TypeError, ValueError) as error:
+                    raise DailySoError(
+                        f"ราคาที่เลือกไม่ถูกต้อง: {override_key}",
+                    ) from error
+                if selected_price < 0:
+                    raise DailySoError(
+                        f"ราคาที่เลือกต้องไม่น้อยกว่า 0: {override_key}",
+                    )
+                record["price"] = _clean_number(selected_price)
+                if record["status"] == "review":
+                    record["status"] = "ready"
+                    record["message"] = "เลือกราคาเดียวสำหรับนำเข้า WMS แล้ว"
+
+            merge_key = (
+                record["item_code"]
+                if record["item_code"] and override_key in overrides
+                else f'{record["item_code"]}|{record["price"]}|{record["pdf_name"]}'
+            )
+            existing = merged.get(merge_key)
+            if existing is None:
+                merged[merge_key] = record
+                continue
+
+            existing["quantity"] = _clean_number(
+                float(existing["quantity"]) + float(record["quantity"]),
+            )
+            for barcode in record.get("barcodes", []):
+                if barcode not in existing["barcodes"]:
+                    existing["barcodes"].append(barcode)
+
+        group["records"] = list(merged.values())
+        group["item_count"] = len(group["records"])
+        group["ready_count"] = sum(
+            record["status"] == "ready" for record in group["records"]
+        )
+        group["review_count"] = sum(
+            record["status"] == "review" for record in group["records"]
+        )
+        group["error_count"] = sum(
+            record["status"] == "error" for record in group["records"]
+        )
+        group["total_quantity"] = _clean_number(sum(
+            float(record["quantity"]) for record in group["records"]
+        ))
 
 
 def _apply_quantity_overrides(

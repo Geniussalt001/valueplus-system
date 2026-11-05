@@ -31,6 +31,7 @@ export interface ExpressProductSummary {
   product_name: string;
   quantity: number;
   warehouses: string[];
+  is_free_gift: boolean;
 }
 
 export interface ExpressInvoiceItem {
@@ -38,6 +39,7 @@ export interface ExpressInvoiceItem {
   product_name: string;
   quantity: number;
   row_number: number;
+  is_free_gift: boolean;
 }
 
 export interface ExpressInvoice {

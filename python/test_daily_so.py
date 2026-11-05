@@ -11,6 +11,7 @@ from valueplus_so.so_processor import (
     PdfItem,
     TemplateProduct,
     _build_preview,
+    _apply_price_overrides,
     _write_group_workbook,
     upsert_template_product,
 )
@@ -21,6 +22,28 @@ from valueplus_common import (
 
 
 class DailySoWorkbookTest(unittest.TestCase):
+    def test_merges_same_item_after_selecting_one_wms_price(self):
+        groups = [{
+            "code": "Q19",
+            "records": [
+                {"item_code": "01-0000-01", "item_name": "สินค้า A", "pdf_name": "สินค้า A", "barcodes": ["111"], "quantity": 10, "price": 14, "status": "review", "message": "ราคาไม่ตรง"},
+                {"item_code": "01-0000-01", "item_name": "สินค้า A", "pdf_name": "สินค้า A", "barcodes": ["222"], "quantity": 20, "price": 15, "status": "review", "message": "ราคาไม่ตรง"},
+            ],
+            "item_count": 2,
+            "ready_count": 0,
+            "review_count": 2,
+            "error_count": 0,
+            "total_quantity": 30,
+        }]
+
+        _apply_price_overrides(groups, {"Q19|01-0000-01": 15})
+
+        self.assertEqual(len(groups[0]["records"]), 1)
+        self.assertEqual(groups[0]["records"][0]["quantity"], 30)
+        self.assertEqual(groups[0]["records"][0]["price"], 15)
+        self.assertEqual(groups[0]["records"][0]["barcodes"], ["111", "222"])
+        self.assertEqual(groups[0]["review_count"], 0)
+
     def test_upserts_new_product_into_daily_so_template(self):
         with tempfile.TemporaryDirectory() as folder:
             template_path = Path(folder) / "Data-SO.Import.xlsx"

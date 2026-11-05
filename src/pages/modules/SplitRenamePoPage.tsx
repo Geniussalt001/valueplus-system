@@ -14,6 +14,7 @@ import {
   ScanSearch,
   PackagePlus,
   CheckCircle2,
+  Link2,
 } from "lucide-react";
 
 import {
@@ -23,6 +24,12 @@ import type {
   ProductSetupForm,
 } from "../../components/split-rename-po/ProductSetupModal";
 import type { PoProductMatch } from "../../types/poProcessor.types";
+import type { PickingQuantityTransfer } from "../../types/workflowTransfer.types";
+import {
+  getEffectivePoQuantity,
+  getOriginalPoQuantity,
+} from "../../utils/poQuantity";
+import { ProductMappingModal } from "../../components/split-rename-po/ProductMappingModal";
 import { dailySoService } from "../../services/dailySoService";
 import { salesBillingService } from "../../services/salesBillingService";
 import type { SalesBillingProductMapping } from "../../services/salesBillingService";
@@ -73,6 +80,7 @@ interface SplitRenamePoPageProps {
   onNextProcess: (
     pdfPath: string,
     startIvNumber: string,
+    quantityTransfers: PickingQuantityTransfer[],
   ) => void;
 }
 
@@ -90,6 +98,8 @@ export function SplitRenamePoPage({
   const [savingSetup, setSavingSetup] = useState(false);
   const [configuredProducts, setConfiguredProducts] = useState<SalesBillingProductMapping[]>([]);
   const [completingProductKey, setCompletingProductKey] = useState("");
+  const [mappingModalOpen, setMappingModalOpen] = useState(false);
+  const [savingMapping, setSavingMapping] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -234,6 +244,28 @@ export function SplitRenamePoPage({
     }
   }
 
+  async function saveManualMapping(item: PoProductMatch, templateName: string) {
+    if (savingMapping) return;
+    setSavingMapping(true);
+    try {
+      await processor.validateProductAssignment(item, templateName);
+      await processor.saveProductAssignment(item, templateName);
+      showAppToast({
+        tone: "success",
+        title: "บันทึกการจับคู่แล้ว",
+        message: `${item.pdf_name} → ${templateName}`,
+      });
+    } catch (reason) {
+      showAppToast({
+        tone: "error",
+        title: "จับคู่สินค้าไม่สำเร็จ",
+        message: String(reason),
+      });
+    } finally {
+      setSavingMapping(false);
+    }
+  }
+
   useEffect(() => {
     if (!processor.success) {
       return;
@@ -274,6 +306,15 @@ export function SplitRenamePoPage({
         saving={savingSetup}
         onClose={() => setSetupItem(null)}
         onSave={(form) => { void saveProductSetup(form); }}
+      />
+
+      <ProductMappingModal
+        open={mappingModalOpen}
+        products={allPreviewProducts}
+        productNames={(processor.preview?.product_options ?? []).map((item) => item.name)}
+        saving={savingMapping}
+        onClose={() => setMappingModalOpen(false)}
+        onSave={saveManualMapping}
       />
 
       <PickingAdjustmentModal
@@ -535,6 +576,18 @@ export function SplitRenamePoPage({
         {processor.preview && (
           <button
             type="button"
+            disabled={busy || allPreviewProducts.length === 0}
+            onClick={() => setMappingModalOpen(true)}
+            className="vp-action-button flex items-center justify-center gap-2 rounded-xl border border-blue-300/40 bg-blue-500/15 px-6 py-3 text-sm font-semibold text-blue-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-500/25 disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <Link2 size={18} />
+            จัดการจับคู่สินค้า
+          </button>
+        )}
+
+        {processor.preview && (
+          <button
+            type="button"
             disabled={
               !processor.canExport ||
               busy
@@ -730,6 +783,10 @@ export function SplitRenamePoPage({
               onNextProcess(
                 processor.pdfPath,
                 processor.startIv,
+                buildQuantityTransfers(
+                  processor.preview?.records ?? [],
+                  processor.quantityOverrides,
+                ),
               );
             }}
             className="
@@ -782,12 +839,23 @@ export function SplitRenamePoPage({
 
           {previewProducts.length > 0 && (
             <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-slate-800">
-              <div className="flex items-center gap-3">
-                <PackagePlus className="text-amber-600" size={22} />
-                <div>
-                  <h3 className="font-semibold">ตั้งค่าสินค้าและรหัส Express</h3>
-                  <p className="mt-1 text-xs text-slate-600">แสดงเฉพาะสินค้าที่ยังตั้งค่าไม่ครบ เมื่อตั้งค่าใบจัดและรหัส Express แล้วรายการจะหายอัตโนมัติ</p>
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-3">
+                  <PackagePlus className="text-amber-600" size={22} />
+                  <div>
+                    <h3 className="font-semibold">ตั้งค่าสินค้าและรหัส Express</h3>
+                    <p className="mt-1 text-xs text-slate-600">แสดงเฉพาะสินค้าที่ยังตั้งค่าไม่ครบ หรือกดจับคู่ชื่อสินค้าเองโดยไม่ต้องแก้ Template</p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setMappingModalOpen(true)}
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:opacity-40"
+                >
+                  <Link2 size={17} />
+                  จับคู่สินค้าเอง
+                </button>
               </div>
               <div className="mt-4 grid gap-3 lg:grid-cols-2">
                 {previewProducts.map((item) => (
@@ -847,6 +915,31 @@ export function SplitRenamePoPage({
       )}
     </div>
   );
+}
+
+function buildQuantityTransfers(
+  records: NonNullable<ReturnType<typeof usePoProcessor>["preview"]>["records"],
+  overrides: ReturnType<typeof usePoProcessor>["quantityOverrides"],
+): PickingQuantityTransfer[] {
+  const transfers: PickingQuantityTransfer[] = [];
+
+  for (const record of records) {
+    for (const item of record.items) {
+      const quantity = getEffectivePoQuantity(record, item, overrides);
+      if (quantity === getOriginalPoQuantity(item)) {
+        continue;
+      }
+      transfers.push({
+        poNumber: record.po_number,
+        barcode: item.barcode,
+        cpallCode: item.cpall_code,
+        pdfName: item.pdf_name,
+        quantity,
+      });
+    }
+  }
+
+  return transfers;
 }
 
 function normalizedProductName(value: string) {

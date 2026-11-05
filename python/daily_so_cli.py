@@ -52,6 +52,11 @@ def main() -> int:
         default="{}",
     )
 
+    parser.add_argument(
+        "--price-overrides-json",
+        default="{}",
+    )
+
     arguments = parser.parse_args()
 
     try:
@@ -84,12 +89,21 @@ def main() -> int:
             arguments.product_overrides_json,
         )
 
+        price_overrides = json.loads(
+            arguments.price_overrides_json,
+        )
+
         if not isinstance(
             product_overrides,
             dict,
         ):
             raise ValueError(
                 "ข้อมูลจับคู่สินค้าไม่ถูกต้อง",
+            )
+
+        if not isinstance(price_overrides, dict):
+            raise ValueError(
+                "ข้อมูลเลือกราคาสินค้าไม่ถูกต้อง",
             )
 
         if arguments.preview:
@@ -103,6 +117,9 @@ def main() -> int:
                 ),
                 product_overrides=(
                     product_overrides
+                ),
+                price_overrides=(
+                    price_overrides
                 ),
             )
         else:
@@ -139,6 +156,9 @@ def main() -> int:
                 ),
                 product_overrides=(
                     product_overrides
+                ),
+                price_overrides=(
+                    price_overrides
                 ),
             )
 

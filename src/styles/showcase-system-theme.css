@@ -783,6 +783,8 @@ body {
   background-color: #f7f6f8 !important;
   background-image: url("/images/login-background-valueplus-red-umi-v4.webp") !important;
   background-position: center !important;
+  background-size: cover !important;
+  animation: login-background-breathe 18s ease-in-out infinite alternate;
 }
 
 .login-hybrid::after {
@@ -821,6 +823,19 @@ body {
   animation: login-card-arrive 700ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
 }
 
+.login-hybrid-tracer {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: -32%;
+  width: 30%;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #ffffff, var(--vp-blue), transparent);
+  filter: drop-shadow(0 0 7px rgb(35 105 216 / 55%));
+  animation: login-tracer-run 4.8s ease-in-out infinite 1.1s;
+}
+
 .login-hybrid-card::before {
   right: 0 !important;
   left: 0 !important;
@@ -839,6 +854,10 @@ body {
   position: relative;
   transform-origin: 35% 55%;
   animation: login-logo-float 3.8s ease-in-out infinite;
+}
+
+.login-hybrid-intro {
+  animation: login-copy-arrive 620ms cubic-bezier(0.22, 1, 0.36, 1) 220ms both;
 }
 
 .login-hybrid-logo:hover {
@@ -921,6 +940,33 @@ body {
   box-shadow: 0 0 0 6px rgb(35 105 216 / 9%), 0 9px 20px rgb(35 105 216 / 22%) !important;
 }
 
+.login-account-card[data-loading="true"] {
+  border-color: rgb(35 105 216 / 42%) !important;
+  background: linear-gradient(135deg, #ffffff, #eef5ff) !important;
+  box-shadow:
+    0 0 0 4px rgb(35 105 216 / 8%),
+    0 16px 38px rgb(20 35 60 / 12%) !important;
+  transform: translateY(-2px) scale(1.005) !important;
+}
+
+.login-account-card:nth-child(2)[data-loading="true"] {
+  border-color: rgb(181 22 50 / 38%) !important;
+  background: linear-gradient(135deg, #ffffff, #fff3f5) !important;
+  box-shadow:
+    0 0 0 4px rgb(181 22 50 / 7%),
+    0 16px 38px rgb(20 35 60 / 12%) !important;
+}
+
+.login-hybrid-footer {
+  padding-top: 18px;
+  border-top: 1px solid rgb(221 228 237 / 78%);
+}
+
+.login-ready-pill {
+  border: 1px solid rgb(16 185 129 / 15%);
+  background: rgb(236 253 245 / 72%);
+}
+
 .login-hybrid .status-light {
   animation: login-ready-pulse 2.2s ease-in-out infinite;
 }
@@ -928,6 +974,23 @@ body {
 @keyframes login-card-arrive {
   from { opacity: 0; transform: translateY(22px) scale(0.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes login-background-breathe {
+  from { background-size: 100% auto; }
+  to { background-size: 103% auto; }
+}
+
+@keyframes login-copy-arrive {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes login-tracer-run {
+  0%, 18% { left: -32%; opacity: 0; }
+  30% { opacity: 1; }
+  66% { opacity: 1; }
+  82%, 100% { left: 104%; opacity: 0; }
 }
 
 @keyframes login-option-arrive {
@@ -1310,12 +1373,21 @@ body {
   }
 }
 
+@media (max-aspect-ratio: 4 / 3) {
+  .login-hybrid {
+    animation: none;
+    background-size: cover !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .login-hybrid,
   .login-hybrid::after,
   .login-hybrid-card,
   .login-hybrid-logo,
   .login-hybrid-logo::after,
+  .login-hybrid-tracer,
+  .login-hybrid-intro,
   .login-account-card,
   .login-account-card:hover .login-hybrid-icon,
   .login-account-card:hover::after,

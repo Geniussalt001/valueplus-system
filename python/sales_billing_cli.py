@@ -174,6 +174,19 @@ def run_simulation(
                 "detail": f"{item.express_input_code} • {item.quantity:,.2f}",
             })
             time.sleep(0.035)
+            if item.has_free_gift:
+                write_json({
+                    "type": "progress",
+                    "orderIndex": order_index,
+                    "orderTotal": total,
+                    "ivNumber": order.iv_number,
+                    "poNumber": order.po_number,
+                    "step": "จำลองรายการของแถม",
+                    "itemIndex": item_index,
+                    "itemTotal": len(active_items),
+                    "detail": f"{item.express_input_code} • {item.quantity:,.2f} • ราคา 0.00",
+                })
+                time.sleep(0.035)
 
     write_json({
         "type": "finished",

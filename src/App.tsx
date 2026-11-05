@@ -88,6 +88,9 @@ import type {
   WorkspaceScope,
   WorkRoute,
 } from "./types/app";
+import type {
+  PickingQuantityTransfer,
+} from "./types/workflowTransfer.types";
 
 function getInitialWorkspace(
   user: AppUser | null | undefined,
@@ -138,6 +141,9 @@ function App() {
 
   const [nextProcessIvNumber, setNextProcessIvNumber] =
     useState("");
+
+  const [nextProcessQuantityTransfers, setNextProcessQuantityTransfers] =
+    useState<PickingQuantityTransfer[]>([]);
 
   const outboxSyncEnabled =
     startupCheckComplete &&
@@ -190,6 +196,7 @@ function App() {
   const handleLogout = () => {
     setNextProcessPdfPath("");
     setNextProcessIvNumber("");
+    setNextProcessQuantityTransfers([]);
     setWorkspaceScope("retail");
     setCurrentUser(null);
     setRoute("login");
@@ -244,9 +251,11 @@ function App() {
   const continueToDailySo = (
     pdfPath: string,
     startIvNumber: string,
+    quantityTransfers: PickingQuantityTransfer[],
   ) => {
     setNextProcessPdfPath(pdfPath);
     setNextProcessIvNumber(startIvNumber);
+    setNextProcessQuantityTransfers(quantityTransfers);
     setRoute("daily-so");
   };
 
@@ -277,6 +286,7 @@ function App() {
   const consumeSalesBillingInput = () => {
     setNextProcessPdfPath("");
     setNextProcessIvNumber("");
+    setNextProcessQuantityTransfers([]);
   };
 
   const renderPage = () => {
@@ -313,6 +323,7 @@ function App() {
             onBack={backToDashboard}
             initialPdfPath={nextProcessPdfPath}
             initialIvNumber={nextProcessIvNumber}
+            initialQuantityTransfers={nextProcessQuantityTransfers}
             onInitialPdfConsumed={consumeSalesBillingInput}
             onNextProcess={continueToSplitRename}
           />

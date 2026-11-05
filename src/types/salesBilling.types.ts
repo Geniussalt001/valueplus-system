@@ -13,6 +13,7 @@ export interface SalesBillingItem {
   original_quantity?: number;
   adjusted?: boolean;
   excluded_by_quantity?: boolean;
+  has_free_gift?: boolean;
 }
 
 export interface SalesBillingOrder {

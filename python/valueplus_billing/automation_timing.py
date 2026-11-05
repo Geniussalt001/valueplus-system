@@ -38,6 +38,10 @@ WAREHOUSE_VALUE_SETTLE_DELAY = 0.35
 LAST_ITEM_SETTLE_DELAY = 1.00
 BETWEEN_SAVE_ESC_DELAY = 0.25
 
+# กล่องยืนยันรายการแถมอาจแสดงช้ากว่าช่องข้อมูลปกติเมื่อใช้งานผ่าน RDP
+FREE_GIFT_DIALOG_SETTLE_DELAY = 0.75
+FREE_GIFT_CONFIRM_SETTLE_DELAY = 0.35
+
 
 def item_code_settle_delay(item: ProductItem) -> float:
     return ITEM_CODE_SETTLE_DELAYS.get(

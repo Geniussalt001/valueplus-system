@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ArrowRightLeft,
   Ban,
+  BadgeDollarSign,
   Boxes,
   CheckCircle2,
   FileCheck2,
@@ -77,6 +78,8 @@ type WarehouseAssignments =
 
 type ProductAssignments =
   Record<string, string>;
+
+type PriceOverrides = Record<string, number>;
 
 const warehouseAssignmentsStorageKey =
   "valueplus.daily-so.warehouse-assignments.v1";
@@ -184,8 +187,13 @@ export function DailySoPage({
     null,
   );
 
+  const [priceOverrides, setPriceOverrides] = useState<PriceOverrides>({});
+  const [priceManagerOpen, setPriceManagerOpen] = useState(false);
+
   const busy =
     activity !== "idle";
+
+  const priceConflicts = preview ? findPriceConflicts(preview) : [];
 
   const invalidQuantityEdit =
     Object.values(
@@ -324,6 +332,8 @@ export function DailySoPage({
 
       setWarehouseDraft({});
       setWarehouseManagerOpen(false);
+      setPriceOverrides({});
+      setPriceManagerOpen(false);
     } catch (reason) {
       setError(
         getErrorMessage(
@@ -365,6 +375,7 @@ export function DailySoPage({
               warehouseAssignments,
             productOverrides:
               productAssignments,
+            priceOverrides,
           });
 
       setPreview(
@@ -428,6 +439,7 @@ export function DailySoPage({
         templatePath: paths.templatePath,
         warehouseOverrides: warehouseDraft,
         productOverrides: productAssignments,
+        priceOverrides,
       });
 
       setPreview(result);
@@ -462,6 +474,7 @@ export function DailySoPage({
         templatePath: paths.templatePath,
         warehouseOverrides: {},
         productOverrides: productAssignments,
+        priceOverrides,
       });
 
       setPreview(result);
@@ -509,6 +522,7 @@ export function DailySoPage({
         templatePath: paths.templatePath,
         warehouseOverrides: warehouseAssignments,
         productOverrides: nextAssignments,
+        priceOverrides,
       });
 
       setProductAssignments(nextAssignments);
@@ -543,6 +557,8 @@ export function DailySoPage({
     setQuantityEdits({});
     setWarehouseDraft({});
     setWarehouseManagerOpen(false);
+    setPriceOverrides({});
+    setPriceManagerOpen(false);
     setActivity("preview");
     setError("");
     setSuccess(
@@ -557,6 +573,7 @@ export function DailySoPage({
           warehouseAssignments,
         productOverrides:
           productAssignments,
+        priceOverrides: {},
       })
       .then((result) => {
         setPreview(result);
@@ -591,6 +608,12 @@ export function DailySoPage({
       !preview ||
       invalidQuantityEdit
     ) {
+      return;
+    }
+
+    if (priceConflicts.length > 0) {
+      setPriceManagerOpen(true);
+      setError("พบสินค้าเดียวกันหลายราคา กรุณาเลือกราคาเดียวก่อนบันทึกไฟล์ WMS");
       return;
     }
 
@@ -650,6 +673,7 @@ export function DailySoPage({
               warehouseAssignments,
             productOverrides:
               productAssignments,
+            priceOverrides,
           });
 
       setPreview(
@@ -736,6 +760,35 @@ export function DailySoPage({
               mappingTarget,
               itemCode,
             );
+          }}
+        />
+      )}
+      {priceManagerOpen && preview && (
+        <PriceConflictPopup
+          conflicts={priceConflicts}
+          onClose={() => setPriceManagerOpen(false)}
+          onSave={(nextOverrides) => {
+            if (!paths || !pdfPath || busy) return;
+            const mergedOverrides = { ...priceOverrides, ...nextOverrides };
+            setPriceManagerOpen(false);
+            setActivity("preview");
+            setError("");
+            void dailySoService.preview({
+              pdfPath,
+              templatePath: paths.templatePath,
+              warehouseOverrides: warehouseAssignments,
+              productOverrides: productAssignments,
+              priceOverrides: mergedOverrides,
+            }).then((result) => {
+              setPriceOverrides(mergedOverrides);
+              setPreview(result);
+              setAdjusting(false);
+              setQuantityEdits({});
+              setSuccess("รวมสินค้าที่มีหลายราคาเป็นราคาเดียวเรียบร้อยแล้ว");
+            }).catch((reason) => {
+              setError(getErrorMessage(reason));
+              setPriceManagerOpen(true);
+            }).finally(() => setActivity("idle"));
           }}
         />
       )}
@@ -1048,6 +1101,21 @@ export function DailySoPage({
         {preview && (
           <button
             type="button"
+            disabled={busy || priceConflicts.length === 0}
+            onClick={() => setPriceManagerOpen(true)}
+            className="vp-action-button flex items-center gap-2 rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-3 text-sm font-semibold text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <BadgeDollarSign size={18} />
+            เลือกราคา
+            {priceConflicts.length > 0 && (
+              <span className="rounded-full bg-amber-600 px-2 py-0.5 text-[10px] text-white">{priceConflicts.length}</span>
+            )}
+          </button>
+        )}
+
+        {preview && (
+          <button
+            type="button"
             disabled={busy}
             onClick={openWarehouseManager}
             className="vp-action-button flex items-center gap-2 rounded-xl border border-cyan-300 bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-3 text-sm font-semibold text-cyan-800 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-35"
@@ -1062,7 +1130,8 @@ export function DailySoPage({
           disabled={
             busy ||
             !preview ||
-            invalidQuantityEdit
+            invalidQuantityEdit ||
+            priceConflicts.length > 0
           }
           onClick={() => {
             void exportFiles();
@@ -1651,6 +1720,147 @@ function WarehouseManagerPopup({
     </section>,
     document.body,
   );
+}
+
+interface PriceConflict {
+  key: string;
+  groupCode: "Q19" | "Q20";
+  itemCode: string;
+  itemName: string;
+  prices: number[];
+  totalQuantity: number;
+}
+
+function PriceConflictPopup({
+  conflicts,
+  onClose,
+  onSave,
+}: {
+  conflicts: PriceConflict[];
+  onClose: () => void;
+  onSave: (overrides: PriceOverrides) => void;
+}) {
+  const [drafts, setDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(conflicts.map((conflict) => [conflict.key, ""])),
+  );
+
+  const complete = conflicts.length > 0 && conflicts.every((conflict) => {
+    const value = Number(drafts[conflict.key]);
+    return drafts[conflict.key] !== "" && Number.isFinite(value) && value >= 0;
+  });
+
+  return createPortal(
+    <section className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/75 p-5 backdrop-blur-sm">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-amber-100 bg-gradient-to-r from-amber-50 via-orange-50 to-white px-6 py-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-200">
+              <BadgeDollarSign size={23} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold tracking-[0.2em] text-amber-700">WMS PRICE RESOLVER</p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-900">เลือกหนึ่งราคาต่อสินค้า</h3>
+              <p className="mt-1 text-xs text-slate-500">ระบบจะรวมจำนวนของสินค้ารหัสเดียวกัน แล้วส่งเข้า WMS เพียงหนึ่งบรรทัด</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 transition hover:bg-white hover:text-slate-900">
+            <X size={19} />
+          </button>
+        </header>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+          {conflicts.map((conflict) => (
+            <article key={conflict.key} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold text-white ${conflict.groupCode === "Q19" ? "bg-violet-600" : "bg-cyan-600"}`}>{conflict.groupCode}</span>
+                    <span className="font-mono text-xs text-slate-500">{conflict.itemCode}</span>
+                  </div>
+                  <h4 className="mt-2 font-semibold text-slate-900">{conflict.itemName}</h4>
+                  <p className="mt-1 text-xs text-slate-500">จำนวนรวม {formatNumber(conflict.totalQuantity)} ชิ้น</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {conflict.prices.map((price) => {
+                  const value = String(price);
+                  const selected = drafts[conflict.key] === value;
+                  return (
+                    <button
+                      key={price}
+                      type="button"
+                      onClick={() => setDrafts((current) => ({ ...current, [conflict.key]: value }))}
+                      className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${selected ? "border-amber-500 bg-amber-500 text-white shadow-md shadow-amber-200" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-amber-300"}`}
+                    >
+                      {formatNumber(price)} บาท
+                    </button>
+                  );
+                })}
+                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <span className="text-xs font-medium text-slate-500">ราคาอื่น</span>
+                  <input
+                    value={drafts[conflict.key] ?? ""}
+                    onChange={(event) => {
+                      const value = event.target.value.replace(/[^\d.]/g, "");
+                      setDrafts((current) => ({ ...current, [conflict.key]: value }));
+                    }}
+                    inputMode="decimal"
+                    className="w-24 bg-transparent text-right text-sm font-semibold text-slate-900 outline-none"
+                    placeholder="0.00"
+                  />
+                  <span className="text-xs text-slate-500">บาท</span>
+                </label>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <footer className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-slate-500">ต้องเลือกราคาให้ครบทุกสินค้าก่อนบันทึก</p>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700">ยกเลิก</button>
+            <button
+              type="button"
+              disabled={!complete}
+              onClick={() => onSave(Object.fromEntries(conflicts.map((conflict) => [conflict.key, Number(drafts[conflict.key])])))}
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Check size={18} />
+              ยืนยันราคาและรวมรายการ
+            </button>
+          </div>
+        </footer>
+      </div>
+    </section>,
+    document.body,
+  );
+}
+
+function findPriceConflicts(result: DailySoResult): PriceConflict[] {
+  const conflicts: PriceConflict[] = [];
+  for (const group of result.groups) {
+    const byItem = new Map<string, DailySoRecord[]>();
+    for (const record of group.records) {
+      if (!record.item_code) continue;
+      const records = byItem.get(record.item_code) ?? [];
+      records.push(record);
+      byItem.set(record.item_code, records);
+    }
+    for (const [itemCode, records] of byItem) {
+      const prices = Array.from(new Set(records.map((record) => record.price))).sort((a, b) => a - b);
+      if (prices.length < 2) continue;
+      conflicts.push({
+        key: `${group.code}|${itemCode}`,
+        groupCode: group.code,
+        itemCode,
+        itemName: records[0].item_name || records[0].pdf_name,
+        prices,
+        totalQuantity: records.reduce((total, record) => total + record.quantity, 0),
+      });
+    }
+  }
+  return conflicts;
 }
 
 function GroupPreview({

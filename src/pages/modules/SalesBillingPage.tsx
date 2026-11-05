@@ -21,6 +21,7 @@ import {
   CirclePlay,
   FileSearch,
   FileUp,
+  Gift,
   MonitorDot,
   Octagon,
   PackageMinus,
@@ -43,11 +44,15 @@ import type {
   SalesBillingPreview,
   SalesBillingProgress,
 } from "../../types/salesBilling.types";
+import type {
+  PickingQuantityTransfer,
+} from "../../types/workflowTransfer.types";
 
 interface SalesBillingPageProps {
   onBack: () => void;
   initialPdfPath?: string;
   initialIvNumber?: string;
+  initialQuantityTransfers?: PickingQuantityTransfer[];
   onInitialPdfConsumed?: () => void;
   onNextProcess: (pdfPath: string) => void;
 }
@@ -62,11 +67,14 @@ export function SalesBillingPage({
   onBack,
   initialPdfPath,
   initialIvNumber = "",
+  initialQuantityTransfers = [],
   onInitialPdfConsumed,
   onNextProcess,
 }: SalesBillingPageProps) {
   const consumedPdfRef =
     useRef("");
+  const quantityTransfersRef =
+    useRef<PickingQuantityTransfer[]>([]);
   const [pdfPath, setPdfPath] =
     useState("");
   const [startIv, setStartIv] =
@@ -105,6 +113,8 @@ export function SalesBillingPage({
 
     consumedPdfRef.current =
       initialPdfPath;
+    quantityTransfersRef.current =
+      initialQuantityTransfers;
     setPdfPath(initialPdfPath);
     if (initialIvNumber) {
       setStartIv(
@@ -117,12 +127,46 @@ export function SalesBillingPage({
     setProgress(null);
     setError("");
     setSuccess(
-      "รับไฟล์ PDF จากขั้นตอนลงยอด SO แล้ว",
+      "รับไฟล์ PDF จากขั้นตอนลงยอด SO แล้ว กำลังประมวลผล...",
     );
-    onInitialPdfConsumed?.();
+
+    const ivDigits = normalizeIvDigits(initialIvNumber);
+    if (!/^\d+$/.test(ivDigits)) {
+      setError("ไม่พบเลข IV เริ่มต้นจากขั้นตอนก่อนหน้า");
+      setSuccess("");
+      onInitialPdfConsumed?.();
+      return;
+    }
+
+    setActivity("previewing");
+    void salesBillingService
+      .preview(initialPdfPath, `VPR${ivDigits}`)
+      .then((result) => {
+        setPreview(
+          preparePreview(
+            result,
+            quantityTransfersRef.current,
+          ),
+        );
+        setSuccess(
+          quantityTransfersRef.current.length > 0
+            ? `ประมวลผลอัตโนมัติเรียบร้อย และรับยอดตัดจากหน้าออกใบจัด ${quantityTransfersRef.current.length} รายการ`
+            : "ประมวลผล PDF จากขั้นตอนลงยอด SO เรียบร้อยแล้ว",
+        );
+      })
+      .catch((requestError) => {
+        setPreview(null);
+        setSuccess("");
+        setError(getErrorMessage(requestError));
+      })
+      .finally(() => {
+        setActivity("idle");
+        onInitialPdfConsumed?.();
+      });
   }, [
     initialPdfPath,
     initialIvNumber,
+    initialQuantityTransfers,
     onInitialPdfConsumed,
   ]);
 
@@ -294,25 +338,7 @@ export function SalesBillingPage({
             pdfPath,
             `VPR${startIv}`,
           );
-      setPreview({
-        ...result,
-        orders: result.orders.map(
-          (order) => ({
-            ...order,
-            selected: order.ready,
-            items: order.items.map(
-              (item) => ({
-                ...item,
-                original_quantity:
-                  item.quantity,
-                adjusted: false,
-                excluded_by_quantity:
-                  false,
-              }),
-            ),
-          }),
-        ),
-      });
+      setPreview(preparePreview(result, quantityTransfersRef.current));
     } catch (requestError) {
       setPreview(null);
       setError(
@@ -362,25 +388,12 @@ export function SalesBillingPage({
           `VPR${startIv}`,
         );
 
-      setPreview({
-        ...result,
-        orders: result.orders.map(
-          (order) => ({
-            ...order,
-            selected: order.ready,
-            items: order.items.map(
-              (item) => ({
-                ...item,
-                original_quantity:
-                  item.quantity,
-                adjusted: false,
-                excluded_by_quantity:
-                  false,
-              }),
-            ),
-          }),
+      setPreview(
+        preparePreview(
+          result,
+          quantityTransfersRef.current,
         ),
-      });
+      );
       setMappingDrafts((current) => {
         const next = { ...current };
         delete next[item.cpall_code];
@@ -552,6 +565,31 @@ export function SalesBillingPage({
                           !item.excluded,
                         excluded_by_quantity:
                           false,
+                      }
+                    : item,
+              ),
+            }
+          : order,
+      ),
+    );
+  }
+
+  function toggleFreeGift(
+    poNumber: string,
+    itemIndex: number,
+  ) {
+    updateOrders((current) =>
+      current.map((order) =>
+        order.po_number === poNumber
+          ? {
+              ...order,
+              items: order.items.map(
+                (item, index) =>
+                  index === itemIndex
+                    ? {
+                        ...item,
+                        has_free_gift:
+                          !item.has_free_gift,
                       }
                     : item,
               ),
@@ -776,6 +814,21 @@ export function SalesBillingPage({
             Next Process
             <ArrowRight size={18} />
           </button>
+
+          {preview && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setSuccess("เปิดรายละเอียด IV ด้วยปุ่ม ‘ตัดยอด’ แล้วกด ‘เพิ่มของแถม’ ที่สินค้าที่ต้องการ ระบบจะคีย์รายการเดิมซ้ำด้วยราคา 0");
+                setError("");
+              }}
+              className="vp-promotion-button flex min-w-[190px] items-center justify-center gap-2 rounded-xl border border-fuchsia-300 bg-gradient-to-r from-fuchsia-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-pink-500/20 transition hover:-translate-y-0.5 hover:from-fuchsia-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              <Gift size={18} />
+              วิธีเลือกของแถม
+            </button>
+          )}
         </div>
       )}
 
@@ -1138,7 +1191,7 @@ export function SalesBillingPage({
                                 ) => (
                                   <div
                                     key={`${item.cpall_code}-${itemIndex}`}
-                                    className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_110px] sm:items-center ${
+                                    className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_130px_110px] sm:items-center ${
                                       item.adjusted
                                         ? "border-amber-300 ring-1 ring-amber-100"
                                         : "border-slate-200"
@@ -1197,6 +1250,27 @@ export function SalesBillingPage({
                                         เดิม {(item.original_quantity ?? item.quantity).toLocaleString()}
                                       </p>
                                     </div>
+                                    <button
+                                      type="button"
+                                      disabled={busy || item.excluded}
+                                      onClick={() =>
+                                        toggleFreeGift(
+                                          order.po_number,
+                                          itemIndex,
+                                        )
+                                      }
+                                      className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-35 ${
+                                        item.has_free_gift
+                                          ? "bg-fuchsia-600 text-white shadow-md shadow-fuchsia-200 ring-1 ring-fuchsia-700"
+                                          : "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-fuchsia-200 hover:bg-fuchsia-100"
+                                      }`}
+                                      title="คีย์สินค้านี้ซ้ำด้วยราคา 0 และเลือกเป็นของแถมใน Express"
+                                    >
+                                      <Gift size={15} />
+                                      {item.has_free_gift
+                                        ? "มีของแถม"
+                                        : "เพิ่มของแถม"}
+                                    </button>
                                     <button
                                       type="button"
                                       disabled={busy}
@@ -1399,6 +1473,38 @@ function isOrderReady(
       items.length > 0 &&
       items.every((item) => item.match_status === "matched"),
   );
+}
+
+function preparePreview(
+  result: SalesBillingPreview,
+  transfers: PickingQuantityTransfer[],
+): SalesBillingPreview {
+  return {
+    ...result,
+    orders: result.orders.map((order) => ({
+      ...order,
+      selected: order.ready,
+      items: order.items.map((item) => {
+        const transfer = transfers.find((candidate) =>
+          candidate.poNumber === order.po_number &&
+          (
+            (candidate.barcode && candidate.barcode === item.barcode) ||
+            (candidate.cpallCode && candidate.cpallCode === item.cpall_code) ||
+            candidate.pdfName.trim() === item.pdf_name.trim()
+          ),
+        );
+        const quantity = transfer?.quantity ?? item.quantity;
+        return {
+          ...item,
+          quantity,
+          original_quantity: item.quantity,
+          adjusted: quantity !== item.quantity,
+          excluded: quantity === 0 ? true : item.excluded,
+          excluded_by_quantity: quantity === 0,
+        };
+      }),
+    })),
+  };
 }
 
 function normalizeExpressCodeInput(

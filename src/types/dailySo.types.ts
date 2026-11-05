@@ -15,6 +15,8 @@ export interface DailySoInput {
     Record<string, "Q19" | "Q20">;
   productOverrides?:
     Record<string, string>;
+  priceOverrides?:
+    Record<string, number>;
 }
 
 export type DailySoRecordStatus =

@@ -45,6 +45,7 @@ class ExpressItem:
     product_name: str
     quantity: float
     row_number: int
+    is_free_gift: bool = False
 
 
 @dataclass
@@ -293,6 +294,11 @@ def _extract_invoices(
                         item_row_index
                         + 1
                     ),
+                    is_free_gift=(
+                        _is_free_gift_row(
+                            item_row,
+                        )
+                    ),
                 ),
             )
 
@@ -485,6 +491,9 @@ def _build_product_results(
                     ),
                     "quantity": 0.0,
                     "warehouses": [],
+                    "is_free_gift": (
+                        item.is_free_gift
+                    ),
                 }
 
             product = products[
@@ -558,6 +567,9 @@ def _invoice_result(
                 "row_number": (
                     item.row_number
                 ),
+                "is_free_gift": (
+                    item.is_free_gift
+                ),
             }
             for item in invoice.items
         ],
@@ -567,10 +579,17 @@ def _invoice_result(
 def _product_key(
     item: ExpressItem,
 ) -> str:
+    gift_suffix = (
+        ":gift"
+        if item.is_free_gift
+        else ":sale"
+    )
+
     if item.product_code:
         return (
             "code:"
             + item.product_code.strip()
+            + gift_suffix
         )
 
     return (
@@ -580,7 +599,43 @@ def _product_key(
             "",
             item.product_name,
         ).casefold()
+        + gift_suffix
     )
+
+
+def _is_free_gift_row(
+    row: list[str],
+) -> bool:
+    """Identify Express gift rows without merging them into paid sales.
+
+    Express writes the unit price in column N (zero-based index 13). A
+    confirmed free-gift line has an explicit 0/0.00 price.  The text check
+    keeps the parser compatible with exports that also include a gift label.
+    Blank prices are deliberately not treated as gifts.
+    """
+    row_text = " ".join(
+        str(cell or "").strip()
+        for cell in row
+    ).casefold()
+
+    if "ของแถม" in row_text:
+        return True
+
+    price_text = _cell(
+        row,
+        13,
+    ).replace(
+        ",",
+        "",
+    )
+
+    if not price_text:
+        return False
+
+    try:
+        return float(price_text) == 0
+    except ValueError:
+        return False
 
 
 def _cell(

@@ -17,6 +17,7 @@ class ProductItem:
     match_method: str = ""
     match_score: float = 0.0
     excluded: bool = False
+    has_free_gift: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

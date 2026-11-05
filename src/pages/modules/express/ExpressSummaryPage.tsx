@@ -735,7 +735,9 @@ function WarehouseCard({
                   text-slate-200
                 "
               >
-                {item.product_name}
+                {item.is_free_gift
+                  ? `(ของแถม) ${item.product_name}`
+                  : item.product_name}
               </p>
 
               <p
@@ -1077,10 +1079,10 @@ function RealtimeCard({
           <div className="space-y-2">
             {result.products.map((product) => (
               <div
-                key={
+                key={`${
                   product.product_code ||
                   product.product_name
-                }
+                }-${product.is_free_gift ? "gift" : "sale"}`}
                 className="
                   flex
                   items-start
@@ -1103,7 +1105,9 @@ function RealtimeCard({
                       text-slate-200
                     "
                   >
-                    {product.product_name}
+                    {product.is_free_gift
+                      ? `(ของแถม) ${product.product_name}`
+                      : product.product_name}
                   </p>
 
                 </div>
@@ -1255,6 +1259,7 @@ interface LineProduct {
   productCode: string;
   productName: string;
   quantity: number;
+  isFreeGift: boolean;
 }
 
 const lineMessageLimit =
@@ -1382,9 +1387,10 @@ function buildLineMessages(
       >();
 
     for (const item of invoice.items) {
-      const key =
+      const key = `${
         item.product_code ||
-        item.product_name;
+        item.product_name
+      }-${item.is_free_gift ? "gift" : "sale"}`;
 
       const current =
         products.get(
@@ -1404,6 +1410,8 @@ function buildLineMessages(
               item.product_name,
             quantity:
               item.quantity,
+            isFreeGift:
+              item.is_free_gift,
           },
         );
       }
@@ -1453,6 +1461,8 @@ function buildLineMessages(
           product.product_name,
         quantity:
           product.quantity,
+        isFreeGift:
+          product.is_free_gift,
       }),
     );
 
@@ -1539,9 +1549,14 @@ function buildLineProductRows(
     );
 
   return orderedProducts.map(
-    (product) => (
-      `• ${getLineProductName(product)} : ${formatNumber(product.quantity)}`
-    ),
+    (product) => {
+      const giftPrefix =
+        product.isFreeGift
+          ? "(ของแถม) "
+          : "";
+
+      return `• ${giftPrefix}${getLineProductName(product)} : ${formatNumber(product.quantity)}`;
+    },
   );
 }
 

@@ -19,6 +19,7 @@ pub struct DailySoInput {
     quantity_overrides: Option<Value>,
     warehouse_overrides: Option<Value>,
     product_overrides: Option<Value>,
+    price_overrides: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -221,6 +222,14 @@ fn validate_input(
         );
     }
 
+    if input
+        .price_overrides
+        .as_ref()
+        .is_some_and(|value| !value.is_object())
+    {
+        return Err("ข้อมูลเลือกราคาสินค้าไม่ถูกต้อง".to_string());
+    }
+
     Ok(())
 }
 
@@ -342,6 +351,18 @@ fn run_python(
         .arg(
             product_overrides,
         );
+
+    let price_overrides = input
+        .price_overrides
+        .as_ref()
+        .map(serde_json::to_string)
+        .transpose()
+        .map_err(|error| format!("แปลงข้อมูลเลือกราคาไม่สำเร็จ: {}", error))?
+        .unwrap_or_else(|| "{}".to_string());
+
+    command
+        .arg("--price-overrides-json")
+        .arg(price_overrides);
 
     if preview_only {
         command.arg(

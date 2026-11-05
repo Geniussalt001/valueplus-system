@@ -19,6 +19,8 @@ from .automation_timing import (
     DEFAULT_FIELD_DELAY,
     DEFAULT_KEY_DELAY,
     FOCUS_SETTLE_DELAY,
+    FREE_GIFT_CONFIRM_SETTLE_DELAY,
+    FREE_GIFT_DIALOG_SETTLE_DELAY,
     HEADER_FIELD_SETTLE_DELAY,
     IV_FIELD_SETTLE_DELAY,
     LAST_ITEM_SETTLE_DELAY,
@@ -311,6 +313,32 @@ class ExpressAutomation:
             self._key_item(item, order_index, item_index)
             # กด Enter 3 ครั้งทุกรายการ (รวมถึงรายการสุดท้าย) เพื่อยืนยันราคาและบันทึกบรรทัดสินค้าลงตาราง
             self._press("enter", 3)
+            if item.has_free_gift:
+                self._status(
+                    order_index,
+                    "คีย์รายการของแถม",
+                    item_index,
+                    f"{item.express_input_code} • ราคา 0.00",
+                )
+                self._key_item(
+                    item,
+                    order_index,
+                    item_index,
+                    price_override=0.0,
+                )
+                # เมื่อยืนยันบรรทัดราคา 0 Express จะแสดงกล่องถามว่า
+                # เป็นรายการแถมหรือไม่ โดยโฟกัสเริ่มต้นอยู่ที่ "ป้อนใหม่".
+                self._press("enter", 3)
+                self._sleep(FREE_GIFT_DIALOG_SETTLE_DELAY)
+                self._status(
+                    order_index,
+                    "ยืนยันเป็นของแถม",
+                    item_index,
+                    "ลูกศรขวา แล้วกด Enter",
+                )
+                self._press("right", 1)
+                self._press("enter", 1)
+                self._sleep(FREE_GIFT_CONFIRM_SETTLE_DELAY)
 
         self._status(
             order_index,
@@ -347,6 +375,7 @@ class ExpressAutomation:
         item: ProductItem,
         order_index: int,
         item_index: int,
+        price_override: float | None = None,
     ) -> None:
         self._status(
             order_index,
@@ -380,7 +409,8 @@ class ExpressAutomation:
         self._type_text(quantity)
 
         self._press("enter", 3)
-        price = f"{item.unit_price:.2f}"
+        price_value = item.unit_price if price_override is None else price_override
+        price = f"{price_value:.2f}"
         self._status(
             order_index,
             "พิมพ์ราคาต่อหน่วย",

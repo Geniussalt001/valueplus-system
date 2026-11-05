@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -64,6 +65,20 @@ const accounts = [
 export function LoginPage({
   onLogin,
 }: LoginPageProps) {
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      return "สวัสดีตอนเช้า";
+    }
+
+    if (hour < 17) {
+      return "สวัสดีตอนบ่าย";
+    }
+
+    return "สวัสดีตอนเย็น";
+  }, []);
+
   const [
     connectionState,
     setConnectionState,
@@ -240,7 +255,11 @@ export function LoginPage({
         aria-hidden="true"
       />
 
-      <section className="login-hybrid-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-2xl sm:p-10">
+      <section className="login-hybrid-card relative z-10 w-full max-w-[480px] overflow-hidden p-8 backdrop-blur-2xl sm:p-9">
+        <span
+          className="login-hybrid-tracer"
+          aria-hidden="true"
+        />
         <div className="relative z-10">
           <BrandLogo
             size="medium"
@@ -249,7 +268,7 @@ export function LoginPage({
 
           <div className="login-hybrid-divider mt-7 h-px" />
 
-          <div className="mt-8">
+          <div className="login-hybrid-intro mt-7">
             <div className="flex items-center gap-2.5 text-cyan-700">
               <ShieldCheck size={18} />
               <span className="text-xs font-semibold tracking-[0.18em]">
@@ -258,12 +277,11 @@ export function LoginPage({
             </div>
 
             <h1 className="mt-4 text-3xl font-semibold text-slate-900">
-              ยินดีต้อนรับ
+              {greeting}
             </h1>
 
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกส่วนงาน Warehouse หรือ Head Office
-              เพื่อเข้าสู่ระบบได้ทันที
+              เลือกพื้นที่ทำงานเพื่อเข้าสู่ระบบ
             </p>
           </div>
 
@@ -391,6 +409,11 @@ export function LoginPage({
                     );
                   }}
                   className="login-account-card group flex min-h-[92px] w-full items-center gap-4 rounded-2xl p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
+                  data-loading={
+                    loading
+                      ? "true"
+                      : "false"
+                  }
                 >
                   <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-cyan-700">
                     <Icon size={22} />
@@ -409,14 +432,14 @@ export function LoginPage({
                   </span>
 
                   <span className="login-account-arrow flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white transition group-hover:translate-x-1">
-                    <ArrowRight
-                      size={18}
-                      className={
-                        loading
-                          ? "animate-pulse"
-                          : ""
-                      }
-                    />
+                    {loading ? (
+                      <LoaderCircle
+                        size={18}
+                        className="animate-spin"
+                      />
+                    ) : (
+                      <ArrowRight size={18} />
+                    )}
                   </span>
                 </button>
               );
@@ -438,7 +461,7 @@ export function LoginPage({
                 />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900">
-                    กำลังเข้าสู่ระบบ
+                    กำลังเปิด Workspace...
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500">
                     กำลังเปิดพื้นที่ทำงาน{
@@ -459,17 +482,17 @@ export function LoginPage({
             </p>
           )}
 
-          <div className="mt-8 flex items-center justify-between gap-4 text-[11px]">
+          <div className="login-hybrid-footer mt-7 flex items-end justify-between gap-4 text-[11px]">
             <div className="flex flex-col items-start gap-2">
               <span className="text-slate-500">VALUEPLUS RETAIL CO., LTD.</span>
               <AppVersionBadge />
             </div>
-            <span className="flex items-center gap-2.5 font-medium text-emerald-700">
+            <span className="login-ready-pill flex items-center gap-2.5 rounded-full px-3 py-2 font-semibold text-emerald-700">
               <span
                 className="status-light status-online"
                 aria-hidden="true"
               />
-              READY
+              SYSTEM READY
             </span>
           </div>
         </div>
