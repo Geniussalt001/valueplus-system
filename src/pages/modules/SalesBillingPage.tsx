@@ -29,6 +29,7 @@ import {
   Play,
   ReceiptText,
   Save,
+  Search,
 } from "lucide-react";
 
 import {
@@ -100,6 +101,8 @@ export function SalesBillingPage({
   const [mappingDrafts, setMappingDrafts] =
     useState<Record<string, string>>({});
   const [savingProduct, setSavingProduct] =
+    useState("");
+  const [productSearch, setProductSearch] =
     useState("");
 
   useEffect(() => {
@@ -267,6 +270,27 @@ export function SalesBillingPage({
 
     return [...products.values()];
   }, [orders]);
+
+  const normalizedProductSearch =
+    productSearch.trim().toLocaleLowerCase("th-TH");
+
+  const visibleOrders = useMemo(() => {
+    return orders
+      .map((order, originalIndex) => ({
+        order,
+        originalIndex,
+        visibleItems: normalizedProductSearch
+          ? order.items
+              .map((item, itemIndex) => ({ item, itemIndex }))
+              .filter(({ item }) =>
+                matchesProductSearch(item, normalizedProductSearch),
+              )
+          : order.items.map((item, itemIndex) => ({ item, itemIndex })),
+      }))
+      .filter(({ visibleItems }) =>
+        normalizedProductSearch ? visibleItems.length > 0 : true,
+      );
+  }, [orders, normalizedProductSearch]);
 
   const currentPercent = useMemo(() => {
     if (
@@ -596,6 +620,58 @@ export function SalesBillingPage({
             }
           : order,
       ),
+    );
+  }
+
+  function toggleFreeGiftEveryWarehouse(
+    sourceItem: SalesBillingOrder["items"][number],
+  ) {
+    const productKey = getProductKey(sourceItem);
+    const matchingItems = orders.flatMap((order) =>
+      order.items.filter((item) => getProductKey(item) === productKey),
+    );
+    const shouldEnable = !matchingItems.every((item) => item.has_free_gift);
+
+    updateOrders((current) =>
+      current.map((order) => ({
+        ...order,
+        items: order.items.map((item) =>
+          getProductKey(item) === productKey
+            ? { ...item, has_free_gift: shouldEnable }
+            : item,
+        ),
+      })),
+    );
+    setSuccess(
+      `${shouldEnable ? "เพิ่มของแถม" : "ยกเลิกของแถม"} ${sourceItem.pdf_name} ครบ ${matchingItems.length} คลังแล้ว`,
+    );
+  }
+
+  function toggleExcludedEveryWarehouse(
+    sourceItem: SalesBillingOrder["items"][number],
+  ) {
+    const productKey = getProductKey(sourceItem);
+    const matchingItems = orders.flatMap((order) =>
+      order.items.filter((item) => getProductKey(item) === productKey),
+    );
+    const shouldExclude = !matchingItems.every((item) => item.excluded);
+
+    updateOrders((current) =>
+      current.map((order) => ({
+        ...order,
+        items: order.items.map((item) =>
+          getProductKey(item) === productKey
+            ? {
+                ...item,
+                excluded: shouldExclude,
+                excluded_by_quantity: false,
+              }
+            : item,
+        ),
+      })),
+    );
+    setSuccess(
+      `${shouldExclude ? "ตั้งเป็นไม่ส่ง" : "กลับมาส่ง"} ${sourceItem.pdf_name} ครบ ${matchingItems.length} คลังแล้ว`,
     );
   }
 
@@ -990,19 +1066,39 @@ export function SalesBillingPage({
           <div className="mt-6 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
             <section className="vp-data-card overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
               <div className="border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white px-5 py-4">
-                <div>
-                  <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
-                    IV QUEUE
-                  </p>
-                  <h3 className="mt-1 font-semibold text-slate-900">
-                    คิวเปิดบิลขายสินค้า
-                  </h3>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-700">
+                      IV QUEUE
+                    </p>
+                    <h3 className="mt-1 font-semibold text-slate-900">
+                      คิวเปิดบิลขายสินค้า
+                    </h3>
+                  </div>
+                  <label className="relative block w-full lg:max-w-md">
+                    <Search
+                      size={17}
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-600"
+                    />
+                    <input
+                      type="search"
+                      value={productSearch}
+                      onChange={(event) => setProductSearch(event.target.value)}
+                      placeholder="ค้นหาชื่อสินค้า รหัส CPALL หรือ Express"
+                      className="w-full rounded-xl border border-cyan-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                    />
+                  </label>
                 </div>
+                {normalizedProductSearch && (
+                  <p className="mt-3 text-xs font-medium text-cyan-700">
+                    พบ {visibleOrders.reduce((total, entry) => total + entry.visibleItems.length, 0)} รายการใน {visibleOrders.length} คลัง
+                  </p>
+                )}
               </div>
 
               <div className="divide-y divide-cyan-100">
-                {orders.map(
-                  (order, index) => {
+                {visibleOrders.map(
+                  ({ order, originalIndex, visibleItems }) => {
                     const expanded =
                       expandedPo ===
                       order.po_number;
@@ -1107,11 +1203,11 @@ export function SalesBillingPage({
                               type="button"
                               disabled={
                                 busy ||
-                                index === 0
+                                originalIndex === 0
                               }
                               onClick={() =>
                                 moveOrder(
-                                  index,
+                                  originalIndex,
                                   -1,
                                 )
                               }
@@ -1126,13 +1222,13 @@ export function SalesBillingPage({
                               type="button"
                               disabled={
                                 busy ||
-                                index ===
+                                originalIndex ===
                                   orders.length -
                                     1
                               }
                               onClick={() =>
                                 moveOrder(
-                                  index,
+                                  originalIndex,
                                   1,
                                 )
                               }
@@ -1171,7 +1267,7 @@ export function SalesBillingPage({
                           </button>
                         </div>
 
-                        {expanded && (
+                        {(expanded || normalizedProductSearch) && (
                           <div className="border-t border-cyan-100 bg-slate-50/70 px-4 py-3">
                             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                               <div>
@@ -1184,11 +1280,8 @@ export function SalesBillingPage({
                               </div>
                             </div>
                             <div className="space-y-2">
-                              {order.items.map(
-                                (
-                                  item,
-                                  itemIndex,
-                                ) => (
+                              {visibleItems.map(
+                                ({ item, itemIndex }) => (
                                   <div
                                     key={`${item.cpall_code}-${itemIndex}`}
                                     className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_130px_110px] sm:items-center ${
@@ -1212,6 +1305,26 @@ export function SalesBillingPage({
                                         • ราคา{" "}
                                         {item.unit_price.toLocaleString()}
                                       </p>
+                                      <div className="mt-2 flex flex-wrap gap-2">
+                                        <button
+                                          type="button"
+                                          disabled={busy}
+                                          onClick={() => toggleFreeGiftEveryWarehouse(item)}
+                                          className="rounded-lg bg-fuchsia-50 px-2.5 py-1.5 text-[10px] font-semibold text-fuchsia-700 ring-1 ring-fuchsia-200 transition hover:bg-fuchsia-100 disabled:opacity-40"
+                                        >
+                                          <span className="inline-flex items-center gap-1.5">
+                                            <Gift size={12} /> ของแถมทุกคลัง
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={busy}
+                                          onClick={() => toggleExcludedEveryWarehouse(item)}
+                                          className="rounded-lg bg-red-50 px-2.5 py-1.5 text-[10px] font-semibold text-red-700 ring-1 ring-red-200 transition hover:bg-red-100 disabled:opacity-40"
+                                        >
+                                          ไม่ส่งทุกคลัง
+                                        </button>
+                                      </div>
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-semibold text-slate-500">
@@ -1299,6 +1412,13 @@ export function SalesBillingPage({
                       </article>
                     );
                   },
+                )}
+                {visibleOrders.length === 0 && (
+                  <div className="px-5 py-12 text-center">
+                    <Search size={28} className="mx-auto text-slate-300" />
+                    <p className="mt-3 text-sm font-semibold text-slate-600">ไม่พบสินค้าที่ค้นหา</p>
+                    <p className="mt-1 text-xs text-slate-400">ลองค้นหาด้วยชื่อ รหัส CPALL หรือรหัส Express</p>
+                  </div>
                 )}
               </div>
             </section>
@@ -1473,6 +1593,29 @@ function isOrderReady(
       items.length > 0 &&
       items.every((item) => item.match_status === "matched"),
   );
+}
+
+function getProductKey(
+  item: SalesBillingOrder["items"][number],
+): string {
+  return (
+    item.cpall_code.trim() ||
+    item.barcode.trim() ||
+    item.pdf_name.trim().toLocaleLowerCase("th-TH")
+  );
+}
+
+function matchesProductSearch(
+  item: SalesBillingOrder["items"][number],
+  search: string,
+): boolean {
+  return [
+    item.pdf_name,
+    item.cpall_code,
+    item.barcode,
+    item.express_code,
+    item.express_input_code,
+  ].some((value) => value.toLocaleLowerCase("th-TH").includes(search));
 }
 
 function preparePreview(
