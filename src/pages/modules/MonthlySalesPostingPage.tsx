@@ -51,7 +51,7 @@ export function MonthlySalesPostingPage({ onBack }: MonthlySalesPostingPageProps
   };
 
   return (
-    <div className="mx-auto max-w-[1450px] px-5 py-7 lg:px-8 lg:py-9">
+    <div className="vp-work-page mx-auto max-w-[1450px] px-5 py-7 lg:px-8 lg:py-9">
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
         <div className="border-l-4 border-amber-500 px-7 py-7 lg:px-9">
           <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 hover:text-cyan-900"><ArrowLeft size={17} /> กลับเมนูลงยอดรายวัน</button>

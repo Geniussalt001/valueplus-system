@@ -304,6 +304,10 @@ def _extract_invoices(
 
             item_row_index += 1
 
+        _infer_duplicate_free_gifts(
+            invoice.items,
+        )
+
         invoices.append(
             invoice,
         )
@@ -636,6 +640,44 @@ def _is_free_gift_row(
         return float(price_text) == 0
     except ValueError:
         return False
+
+
+def _infer_duplicate_free_gifts(
+    items: list[ExpressItem],
+) -> None:
+    """Recognize 1+1 rows when an Express CSV omits the gift marker."""
+    grouped: OrderedDict[
+        tuple[str, float],
+        list[ExpressItem],
+    ] = OrderedDict()
+
+    for item in items:
+        base_key = (
+            item.product_code.strip()
+            if item.product_code
+            else re.sub(
+                r"\s+",
+                "",
+                item.product_name,
+            ).casefold()
+        )
+        grouped.setdefault(
+            (base_key, item.quantity),
+            [],
+        ).append(item)
+
+    for matching_items in grouped.values():
+        if (
+            len(matching_items) != 2
+            or "อุ้งเท้าแมว" not in matching_items[0].product_name
+            or any(
+                item.is_free_gift
+                for item in matching_items
+            )
+        ):
+            continue
+
+        matching_items[1].is_free_gift = True
 
 
 def _cell(

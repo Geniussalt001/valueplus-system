@@ -30,6 +30,7 @@ import {
   ReceiptText,
   Save,
   Search,
+  X,
 } from "lucide-react";
 
 import {
@@ -103,6 +104,10 @@ export function SalesBillingPage({
   const [savingProduct, setSavingProduct] =
     useState("");
   const [productSearch, setProductSearch] =
+    useState("");
+  const [giftManagerOpen, setGiftManagerOpen] =
+    useState(false);
+  const [giftSearch, setGiftSearch] =
     useState("");
 
   useEffect(() => {
@@ -291,6 +296,41 @@ export function SalesBillingPage({
         normalizedProductSearch ? visibleItems.length > 0 : true,
       );
   }, [orders, normalizedProductSearch]);
+
+  const giftProducts = useMemo(() => {
+    const products = new Map<
+      string,
+      {
+        item: SalesBillingOrder["items"][number];
+        warehouseCount: number;
+        giftCount: number;
+      }
+    >();
+
+    for (const order of orders) {
+      for (const item of order.items) {
+        const key = getProductKey(item);
+        const current = products.get(key);
+        if (current) {
+          current.warehouseCount += 1;
+          if (item.has_free_gift) current.giftCount += 1;
+        } else {
+          products.set(key, {
+            item,
+            warehouseCount: 1,
+            giftCount: item.has_free_gift ? 1 : 0,
+          });
+        }
+      }
+    }
+
+    const search = giftSearch.trim().toLocaleLowerCase("th-TH");
+    return [...products.values()]
+      .filter(({ item }) => !search || matchesProductSearch(item, search))
+      .sort((first, second) =>
+        first.item.pdf_name.localeCompare(second.item.pdf_name, "th"),
+      );
+  }, [orders, giftSearch]);
 
   const currentPercent = useMemo(() => {
     if (
@@ -598,31 +638,6 @@ export function SalesBillingPage({
     );
   }
 
-  function toggleFreeGift(
-    poNumber: string,
-    itemIndex: number,
-  ) {
-    updateOrders((current) =>
-      current.map((order) =>
-        order.po_number === poNumber
-          ? {
-              ...order,
-              items: order.items.map(
-                (item, index) =>
-                  index === itemIndex
-                    ? {
-                        ...item,
-                        has_free_gift:
-                          !item.has_free_gift,
-                      }
-                    : item,
-              ),
-            }
-          : order,
-      ),
-    );
-  }
-
   function toggleFreeGiftEveryWarehouse(
     sourceItem: SalesBillingOrder["items"][number],
   ) {
@@ -896,13 +911,13 @@ export function SalesBillingPage({
               type="button"
               disabled={busy}
               onClick={() => {
-                setSuccess("เปิดรายละเอียด IV ด้วยปุ่ม ‘ตัดยอด’ แล้วกด ‘เพิ่มของแถม’ ที่สินค้าที่ต้องการ ระบบจะคีย์รายการเดิมซ้ำด้วยราคา 0");
-                setError("");
+                setGiftSearch("");
+                setGiftManagerOpen(true);
               }}
               className="vp-promotion-button flex min-w-[190px] items-center justify-center gap-2 rounded-xl border border-fuchsia-300 bg-gradient-to-r from-fuchsia-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-pink-500/20 transition hover:-translate-y-0.5 hover:from-fuchsia-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-35"
             >
               <Gift size={18} />
-              วิธีเลือกของแถม
+              จัดการของแถม
             </button>
           )}
         </div>
@@ -1284,7 +1299,7 @@ export function SalesBillingPage({
                                 ({ item, itemIndex }) => (
                                   <div
                                     key={`${item.cpall_code}-${itemIndex}`}
-                                    className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_130px_110px] sm:items-center ${
+                                    className={`grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-[minmax(0,1fr)_170px_110px] sm:items-center ${
                                       item.adjusted
                                         ? "border-amber-300 ring-1 ring-amber-100"
                                         : "border-slate-200"
@@ -1306,16 +1321,6 @@ export function SalesBillingPage({
                                         {item.unit_price.toLocaleString()}
                                       </p>
                                       <div className="mt-2 flex flex-wrap gap-2">
-                                        <button
-                                          type="button"
-                                          disabled={busy}
-                                          onClick={() => toggleFreeGiftEveryWarehouse(item)}
-                                          className="rounded-lg bg-fuchsia-50 px-2.5 py-1.5 text-[10px] font-semibold text-fuchsia-700 ring-1 ring-fuchsia-200 transition hover:bg-fuchsia-100 disabled:opacity-40"
-                                        >
-                                          <span className="inline-flex items-center gap-1.5">
-                                            <Gift size={12} /> ของแถมทุกคลัง
-                                          </span>
-                                        </button>
                                         <button
                                           type="button"
                                           disabled={busy}
@@ -1363,27 +1368,6 @@ export function SalesBillingPage({
                                         เดิม {(item.original_quantity ?? item.quantity).toLocaleString()}
                                       </p>
                                     </div>
-                                    <button
-                                      type="button"
-                                      disabled={busy || item.excluded}
-                                      onClick={() =>
-                                        toggleFreeGift(
-                                          order.po_number,
-                                          itemIndex,
-                                        )
-                                      }
-                                      className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-35 ${
-                                        item.has_free_gift
-                                          ? "bg-fuchsia-600 text-white shadow-md shadow-fuchsia-200 ring-1 ring-fuchsia-700"
-                                          : "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-fuchsia-200 hover:bg-fuchsia-100"
-                                      }`}
-                                      title="คีย์สินค้านี้ซ้ำด้วยราคา 0 และเลือกเป็นของแถมใน Express"
-                                    >
-                                      <Gift size={15} />
-                                      {item.has_free_gift
-                                        ? "มีของแถม"
-                                        : "เพิ่มของแถม"}
-                                    </button>
                                     <button
                                       type="button"
                                       disabled={busy}
@@ -1575,6 +1559,122 @@ export function SalesBillingPage({
             </aside>
           </div>
         </>
+      )}
+
+      {giftManagerOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gift-manager-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setGiftManagerOpen(false);
+          }}
+        >
+          <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-fuchsia-100 bg-white shadow-2xl shadow-fuchsia-950/20">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-fuchsia-50 via-white to-pink-50 px-6 py-5">
+              <div className="flex gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-200">
+                  <Gift size={21} />
+                </div>
+                <div>
+                  <h2 id="gift-manager-title" className="text-lg font-bold text-slate-900">
+                    จัดการของแถม
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    เลือกสินค้าเพียงครั้งเดียว ระบบจะตั้งเป็นของแถมให้สินค้านั้นในทุกคลัง
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGiftManagerOpen(false)}
+                className="rounded-xl p-2 text-slate-400 transition hover:bg-white hover:text-slate-700 hover:shadow-sm"
+                aria-label="ปิดหน้าต่างจัดการของแถม"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="border-b border-slate-100 px-6 py-4">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 focus-within:border-fuchsia-300 focus-within:ring-2 focus-within:ring-fuchsia-100">
+                <Search size={17} className="text-slate-400" />
+                <input
+                  autoFocus
+                  value={giftSearch}
+                  onChange={(event) => setGiftSearch(event.target.value)}
+                  placeholder="ค้นหาชื่อสินค้า, CPALL, Barcode หรือรหัส Express"
+                  className="min-w-0 flex-1 bg-transparent py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+              {giftProducts.length > 0 ? (
+                <div className="space-y-2.5">
+                  {giftProducts.map(({ item, warehouseCount, giftCount }) => {
+                    const enabled = giftCount === warehouseCount;
+                    return (
+                      <div
+                        key={getProductKey(item)}
+                        className={`flex flex-col gap-3 rounded-2xl border p-4 transition sm:flex-row sm:items-center sm:justify-between ${
+                          enabled
+                            ? "border-fuchsia-200 bg-fuchsia-50/70"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold text-slate-800">{item.pdf_name}</p>
+                            {enabled && (
+                              <span className="rounded-full bg-fuchsia-600 px-2.5 py-1 text-[10px] font-bold text-white">
+                                ของแถม
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Express {item.express_code || "ไม่พบรหัส"} • พบใน {warehouseCount.toLocaleString()} คลัง
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => toggleFreeGiftEveryWarehouse(item)}
+                          className={`flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition disabled:opacity-40 ${
+                            enabled
+                              ? "bg-white text-fuchsia-700 ring-1 ring-fuchsia-200 hover:bg-fuchsia-100"
+                              : "bg-fuchsia-600 text-white shadow-md shadow-fuchsia-200 hover:bg-fuchsia-700"
+                          }`}
+                        >
+                          <Gift size={15} />
+                          {enabled ? "ยกเลิกของแถม" : "ตั้งเป็นของแถม"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex min-h-52 flex-col items-center justify-center text-center text-slate-400">
+                  <Search size={32} />
+                  <p className="mt-3 text-sm font-semibold">ไม่พบสินค้าที่ค้นหา</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+              <p className="text-xs text-slate-500">
+                ตั้งของแถมแล้ว {giftProducts.filter((product) => product.giftCount === product.warehouseCount).length.toLocaleString()} รายการ
+              </p>
+              <button
+                type="button"
+                onClick={() => setGiftManagerOpen(false)}
+                className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-slate-700"
+              >
+                เสร็จสิ้น
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

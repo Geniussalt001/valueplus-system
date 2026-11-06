@@ -26,7 +26,7 @@ export function DoDeliveryPage({ onBack }: { onBack: () => void }) {
   const selectProvince = (province: string) => run(async () => { const data = await doDeliveryService.analytics({ ...filters(), region: selectedRegion, province }); setSelectedProvince(province); setDetail(data); });
   const shown = detail || overview;
 
-  return <div className="mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
+  return <div className="vp-work-page mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
     <section className="rounded-3xl border border-slate-200 bg-white shadow-sm"><div className="border-l-4 border-teal-500 px-7 py-7"><button onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700"><ArrowLeft size={17} /> กลับเมนูลงยอด</button><div className="mt-7 flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700"><MapPinned size={27} /></span><div><p className="text-[10px] font-semibold tracking-[.24em] text-teal-600">DO DELIVERY ANALYTICS</p><h2 className="mt-1 text-3xl font-bold text-slate-900">วิเคราะห์ยอดจัดส่ง DO</h2><p className="text-sm text-slate-500">นำเข้า Master อ่านใบคุมส่ง และวิเคราะห์พื้นที่แบบโต้ตอบ</p></div></div></div></section>
 
     <section className="mt-6 grid gap-5 xl:grid-cols-2">

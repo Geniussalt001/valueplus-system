@@ -51,7 +51,7 @@ export function PostingCenterPage({
   onNavigate,
 }: PostingCenterPageProps) {
   return (
-    <div className="mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
+    <div className="vp-work-page mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
         <div className="border-l-4 border-blue-600 px-7 py-7 lg:px-9">
           <button

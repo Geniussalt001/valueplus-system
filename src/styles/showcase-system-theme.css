@@ -771,6 +771,202 @@ body {
   opacity: 0.5 !important;
 }
 
+/* --------------------------------------------------------------------------
+ * Unified work-page polish
+ * This final layer keeps every module readable and visually consistent even
+ * when the page still carries utility classes from an earlier theme.
+ * ----------------------------------------------------------------------- */
+.dashboard .vp-work-page {
+  color: var(--vp-ink) !important;
+}
+
+.dashboard .vp-work-page > section,
+.dashboard .vp-work-page > article {
+  scroll-margin-top: 9rem;
+}
+
+.dashboard .vp-work-page h1,
+.dashboard .vp-work-page h2,
+.dashboard .vp-work-page h3,
+.dashboard .vp-work-page h4 {
+  color: var(--vp-ink) !important;
+  letter-spacing: -0.015em;
+}
+
+.dashboard .vp-work-page p,
+.dashboard .vp-work-page label,
+.dashboard .vp-work-page small {
+  text-wrap: pretty;
+}
+
+.dashboard .vp-work-page p[class*="text-slate-4"],
+.dashboard .vp-work-page p[class*="text-slate-5"],
+.dashboard .vp-work-page p[class*="text-slate-6"],
+.dashboard .vp-work-page small,
+.dashboard .vp-work-page .vp-help-text {
+  color: var(--vp-muted) !important;
+}
+
+.dashboard .vp-work-page label {
+  color: #34465e !important;
+  font-weight: 650;
+}
+
+.dashboard .vp-work-page input:not([type="checkbox"]):not([type="radio"]),
+.dashboard .vp-work-page select,
+.dashboard .vp-work-page textarea {
+  min-height: 44px;
+  border-radius: 12px !important;
+  border-color: #d7e0ea !important;
+  color: var(--vp-ink) !important;
+  background-color: #ffffff !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.dashboard .vp-work-page textarea {
+  min-height: 104px;
+}
+
+.dashboard .vp-work-page input:hover:not(:disabled),
+.dashboard .vp-work-page select:hover:not(:disabled),
+.dashboard .vp-work-page textarea:hover:not(:disabled) {
+  border-color: #b9c7d8 !important;
+}
+
+.dashboard .vp-work-page input:focus,
+.dashboard .vp-work-page select:focus,
+.dashboard .vp-work-page textarea:focus {
+  border-color: var(--vp-blue) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgb(35 105 216 / 11%) !important;
+}
+
+.dashboard .vp-work-page input:disabled,
+.dashboard .vp-work-page select:disabled,
+.dashboard .vp-work-page textarea:disabled {
+  color: #718096 !important;
+  background: #f1f4f8 !important;
+  cursor: not-allowed;
+}
+
+.dashboard .vp-work-page button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dashboard .vp-work-page button:not(:disabled) {
+  cursor: pointer;
+}
+
+.dashboard .vp-work-page button:active:not(:disabled) {
+  transform: translateY(0) scale(0.985) !important;
+}
+
+.dashboard .vp-work-page button:disabled,
+.dashboard .vp-work-page [aria-disabled="true"] {
+  cursor: not-allowed !important;
+}
+
+/* Ensure filled buttons never inherit low-contrast utility text colors. */
+.dashboard .vp-work-page button[class*="bg-slate-7"],
+.dashboard .vp-work-page button[class*="bg-slate-8"],
+.dashboard .vp-work-page button[class*="bg-slate-9"],
+.dashboard .vp-work-page button[class*="bg-blue-5"],
+.dashboard .vp-work-page button[class*="bg-blue-6"],
+.dashboard .vp-work-page button[class*="bg-blue-7"],
+.dashboard .vp-work-page button[class*="bg-cyan-5"],
+.dashboard .vp-work-page button[class*="bg-cyan-6"],
+.dashboard .vp-work-page button[class*="bg-emerald-5"],
+.dashboard .vp-work-page button[class*="bg-emerald-6"],
+.dashboard .vp-work-page button[class*="bg-teal-6"],
+.dashboard .vp-work-page button[class*="bg-teal-7"],
+.dashboard .vp-work-page button[class*="bg-red-5"],
+.dashboard .vp-work-page button[class*="bg-red-6"],
+.dashboard .vp-work-page button[class*="bg-violet-5"],
+.dashboard .vp-work-page button[class*="bg-violet-6"] {
+  color: #ffffff !important;
+}
+
+.dashboard .vp-work-page button[class*="bg-slate-7"] *,
+.dashboard .vp-work-page button[class*="bg-slate-8"] *,
+.dashboard .vp-work-page button[class*="bg-slate-9"] *,
+.dashboard .vp-work-page button[class*="bg-blue-5"] *,
+.dashboard .vp-work-page button[class*="bg-blue-6"] *,
+.dashboard .vp-work-page button[class*="bg-blue-7"] *,
+.dashboard .vp-work-page button[class*="bg-cyan-5"] *,
+.dashboard .vp-work-page button[class*="bg-cyan-6"] *,
+.dashboard .vp-work-page button[class*="bg-emerald-5"] *,
+.dashboard .vp-work-page button[class*="bg-emerald-6"] *,
+.dashboard .vp-work-page button[class*="bg-teal-6"] *,
+.dashboard .vp-work-page button[class*="bg-teal-7"] *,
+.dashboard .vp-work-page button[class*="bg-red-5"] *,
+.dashboard .vp-work-page button[class*="bg-red-6"] *,
+.dashboard .vp-work-page button[class*="bg-violet-5"] *,
+.dashboard .vp-work-page button[class*="bg-violet-6"] * {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+/* Neutral outlined actions share one calm hover treatment. */
+.dashboard .vp-work-page button[class*="border-slate-"]:not([class*="bg-"]):hover:not(:disabled),
+.dashboard .vp-work-page button[class*="border-slate-"][class*="bg-white"]:hover:not(:disabled) {
+  border-color: rgb(35 105 216 / 34%) !important;
+  color: var(--vp-blue-deep) !important;
+  background: var(--vp-blue-soft) !important;
+  box-shadow: 0 8px 18px rgb(35 105 216 / 10%) !important;
+}
+
+.dashboard .vp-work-page table th {
+  color: #52647a !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em;
+}
+
+.dashboard .vp-work-page table td {
+  color: #263951;
+}
+
+.dashboard .vp-work-page table tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.dashboard .vp-work-page .vp-page-header,
+.dashboard .vp-work-page > section:first-child[class*="rounded-3xl"] {
+  overflow: hidden;
+  border: 1px solid var(--vp-line) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgb(181 22 50 / 5%), transparent 34%),
+    linear-gradient(145deg, #ffffff, #fafbfc) !important;
+  box-shadow: var(--vp-shadow-sm) !important;
+}
+
+.dashboard .vp-work-page .vp-page-header h2,
+.dashboard .vp-work-page > section:first-child h2 {
+  font-weight: 750 !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard .vp-work-page {
+    padding-inline: 1rem !important;
+    padding-block: 1.25rem 2rem !important;
+  }
+
+  .dashboard .vp-work-page .vp-page-header,
+  .dashboard .vp-work-page > section:first-child[class*="rounded-3xl"] {
+    border-radius: 20px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .vp-work-page *,
+  .dashboard .vp-work-page *::before,
+  .dashboard .vp-work-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Product Spotlight remains the visual reference and keeps its product color. */
 .product-spotlight,
 .product-showcase-dialog {
@@ -821,6 +1017,11 @@ body {
     0 30px 80px rgb(20 35 60 / 14%),
     inset 0 1px 0 #ffffff !important;
   animation: login-card-arrive 700ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+}
+
+/* Keep the login panel close to the right edge without crowding it. */
+.login-hybrid-card {
+  margin-right: clamp(0px, 0.75vw, 12px);
 }
 
 .login-hybrid-tracer {
@@ -1233,10 +1434,29 @@ body {
 }
 
 .login-hybrid-icon {
+  position: relative;
+  z-index: 2;
   border: 1px solid rgb(35 105 216 / 17%) !important;
   color: var(--vp-blue) !important;
   background: var(--vp-blue-soft) !important;
   box-shadow: none !important;
+}
+
+.login-account-icon-svg {
+  display: block !important;
+  flex: 0 0 auto;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none;
+  animation: none !important;
+  pointer-events: none;
+}
+
+.login-account-card:hover .login-account-icon-svg,
+.login-account-card:focus-visible .login-account-icon-svg,
+.login-account-card[data-loading="true"] .login-account-icon-svg {
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .login-account-card:nth-child(2) .login-hybrid-icon {
@@ -1370,6 +1590,10 @@ body {
   .splash-hybrid-vignette,
   .startup-update-vignette {
     background: rgb(248 247 249 / 68%) !important;
+  }
+
+  .login-hybrid-card {
+    margin-right: 0;
   }
 }
 

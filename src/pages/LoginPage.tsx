@@ -244,7 +244,7 @@ export function LoginPage({
 
   return (
     <main
-      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-6 py-10 lg:px-16 xl:px-20"
+      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-4 py-10 sm:px-6 lg:px-8 xl:px-10"
       style={{
         backgroundImage:
           "url('/images/login-background-valueplus-modern-mascot-v3.webp')",
@@ -255,7 +255,7 @@ export function LoginPage({
         aria-hidden="true"
       />
 
-      <section className="login-hybrid-card relative z-10 w-full max-w-[480px] overflow-hidden p-8 backdrop-blur-2xl sm:p-9">
+      <section className="login-hybrid-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-2xl sm:p-9">
         <span
           className="login-hybrid-tracer"
           aria-hidden="true"
@@ -416,7 +416,11 @@ export function LoginPage({
                   }
                 >
                   <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-cyan-700">
-                    <Icon size={22} />
+                    <Icon
+                      className="login-account-icon-svg"
+                      size={22}
+                      aria-hidden="true"
+                    />
                   </span>
 
                   <span className="min-w-0 flex-1">
