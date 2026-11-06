@@ -10,6 +10,7 @@ import "./styles/valueplus-red-theme.css";
 import "./styles/valueplus-modern-theme.css";
 import "./styles/product-showcase.css";
 import "./styles/showcase-system-theme.css";
+import "./styles/doom-corporate-theme.css";
 
 import App from "./App";
 

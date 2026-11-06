@@ -247,9 +247,14 @@ export function LoginPage({
       className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-4 py-10 sm:px-6 lg:px-8 xl:px-10"
       style={{
         backgroundImage:
-          "url('/images/login-background-valueplus-modern-mascot-v3.webp')",
+          "url('/images/login-background-doom-corporate-v1.webp')",
       }}
     >
+      <div className="doom-particles" aria-hidden="true">
+        {Array.from({ length: 18 }, (_, index) => (
+          <span key={index} />
+        ))}
+      </div>
       <div
         className="login-hybrid-vignette pointer-events-none absolute inset-0"
         aria-hidden="true"

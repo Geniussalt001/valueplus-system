@@ -39,10 +39,10 @@ export function AppVersionBadge({ className = "" }: AppVersionBadgeProps) {
             <p className="app-version-eyebrow">WHAT'S NEW</p>
             <h2 id="app-version-title">ValuePlus System {version}</h2>
             <div className="app-version-list">
-              <p><CheckCircle2 size={16} /> หน้า Login ทันสมัยและเคลื่อนไหวอย่างนุ่มนวล</p>
-              <p><CheckCircle2 size={16} /> เปลี่ยนชื่อพื้นที่ทำงานเป็นคลังสินค้า Warehouse</p>
-              <p><CheckCircle2 size={16} /> ซ่อนสินค้าที่ตั้งค่า Express ครบแล้วโดยอัตโนมัติ</p>
-              <p><CheckCircle2 size={16} /> ปรับสีปุ่มและเมนูให้มองเห็นชัดเจนขึ้น</p>
+              <p><CheckCircle2 size={16} /> เปิดตัวธีม ValuePlus Doom Corporate ทั้งระบบ</p>
+              <p><CheckCircle2 size={16} /> หน้า Login แมว DOOM CEO พร้อมอนุภาคและแสงเคลื่อนไหว</p>
+              <p><CheckCircle2 size={16} /> ปรับเมนู ปุ่ม การ์ด และช่องกรอกข้อมูลเป็นเขียวมรกต–ทอง</p>
+              <p><CheckCircle2 size={16} /> เพิ่มความคมชัดของข้อความ ตาราง และสถานะทุกหน้า</p>
             </div>
             <button type="button" className="app-version-confirm" onClick={() => setOpen(false)}>
               เข้าใจแล้ว

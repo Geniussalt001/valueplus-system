@@ -1,0 +1,521 @@
+/*
+ * ValuePlus Doom Corporate
+ * Emerald command-center skin shared by login and every workspace surface.
+ * This file is intentionally loaded last so legacy module styles inherit one
+ * coherent visual language without changing their business behaviour.
+ */
+
+:root {
+  --doom-bg: #03110c;
+  --doom-bg-deep: #010806;
+  --doom-panel: #071c14;
+  --doom-panel-strong: #0a2419;
+  --doom-surface: #0c2c1f;
+  --doom-surface-soft: #103827;
+  --doom-green: #2df277;
+  --doom-green-bright: #8affad;
+  --doom-green-deep: #087c48;
+  --doom-gold: #f5c85b;
+  --doom-gold-bright: #ffe6a1;
+  --doom-text: #f2fff6;
+  --doom-muted: #a7c6b3;
+  --doom-subtle: #709383;
+  --doom-line: rgb(112 255 157 / 19%);
+  --doom-line-strong: rgb(112 255 157 / 38%);
+  --doom-shadow: 0 18px 52px rgb(0 0 0 / 32%);
+
+  /* Override the shared semantic palette used by existing modules. */
+  --vp-canvas: var(--doom-bg);
+  --vp-canvas-warm: #06140e;
+  --vp-surface: var(--doom-panel);
+  --vp-surface-soft: var(--doom-panel-strong);
+  --vp-surface-warm: #102416;
+  --vp-ink: var(--doom-text);
+  --vp-muted: var(--doom-muted);
+  --vp-subtle: var(--doom-subtle);
+  --vp-line: var(--doom-line);
+  --vp-line-soft: rgb(112 255 157 / 11%);
+  --vp-brand: var(--doom-green);
+  --vp-brand-soft: rgb(45 242 119 / 10%);
+  --vp-primary: var(--doom-green);
+  --vp-primary-deep: #14a85b;
+  --vp-primary-soft: rgb(45 242 119 / 11%);
+  --vp-blue: var(--doom-green);
+  --vp-blue-deep: var(--doom-green-bright);
+  --vp-blue-soft: rgb(45 242 119 / 10%);
+  --vp-mint: var(--doom-green);
+  --vp-amber: var(--doom-gold);
+  --vp-red: #ff6678;
+  --vp-violet: #b49aff;
+  --vp-shadow-sm: 0 8px 24px rgb(0 0 0 / 20%);
+  --vp-shadow-md: var(--doom-shadow);
+  --vp-shadow-lg: 0 30px 80px rgb(0 0 0 / 42%);
+}
+
+html,
+body,
+#root {
+  color: var(--doom-text);
+  background: var(--doom-bg-deep);
+}
+
+body {
+  color: var(--doom-text) !important;
+  background:
+    radial-gradient(circle at 85% 4%, rgb(45 242 119 / 11%), transparent 27%),
+    radial-gradient(circle at 10% 100%, rgb(245 200 91 / 7%), transparent 30%),
+    linear-gradient(145deg, #061710, var(--doom-bg-deep)) !important;
+}
+
+* {
+  scrollbar-color: #23704b #04110c;
+}
+
+::-webkit-scrollbar-track { background: #04110c; }
+::-webkit-scrollbar-thumb {
+  border: 2px solid #04110c;
+  background: linear-gradient(var(--doom-green-deep), #185839);
+}
+
+::selection {
+  color: #001b0d;
+  background: var(--doom-green);
+}
+
+/* Login — the artwork already contains the command frame on the right. */
+.login-hybrid {
+  isolation: isolate;
+  justify-content: flex-end !important;
+  background-color: var(--doom-bg-deep) !important;
+  background-image: url("/images/login-background-doom-corporate-v1.webp") !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.login-hybrid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 79% 45%, transparent 0 20%, rgb(0 8 5 / 9%) 43%, rgb(0 5 3 / 26%) 100%),
+    linear-gradient(90deg, rgb(0 0 0 / 5%), transparent 48%);
+  animation: doom-ambient-breathe 8s ease-in-out infinite alternate;
+}
+
+.login-hybrid-vignette {
+  z-index: 1;
+  background: linear-gradient(90deg, transparent 44%, rgb(0 12 7 / 7%) 100%) !important;
+}
+
+.doom-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.doom-particles span {
+  position: absolute;
+  left: calc((var(--particle-index, 1) * 5.3%) + 1%);
+  bottom: -24px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--doom-green-bright);
+  box-shadow: 0 0 7px var(--doom-green), 0 0 18px rgb(45 242 119 / 55%);
+  opacity: 0;
+  animation: doom-particle-rise 9s linear infinite;
+}
+
+.doom-particles span:nth-child(1) { --particle-index: 1; animation-delay: -1s; }
+.doom-particles span:nth-child(2) { --particle-index: 2; animation-delay: -6s; }
+.doom-particles span:nth-child(3) { --particle-index: 3; animation-delay: -3s; }
+.doom-particles span:nth-child(4) { --particle-index: 4; animation-delay: -8s; }
+.doom-particles span:nth-child(5) { --particle-index: 5; animation-delay: -4s; }
+.doom-particles span:nth-child(6) { --particle-index: 6; animation-delay: -2s; }
+.doom-particles span:nth-child(7) { --particle-index: 7; animation-delay: -7s; }
+.doom-particles span:nth-child(8) { --particle-index: 8; animation-delay: -.5s; }
+.doom-particles span:nth-child(9) { --particle-index: 9; animation-delay: -5s; }
+.doom-particles span:nth-child(10) { --particle-index: 10; animation-delay: -9s; }
+.doom-particles span:nth-child(11) { --particle-index: 11; animation-delay: -2.5s; }
+.doom-particles span:nth-child(12) { --particle-index: 12; animation-delay: -6.5s; }
+.doom-particles span:nth-child(13) { --particle-index: 13; animation-delay: -4.5s; }
+.doom-particles span:nth-child(14) { --particle-index: 14; animation-delay: -8.5s; }
+.doom-particles span:nth-child(15) { --particle-index: 15; animation-delay: -1.5s; }
+.doom-particles span:nth-child(16) { --particle-index: 16; animation-delay: -7.5s; }
+.doom-particles span:nth-child(17) { --particle-index: 17; animation-delay: -3.5s; }
+.doom-particles span:nth-child(18) { --particle-index: 18; animation-delay: -5.5s; }
+
+.login-hybrid-card {
+  z-index: 4 !important;
+  width: min(31vw, 480px) !important;
+  max-width: 480px !important;
+  margin-right: clamp(1.5rem, 4.3vw, 5.2rem) !important;
+  border: 1px solid rgb(135 255 170 / 26%) !important;
+  border-radius: 24px !important;
+  color: var(--doom-text) !important;
+  background:
+    linear-gradient(145deg, rgb(22 82 54 / 38%), transparent 44%),
+    rgb(2 24 15 / 76%) !important;
+  box-shadow:
+    inset 0 0 42px rgb(45 242 119 / 6%),
+    0 28px 70px rgb(0 0 0 / 36%),
+    0 0 32px rgb(45 242 119 / 9%) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  animation: doom-panel-arrive 700ms cubic-bezier(.2,.8,.2,1) both !important;
+}
+
+.login-hybrid-card::before {
+  background: linear-gradient(90deg, var(--doom-gold), var(--doom-green), var(--doom-gold)) !important;
+  box-shadow: 0 0 18px rgb(45 242 119 / 46%) !important;
+}
+
+.login-hybrid-tracer {
+  background: linear-gradient(90deg, transparent, var(--doom-gold-bright), var(--doom-green-bright), transparent) !important;
+  filter: drop-shadow(0 0 8px var(--doom-green));
+}
+
+.login-hybrid-logo,
+.login-hybrid .brand-logo {
+  background: linear-gradient(110deg, var(--doom-gold-bright), var(--doom-gold), #fff5cf) !important;
+  filter: drop-shadow(0 0 14px rgb(245 200 91 / 20%)) !important;
+}
+
+.login-hybrid-divider {
+  background: linear-gradient(90deg, var(--doom-gold), rgb(45 242 119 / 35%), transparent) !important;
+}
+
+.login-hybrid [class*="text-slate-9"],
+.login-hybrid [class*="text-slate-8"] { color: var(--doom-text) !important; }
+.login-hybrid [class*="text-slate-6"],
+.login-hybrid [class*="text-slate-5"],
+.login-hybrid [class*="text-slate-4"] { color: var(--doom-muted) !important; }
+.login-hybrid [class*="text-cyan-"],
+.login-hybrid [class*="text-emerald-"] { color: var(--doom-green-bright) !important; }
+
+.login-account-card,
+.login-hybrid-surface {
+  border: 1px solid var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: linear-gradient(105deg, rgb(255 255 255 / 8%), rgb(255 255 255 / 2%)) !important;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%) !important;
+}
+
+.login-account-card:hover,
+.login-account-card:focus-visible {
+  border-color: rgb(112 255 157 / 70%) !important;
+  background: linear-gradient(105deg, rgb(45 242 119 / 17%), rgb(255 255 255 / 3%)) !important;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 28%), 0 0 24px rgb(45 242 119 / 10%) !important;
+  transform: translateY(-2px) scale(1.006);
+}
+
+.login-account-card:nth-child(2):hover,
+.login-account-card:nth-child(2):focus-visible {
+  border-color: rgb(245 200 91 / 62%) !important;
+  background: linear-gradient(105deg, rgb(245 200 91 / 13%), rgb(255 255 255 / 3%)) !important;
+}
+
+.login-hybrid-icon {
+  border-color: rgb(112 255 157 / 32%) !important;
+  color: var(--doom-green-bright) !important;
+  background: rgb(45 242 119 / 10%) !important;
+}
+
+.login-account-card:nth-child(2) .login-hybrid-icon {
+  border-color: rgb(245 200 91 / 32%) !important;
+  color: var(--doom-gold-bright) !important;
+  background: rgb(245 200 91 / 9%) !important;
+}
+
+.login-account-arrow,
+.login-hybrid-primary {
+  border: 1px solid rgb(157 255 188 / 38%) !important;
+  color: #001b0c !important;
+  background: linear-gradient(135deg, var(--doom-green-bright), var(--doom-green)) !important;
+  box-shadow: 0 0 20px rgb(45 242 119 / 23%) !important;
+}
+
+.login-account-card:nth-child(2) .login-account-arrow {
+  border-color: rgb(255 232 170 / 40%) !important;
+  background: linear-gradient(135deg, var(--doom-gold-bright), var(--doom-gold)) !important;
+}
+
+.login-hybrid-input {
+  border: 1px solid var(--doom-line-strong) !important;
+  background: rgb(0 12 7 / 50%) !important;
+}
+
+.login-hybrid-input:focus-within {
+  border-color: var(--doom-green) !important;
+  box-shadow: 0 0 0 3px rgb(45 242 119 / 11%), 0 0 20px rgb(45 242 119 / 8%) !important;
+}
+
+.login-hybrid-input input { color: var(--doom-text) !important; }
+.login-ready-pill {
+  border: 1px solid rgb(45 242 119 / 25%) !important;
+  color: var(--doom-green-bright) !important;
+  background: rgb(45 242 119 / 8%) !important;
+}
+
+/* Application shell */
+.dashboard {
+  color: var(--doom-text) !important;
+  background:
+    radial-gradient(circle at 88% 4%, rgb(45 242 119 / 9%), transparent 25%),
+    radial-gradient(circle at 8% 94%, rgb(245 200 91 / 6%), transparent 28%),
+    linear-gradient(145deg, #061710, var(--doom-bg-deep) 68%, #07130c) !important;
+}
+
+.dashboard > .tron-grid {
+  opacity: .18 !important;
+  background-image:
+    linear-gradient(rgb(45 242 119 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(45 242 119 / 12%) 1px, transparent 1px) !important;
+}
+
+.top-navigation-shell {
+  border-bottom: 1px solid var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: rgb(3 17 12 / 95%) !important;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 28%) !important;
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.top-utility-bar {
+  border-image: linear-gradient(90deg, var(--doom-gold), var(--doom-green), var(--doom-gold)) 1 !important;
+  background: linear-gradient(90deg, rgb(4 19 13 / 98%), rgb(7 29 20 / 98%)) !important;
+}
+
+.top-brand-button,
+.top-workspace-switcher,
+.user-context-chip,
+.top-update-button,
+.top-logout-button {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: rgb(255 255 255 / 4%) !important;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 15%) !important;
+}
+
+.top-brand-button .brand-logo {
+  background: linear-gradient(110deg, var(--doom-gold-bright), var(--doom-gold)) !important;
+}
+
+.top-workspace-button { color: var(--doom-muted) !important; }
+.top-workspace-button:hover {
+  color: var(--doom-text) !important;
+  background: rgb(45 242 119 / 8%) !important;
+}
+.top-workspace-button.workspace-retail-active {
+  border-color: rgb(45 242 119 / 42%) !important;
+  color: var(--doom-green-bright) !important;
+  background: linear-gradient(135deg, rgb(45 242 119 / 16%), rgb(45 242 119 / 6%)) !important;
+  box-shadow: inset 0 0 18px rgb(45 242 119 / 5%) !important;
+}
+.top-workspace-button.workspace-head-office-active {
+  border-color: rgb(245 200 91 / 42%) !important;
+  color: var(--doom-gold-bright) !important;
+  background: linear-gradient(135deg, rgb(245 200 91 / 15%), rgb(245 200 91 / 5%)) !important;
+}
+
+.top-page-context p { color: var(--doom-gold) !important; }
+.top-page-context h1 { color: var(--doom-text) !important; }
+
+.top-module-navigation {
+  border-top-color: rgb(112 255 157 / 10%) !important;
+  background: rgb(3 18 12 / 97%) !important;
+}
+.top-module-tab {
+  color: var(--doom-muted) !important;
+  background: transparent !important;
+}
+.top-module-tab:hover:not(:disabled) {
+  color: var(--doom-text) !important;
+  background: linear-gradient(180deg, rgb(45 242 119 / 8%), transparent) !important;
+}
+.top-module-tab-active {
+  color: var(--doom-green-bright) !important;
+  background: linear-gradient(180deg, rgb(45 242 119 / 12%), rgb(45 242 119 / 3%)) !important;
+  box-shadow: inset 0 -3px 0 var(--doom-green) !important;
+}
+.top-module-icon {
+  border-color: var(--doom-line) !important;
+  color: currentColor !important;
+  background: rgb(255 255 255 / 4%) !important;
+}
+
+/* Shared work surfaces, forms and tables. */
+.dashboard :is(
+  .dashboard-hero,
+  .module-card,
+  .content-card,
+  .panel,
+  .card,
+  .summary-card,
+  .upload-card,
+  .archive-card,
+  .update-center-panel,
+  .top-update-popover,
+  [class*="rounded-"][class*="bg-white"]
+) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background-color: var(--doom-panel) !important;
+  box-shadow: var(--doom-shadow) !important;
+}
+
+.dashboard .module-card,
+.dashboard .dashboard-hero,
+.dashboard [class*="bg-white"] {
+  background-image:
+    radial-gradient(circle at 95% 0, rgb(45 242 119 / 7%), transparent 28%),
+    linear-gradient(145deg, rgb(12 44 31 / 94%), rgb(4 20 13 / 97%)) !important;
+}
+
+.dashboard :is(h1, h2, h3, h4, h5, h6),
+.dashboard [class*="text-slate-9"],
+.dashboard [class*="text-slate-8"],
+.dashboard [class*="text-gray-9"],
+.dashboard [class*="text-gray-8"] {
+  color: var(--doom-text) !important;
+}
+
+.dashboard :is(p, label, small),
+.dashboard [class*="text-slate-7"],
+.dashboard [class*="text-slate-6"],
+.dashboard [class*="text-slate-5"],
+.dashboard [class*="text-gray-7"],
+.dashboard [class*="text-gray-6"],
+.dashboard [class*="text-gray-5"] {
+  color: var(--doom-muted) !important;
+}
+
+.dashboard :is(input, textarea, select) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: rgb(0 12 8 / 72%) !important;
+  caret-color: var(--doom-green-bright);
+}
+.dashboard :is(input, textarea, select)::placeholder {
+  color: var(--doom-subtle) !important;
+}
+.dashboard :is(input, textarea, select):focus {
+  border-color: var(--doom-green) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgb(45 242 119 / 11%), 0 0 18px rgb(45 242 119 / 7%) !important;
+}
+.dashboard option {
+  color: var(--doom-text);
+  background: var(--doom-panel-strong);
+}
+
+.dashboard table {
+  color: var(--doom-text) !important;
+  background: rgb(3 18 12 / 74%) !important;
+}
+.dashboard :is(th, thead) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-gold-bright) !important;
+  background: #0b281b !important;
+}
+.dashboard td {
+  border-color: rgb(112 255 157 / 10%) !important;
+  color: var(--doom-text) !important;
+}
+.dashboard tbody tr:hover td {
+  background: rgb(45 242 119 / 7%) !important;
+}
+
+.dashboard button:not(.top-module-tab):not(.top-workspace-button):not(.top-brand-button):not(.top-update-button):not(.top-logout-button) {
+  border-color: var(--doom-line-strong);
+}
+.dashboard button[class*="bg-blue-"],
+.dashboard button[class*="bg-cyan-"],
+.dashboard button[class*="bg-emerald-"],
+.dashboard .primary-button,
+.dashboard .action-primary {
+  border-color: rgb(154 255 187 / 34%) !important;
+  color: #001b0d !important;
+  background: linear-gradient(135deg, var(--doom-green-bright), var(--doom-green)) !important;
+  box-shadow: 0 10px 24px rgb(45 242 119 / 16%) !important;
+}
+.dashboard button[class*="bg-blue-"]:hover,
+.dashboard button[class*="bg-cyan-"]:hover,
+.dashboard button[class*="bg-emerald-"]:hover,
+.dashboard .primary-button:hover,
+.dashboard .action-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 30px rgb(45 242 119 / 25%) !important;
+  transform: translateY(-1px);
+}
+
+.dashboard button[class*="bg-red-"],
+.dashboard button[class*="bg-amber-"],
+.dashboard button[class*="bg-yellow-"] {
+  color: #211600 !important;
+  background: linear-gradient(135deg, var(--doom-gold-bright), var(--doom-gold)) !important;
+}
+
+.dashboard hr,
+.dashboard [class*="border-slate-"],
+.dashboard [class*="border-gray-"] {
+  border-color: var(--doom-line) !important;
+}
+
+.status-light.status-online {
+  background: var(--doom-green) !important;
+  box-shadow: 0 0 0 5px rgb(45 242 119 / 10%), 0 0 13px var(--doom-green) !important;
+}
+
+.app-version-badge {
+  border-color: rgb(245 200 91 / 28%) !important;
+  color: var(--doom-gold-bright) !important;
+  background: rgb(245 200 91 / 7%) !important;
+}
+
+@keyframes doom-ambient-breathe {
+  from { opacity: .72; }
+  to { opacity: 1; }
+}
+
+@keyframes doom-particle-rise {
+  0% { transform: translate3d(0, 0, 0) scale(.6); opacity: 0; }
+  12% { opacity: .58; }
+  72% { opacity: .35; }
+  100% { transform: translate3d(28px, -105vh, 0) scale(1.5); opacity: 0; }
+}
+
+@keyframes doom-panel-arrive {
+  from { opacity: 0; transform: translate3d(24px, 0, 0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (max-width: 1100px) {
+  .login-hybrid-card {
+    width: min(42vw, 460px) !important;
+    margin-right: 1.25rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .login-hybrid {
+    justify-content: center !important;
+    background-position: 37% center !important;
+  }
+  .login-hybrid::before { background: rgb(0 10 6 / 52%); }
+  .login-hybrid-card {
+    width: min(94vw, 480px) !important;
+    margin: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-hybrid,
+  .login-hybrid::before,
+  .login-hybrid-card,
+  .doom-particles span { animation: none !important; }
+  .doom-particles { display: none; }
+}
