@@ -243,10 +243,10 @@ export function LoginPage({
 
   return (
     <main
-      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover px-4 py-10 sm:px-6 lg:px-8 xl:px-10"
+      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-contain bg-no-repeat px-4 py-10 sm:px-6 lg:px-8 xl:px-10"
       style={{
         backgroundImage:
-          "url('/images/login-background-doom-corporate-v1.webp')",
+          "url('/images/login-background-valueplus-green-command-v2.webp')",
       }}
     >
       <div className="login-doom-scanlines" aria-hidden="true" />

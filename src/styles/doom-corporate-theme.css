@@ -89,9 +89,10 @@ body {
   isolation: isolate;
   justify-content: flex-end !important;
   background-color: var(--doom-bg-deep) !important;
-  background-image: url("/images/login-background-doom-corporate-v1.webp") !important;
+  background-image: url("/images/login-background-valueplus-green-command-v2.webp") !important;
   background-position: center !important;
-  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
 }
 
 .login-hybrid::before {
@@ -795,7 +796,7 @@ body {
 @media (max-width: 760px) {
   .login-hybrid {
     justify-content: center !important;
-    background-position: 37% center !important;
+    background-position: center !important;
   }
   .login-hybrid::before { background: rgb(0 10 6 / 52%); }
   .login-hybrid-card {
