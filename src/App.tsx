@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useState,
 } from "react";
@@ -28,10 +30,6 @@ import {
 } from "./components/update/StartupUpdateGate";
 
 import {
-  DashboardPage,
-} from "./pages/DashboardPage";
-
-import {
   LoginPage,
 } from "./pages/LoginPage";
 
@@ -39,45 +37,7 @@ import {
   SplashPage,
 } from "./pages/SplashPage";
 
-import {
-  DailyPickingPage,
-} from "./pages/modules/DailyPickingPage";
-
-import {
-  DailySoPage,
-} from "./pages/modules/DailySoPage";
-
-import {
-  DailySummaryPage,
-} from "./pages/modules/DailySummaryPage";
-
-import {
-  PoDataPage,
-} from "./pages/modules/po-data/PoDataPage";
-
-import {
-  SplitRenamePoPage,
-} from "./pages/modules/SplitRenamePoPage";
-
-import {
-  ProductCatalogPage,
-} from "./pages/modules/product-catalog/ProductCatalogPage";
-
-import {
-  ReceivablesFreightPage,
-} from "./pages/modules/ReceivablesFreightPage";
-
-import {
-  SalesBillingPage,
-} from "./pages/modules/SalesBillingPage";
-
-import {
-  PostingCenterPage,
-} from "./pages/modules/PostingCenterPage";
-
-import {
-  WorldwideSalesPage,
-} from "./pages/modules/WorldwideSalesPage";
+import { WorkspaceSkeleton } from "./components/common/WorkspaceSkeleton";
 
 import {
   startAppsScriptOutboxSync,
@@ -91,6 +51,72 @@ import type {
 import type {
   PickingQuantityTransfer,
 } from "./types/workflowTransfer.types";
+
+const DashboardPage = lazy(() =>
+  import("./pages/DashboardPage").then((module) => ({
+    default: module.DashboardPage,
+  })),
+);
+
+const PostingCenterPage = lazy(() =>
+  import("./pages/modules/PostingCenterPage").then((module) => ({
+    default: module.PostingCenterPage,
+  })),
+);
+
+const SplitRenamePoPage = lazy(() =>
+  import("./pages/modules/SplitRenamePoPage").then((module) => ({
+    default: module.SplitRenamePoPage,
+  })),
+);
+
+const DailySoPage = lazy(() =>
+  import("./pages/modules/DailySoPage").then((module) => ({
+    default: module.DailySoPage,
+  })),
+);
+
+const SalesBillingPage = lazy(() =>
+  import("./pages/modules/SalesBillingPage").then((module) => ({
+    default: module.SalesBillingPage,
+  })),
+);
+
+const DailyPickingPage = lazy(() =>
+  import("./pages/modules/DailyPickingPage").then((module) => ({
+    default: module.DailyPickingPage,
+  })),
+);
+
+const DailySummaryPage = lazy(() =>
+  import("./pages/modules/DailySummaryPage").then((module) => ({
+    default: module.DailySummaryPage,
+  })),
+);
+
+const ProductCatalogPage = lazy(() =>
+  import("./pages/modules/product-catalog/ProductCatalogPage").then((module) => ({
+    default: module.ProductCatalogPage,
+  })),
+);
+
+const ReceivablesFreightPage = lazy(() =>
+  import("./pages/modules/ReceivablesFreightPage").then((module) => ({
+    default: module.ReceivablesFreightPage,
+  })),
+);
+
+const WorldwideSalesPage = lazy(() =>
+  import("./pages/modules/WorldwideSalesPage").then((module) => ({
+    default: module.WorldwideSalesPage,
+  })),
+);
+
+const PoDataPage = lazy(() =>
+  import("./pages/modules/po-data/PoDataPage").then((module) => ({
+    default: module.PoDataPage,
+  })),
+);
 
 function getInitialWorkspace(
   user: AppUser | null | undefined,
@@ -400,7 +426,9 @@ function App() {
         onNavigate={navigate}
         onLogout={handleLogout}
       >
-        {renderPage()}
+        <Suspense fallback={<WorkspaceSkeleton />}>
+          {renderPage()}
+        </Suspense>
       </AppLayout>
     </>
   );

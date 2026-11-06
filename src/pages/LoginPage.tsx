@@ -26,9 +26,6 @@ import {
   BrandLogo,
 } from "../components/BrandLogo";
 
-import {
-  IndeterminateProgressBar,
-} from "../components/common/IndeterminateProgressBar";
 import { AppVersionBadge } from "../components/common/AppVersionBadge";
 
 import {
@@ -46,6 +43,7 @@ interface LoginPageProps {
 const accounts = [
   {
     code: "OFFICE",
+    accent: "green",
     label: "คลังสินค้า",
     englishLabel: "WAREHOUSE",
     description:
@@ -54,6 +52,7 @@ const accounts = [
   },
   {
     code: "HEADOFFICE",
+    accent: "violet",
     label: "สำนักงานใหญ่",
     englishLabel: "HEAD OFFICE",
     description:
@@ -250,6 +249,8 @@ export function LoginPage({
           "url('/images/login-background-doom-corporate-v1.webp')",
       }}
     >
+      <div className="login-doom-scanlines" aria-hidden="true" />
+      <div className="login-doom-sweep" aria-hidden="true" />
       <div className="doom-particles" aria-hidden="true">
         {Array.from({ length: 18 }, (_, index) => (
           <span key={index} />
@@ -261,6 +262,10 @@ export function LoginPage({
       />
 
       <section className="login-hybrid-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-2xl sm:p-9">
+        <span className="login-doom-corner login-doom-corner-tl" aria-hidden="true" />
+        <span className="login-doom-corner login-doom-corner-tr" aria-hidden="true" />
+        <span className="login-doom-corner login-doom-corner-bl" aria-hidden="true" />
+        <span className="login-doom-corner login-doom-corner-br" aria-hidden="true" />
         <span
           className="login-hybrid-tracer"
           aria-hidden="true"
@@ -274,10 +279,10 @@ export function LoginPage({
           <div className="login-hybrid-divider mt-7 h-px" />
 
           <div className="login-hybrid-intro mt-7">
-            <div className="flex items-center gap-2.5 text-cyan-700">
+            <div className="login-terminal-label flex items-center gap-2.5 text-cyan-700">
               <ShieldCheck size={18} />
               <span className="text-xs font-semibold tracking-[0.18em]">
-                VALUEPLUS SYSTEM
+                VALUEPLUS COMMAND SYSTEM
               </span>
             </div>
 
@@ -286,7 +291,7 @@ export function LoginPage({
             </h1>
 
             <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกพื้นที่ทำงานเพื่อเข้าสู่ระบบ
+              เลือกพื้นที่ทำงานเพื่อเริ่มภารกิจของคุณ
             </p>
           </div>
 
@@ -414,6 +419,7 @@ export function LoginPage({
                     );
                   }}
                   className="login-account-card group flex min-h-[92px] w-full items-center gap-4 rounded-2xl p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
+                  data-accent={account.accent}
                   data-loading={
                     loading
                       ? "true"
@@ -433,7 +439,7 @@ export function LoginPage({
                       {account.label}
                     </span>
                     <span className="mt-1 block text-[10px] font-semibold tracking-[0.16em] text-cyan-700">
-                      {account.englishLabel}
+                      ACCESS // {account.englishLabel}
                     </span>
                     <span className="mt-1.5 block text-xs leading-5 text-slate-500">
                       {account.description}
@@ -456,35 +462,6 @@ export function LoginPage({
           </div>
           )}
 
-          {loadingCode && (
-            <div
-              className="login-hybrid-surface mt-5 rounded-2xl px-5 py-4"
-              role="status"
-              aria-live="polite"
-              aria-busy="true"
-            >
-              <div className="flex items-center gap-3">
-                <LoaderCircle
-                  size={19}
-                  className="shrink-0 animate-spin text-cyan-700"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900">
-                    กำลังเปิด Workspace...
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    กำลังเปิดพื้นที่ทำงาน{
-                      accounts.find(
-                        (account) => account.code === loadingCode,
-                      )?.label
-                    }
-                  </p>
-                </div>
-              </div>
-              <IndeterminateProgressBar className="mt-3" />
-            </div>
-          )}
-
           {error && (
             <p className="mt-5 rounded-xl border border-red-400/35 bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
               {error}
@@ -501,7 +478,7 @@ export function LoginPage({
                 className="status-light status-online"
                 aria-hidden="true"
               />
-              SYSTEM READY
+              ACCESS READY
             </span>
           </div>
         </div>

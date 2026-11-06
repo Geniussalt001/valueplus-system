@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, Boxes, Building2, CalendarDays, CheckCircle2, C
 
 import { worldwideSalesService } from "../../services/worldwideSalesService";
 import type { WorldwideProduct, WorldwideStore } from "../../types/worldwideSales.types";
+import { WorkspaceSkeleton } from "../../components/common/WorkspaceSkeleton";
 
 interface WorldwideSalesPageProps { onBack: () => void; }
 type ManagementSection = "entry" | "stores" | "products";
@@ -198,7 +199,7 @@ export function WorldwideSalesPage({ onBack }: WorldwideSalesPageProps) {
       </header>
 
       {errorMessage ? <div className="mt-5 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700"><AlertCircle size={19} className="mt-0.5 shrink-0" /><span className="flex-1">{errorMessage}</span><button type="button" onClick={() => setErrorMessage("")} className="font-semibold">ปิด</button></div> : null}
-      {isLoading ? <div className="mt-8 flex min-h-64 items-center justify-center rounded-3xl border border-slate-200 bg-white text-sm font-semibold text-slate-500"><LoaderCircle size={22} className="mr-3 animate-spin text-violet-600" /> กำลังโหลดฐานข้อมูล...</div> : null}
+      {isLoading ? <WorkspaceSkeleton compact /> : null}
 
       {!isLoading && section === "entry" ? (
         <section className="mt-6 rounded-2xl border border-cyan-200 bg-white p-2 shadow-sm">

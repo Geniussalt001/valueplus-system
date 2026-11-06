@@ -40,7 +40,7 @@ const postingMenus = [
     route: "worldwide-sales" as const,
     title: "ลงยอดขาย เวิร์ลไวด์",
     subtitle: "WORLDWIDE SALES",
-    description: "ส่วนงานลงยอดขายเวิร์ลไวด์ รายละเอียดการทำงานอยู่ระหว่างการออกแบบ",
+    description: "บันทึกยอดขายรายวัน จัดการร้านค้าและสินค้า พร้อมอัปเดตรายงาน Excel รายเดือน",
     icon: Globe2,
     color: "#7560b8",
   },

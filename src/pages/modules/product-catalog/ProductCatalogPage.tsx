@@ -30,6 +30,7 @@ import {
 import {
   ProcessStatusOverlay,
 } from "../../../components/common/ProcessStatusOverlay";
+import { WorkspaceSkeleton } from "../../../components/common/WorkspaceSkeleton";
 
 import type {
   ProductCatalogItem,
@@ -345,10 +346,7 @@ export function ProductCatalogPage({
 
         <div className="max-h-[calc(100vh-460px)] min-h-[360px] overflow-auto">
           {loading ? (
-            <div className="flex min-h-[360px] items-center justify-center gap-3 text-slate-400">
-              <LoaderCircle className="animate-spin" size={22} />
-              กำลังโหลดข้อมูลสินค้า...
-            </div>
+            <WorkspaceSkeleton compact />
           ) : filteredProducts.length === 0 ? (
             <div className="flex min-h-[360px] items-center justify-center text-sm text-slate-500">
               ไม่พบสินค้าตามเงื่อนไข

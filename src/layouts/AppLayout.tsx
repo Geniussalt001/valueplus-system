@@ -16,6 +16,7 @@ import {
   LogOut,
   RefreshCw,
   ShoppingBag,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -97,6 +98,18 @@ export function AppLayout({
   onNavigate,
   onLogout,
 }: AppLayoutProps) {
+  const [motionMode, setMotionMode] = useState<"full" | "reduced">(() => {
+    const saved = window.localStorage.getItem("valueplus-motion-mode");
+
+    if (saved === "full" || saved === "reduced") {
+      return saved;
+    }
+
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "reduced"
+      : "full";
+  });
+
   const [isUpdateOpen, setIsUpdateOpen] =
     useState(false);
 
@@ -108,6 +121,11 @@ export function AppLayout({
 
   const logoClickResetTimer =
     useRef<number | null>(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.motion = motionMode;
+    window.localStorage.setItem("valueplus-motion-mode", motionMode);
+  }, [motionMode]);
 
   useEffect(() => {
     return () => {
@@ -243,6 +261,25 @@ export function AppLayout({
               </div>
 
               <LiveClock />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMotionMode((current) =>
+                    current === "full" ? "reduced" : "full",
+                  );
+                }}
+                className={`top-motion-button ${motionMode === "reduced" ? "top-motion-button-reduced" : ""}`}
+                aria-pressed={motionMode === "reduced"}
+                title={
+                  motionMode === "full"
+                    ? "เอฟเฟกต์เต็ม — กดเพื่อลดการเคลื่อนไหว"
+                    : "เอฟเฟกต์น้อย — กดเพื่อเปิดเอฟเฟกต์เต็ม"
+                }
+              >
+                <Sparkles size={16} />
+                <span>{motionMode === "full" ? "เอฟเฟกต์" : "นิ่ง"}</span>
+              </button>
 
               <div className="top-update-wrap">
                 <button

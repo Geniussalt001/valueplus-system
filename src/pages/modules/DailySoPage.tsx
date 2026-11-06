@@ -1750,7 +1750,12 @@ function PriceConflictPopup({
   });
 
   return createPortal(
-    <section className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/75 p-5 backdrop-blur-sm">
+    <section
+      className="vp-themed-dialog fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/75 p-5 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="เลือกราคาสินค้า"
+    >
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-amber-100 bg-gradient-to-r from-amber-50 via-orange-50 to-white px-6 py-5">
           <div className="flex items-start gap-3">

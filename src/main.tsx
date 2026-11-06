@@ -4,9 +4,8 @@ import ReactDOM from "react-dom/client";
 import "./styles.css";
 import "./styles/base.css";
 import "./styles/effects.css";
-import "./styles/red-white-theme.css";
-import "./styles/blue-dashboard-theme.css";
-import "./styles/valueplus-red-theme.css";
+/* Structural shell/layout rules; visual tokens are overridden by the active
+   showcase and command-center themes loaded below. */
 import "./styles/valueplus-modern-theme.css";
 import "./styles/product-showcase.css";
 import "./styles/showcase-system-theme.css";

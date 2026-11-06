@@ -62,7 +62,12 @@ export function ProductSetupModal({
     validPrice;
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+    <div
+      className="vp-themed-dialog fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="ตั้งค่าสินค้าใหม่"
+    >
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-2xl">
         <header className="flex items-start justify-between border-b border-slate-200 bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-5">
           <div className="flex gap-3">
