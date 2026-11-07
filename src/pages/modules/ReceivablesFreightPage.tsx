@@ -312,7 +312,7 @@ export function ReceivablesFreightPage({
         </div>
       </header>
 
-      <section className="mt-6 rounded-2xl border border-cyan-200 bg-white p-2 shadow-sm">
+      <section className="receivables-mode-switcher mt-6 rounded-2xl border p-2" aria-label="เลือกประเภทงานลูกหนี้และค่าขนส่ง">
         <div className="grid gap-2 sm:grid-cols-2">
           <ModeButton
             active={!isCreditNoteMode}
@@ -553,42 +553,23 @@ function ModeButton({
   icon: ReactNode;
   onClick: () => void;
 }) {
-  const isReceivables =
-    tone === "receivables";
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex min-h-[88px] items-center gap-4 overflow-hidden rounded-xl border px-5 py-4 text-left transition ${
-        active
-          ? isReceivables
-            ? "border-cyan-400 bg-gradient-to-r from-cyan-50 to-sky-50 text-cyan-950 shadow-[0_10px_28px_rgba(8,145,178,0.13)]"
-            : "border-violet-400 bg-gradient-to-r from-violet-50 to-fuchsia-50 text-violet-950 shadow-[0_10px_28px_rgba(124,58,237,0.13)]"
-          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-      }`}
+      aria-pressed={active}
+      data-tone={tone}
+      className="receivables-mode-button group relative flex min-h-[88px] items-center gap-4 overflow-hidden rounded-xl border px-5 py-4 text-left transition"
     >
-      <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-          active
-            ? isReceivables
-              ? "bg-cyan-600 text-white shadow-md shadow-cyan-200"
-              : "bg-violet-600 text-white shadow-md shadow-violet-200"
-            : "bg-slate-100 text-slate-500"
-        }`}
-      >
+      <span className="receivables-mode-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" aria-hidden="true">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold">{title}</span>
-        <span className="mt-1 block text-xs opacity-75">{description}</span>
+        <span className="receivables-mode-title block font-semibold">{title}</span>
+        <span className="receivables-mode-description mt-1 block text-xs">{description}</span>
       </span>
       {active ? (
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-          isReceivables
-            ? "bg-cyan-100 text-cyan-800"
-            : "bg-violet-100 text-violet-800"
-        }`}>
+        <span className="receivables-mode-badge shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold">
           กำลังใช้งาน
         </span>
       ) : null}

@@ -1,0 +1,304 @@
+/* Final workspace palette. #root in the scope deliberately outranks the old
+   component-specific !important themes, including portal dialogs via :is().
+   Never target document images, canvas, SVG fills or exported file contents. */
+:root {
+  color-scheme: dark;
+  --vp-login-art: url("/images/login-background-doom-clean.webp");
+  --vp-modern-canvas: var(--doom-bg);
+  --vp-modern-surface: var(--doom-panel);
+  --vp-modern-ink: var(--doom-text);
+  --vp-modern-muted: var(--doom-muted);
+  --vp-modern-line: var(--doom-line);
+  --vp-modern-cyan: #6ddcff;
+  --vp-modern-violet: var(--doom-violet-bright);
+  --vp-modern-teal: var(--doom-green-bright);
+  --vp-modern-gradient: linear-gradient(110deg, var(--doom-gold), var(--doom-green));
+}
+
+/* Keep portaled forms and dialogs in the same scope as the workspace. */
+:is(#root .dashboard, .vp-themed-dialog, .app-version-dialog, .product-showcase-dialog, .vp-process-toast, .app-toast) {
+  color-scheme: dark;
+  color: var(--doom-text);
+}
+
+/* Surface backgrounds must be reset as a whole: background-color alone leaves
+   legacy white gradient images visible over the new dark fill. */
+:is(#root .dashboard, .vp-themed-dialog, .app-version-dialog, .product-showcase-dialog) :is(
+  .dashboard-module-panel, .dashboard-module-header, .vp-page-header,
+  .vp-setup-card, .vp-data-card, .vp-summary-card, .vp-folder-card,
+  .vp-archive-folder, .vp-action-bar, .vp-processing-log, .vp-catalog-toolbar,
+  .vp-modal-actions, .vp-live-monitor, .vp-live-monitor-header,
+  .vp-summary-menu-card, .vp-content-card, .vp-work-panel, .vp-modal-card,
+  .summary-choice, .express-csv-panel, .doll-realtime-header, .doll-summary-stat,
+  .top-update-popover, .update-center-panel, .receivables-month-card,
+  [class~="bg-white"], [class*="bg-white/"], [class*="bg-[#0"],
+  [class*="bg-slate-50"], [class*="bg-slate-100"], [class*="bg-slate-200"],
+  [class*="bg-gray-50"], [class*="bg-gray-100"], [class*="bg-gray-200"]
+) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: linear-gradient(145deg, #0c2c1f, #071c14) !important;
+  box-shadow: var(--doom-shadow) !important;
+}
+#root .dashboard .vp-work-page > section:first-child[class*="rounded-3xl"],
+#root .dashboard .module-card,
+#root .dashboard .dashboard-metric {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: linear-gradient(145deg, #0c2c1f, #071c14) !important;
+}
+
+/* Headers, icons and small badges use dark tints rather than white tiles. */
+#root .dashboard :is(.top-workspace-switcher, .top-workspace-button, .module-icon,
+  .top-module-icon, .vp-page-icon, .dashboard-metric-icon, .user-context-chip) {
+  border-color: var(--doom-line-strong) !important;
+  color: var(--doom-green-bright) !important;
+  background: #102e22 !important;
+  box-shadow: none !important;
+}
+#root .dashboard .top-workspace-button.workspace-retail-active {
+  border-color: var(--doom-green) !important;
+  color: var(--doom-green-bright) !important;
+  background: #13462e !important;
+}
+#root .dashboard .top-workspace-button.workspace-head-office-active {
+  border-color: var(--doom-gold) !important;
+  color: var(--doom-gold-bright) !important;
+  background: #342c16 !important;
+}
+#root .dashboard .top-workspace-button :is(strong, small, svg),
+#root .dashboard .top-module-tab .top-module-label { color: inherit !important; }
+#root .dashboard .top-module-tab-active .top-module-icon { color: var(--doom-gold-bright) !important; }
+
+/* Restore a readable text hierarchy even on labels and deeply nested tables. */
+:is(#root .dashboard, .vp-themed-dialog, .app-version-dialog, .product-showcase-dialog) :is(
+  h1, h2, h3, h4, h5, h6, label, .module-card h3,
+  [class*="text-slate-8"], [class*="text-slate-9"],
+  [class*="text-gray-8"], [class*="text-gray-9"]
+) { color: var(--doom-text) !important; }
+:is(#root .dashboard, .vp-themed-dialog, .app-version-dialog, .product-showcase-dialog) :is(
+  [class*="text-slate-4"], [class*="text-slate-5"], [class*="text-slate-6"],
+  [class*="text-slate-7"], [class*="text-gray-4"], [class*="text-gray-5"],
+  [class*="text-gray-6"], [class*="text-gray-7"], small,
+  .express-csv-upload-path, .receivables-month-updated, .doll-summary-stat-label
+) { color: #b5ccbf !important; }
+#root .dashboard :is(.module-card > span:first-child, .doll-summary-stat-value) { color: var(--doom-gold-bright) !important; }
+#root .dashboard .module-card > span:first-child { opacity: .18; }
+
+/* Form controls: dark native pickers, visible values, placeholders and focus. */
+:is(#root .dashboard, .vp-themed-dialog, .app-version-dialog, .product-showcase-dialog) :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select, textarea
+) {
+  color-scheme: dark;
+  border-color: #47745a !important;
+  color: var(--doom-text) !important;
+  background: #04150e !important;
+  caret-color: var(--doom-green-bright);
+  box-shadow: none !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(input, textarea)::placeholder { color: #9fbdac !important; opacity: 1; }
+:is(#root .dashboard, .vp-themed-dialog) :is(input, textarea, select):focus {
+  border-color: var(--doom-green) !important;
+  outline: 2px solid rgb(45 242 119 / 40%) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgb(45 242 119 / 10%) !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(input, textarea, select):disabled {
+  color: #a7c6b3 !important;
+  background: #102219 !important;
+  opacity: 1 !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--doom-green); }
+:is(#root .dashboard, .vp-themed-dialog) option { color: var(--doom-text); background: #0a2419; }
+
+/* Table headers, selected rows and hover states must stay dark too. */
+:is(#root .dashboard, .vp-themed-dialog) :is(table, tbody, td) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background-color: #071c14 !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(thead, th) {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-gold-bright) !important;
+  background: #113523 !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) tbody tr:hover,
+:is(#root .dashboard, .vp-themed-dialog) tbody tr:hover td { background: #123b28 !important; }
+
+/* Semantic callouts: preserve success/warning/error meaning without pale fills. */
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="bg-emerald-"], [class*="bg-green-"]):not(button) { background: #103923 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="bg-amber-"], [class*="bg-yellow-"], [class*="bg-orange-"]):not(button) { background: #352b13 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="bg-red-"], [class*="bg-rose-"]):not(button) { background: #381922 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="bg-blue-"], [class*="bg-cyan-"], [class*="bg-sky-"], [class*="bg-teal-"]):not(button) { background: #102f32 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="bg-violet-"], [class*="bg-purple-"], [class*="bg-fuchsia-"]):not(button) { background: #29213d !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="text-emerald-"], [class*="text-green-"]) { color: #9af3b5 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"]) { color: #ffe6a1 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="text-red-"], [class*="text-rose-"]) { color: #ffb3be !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="text-blue-"], [class*="text-cyan-"], [class*="text-sky-"], [class*="text-teal-"]) { color: #8de1f0 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is([class*="text-violet-"], [class*="text-purple-"], [class*="text-fuchsia-"]) { color: #d4c2ff !important; }
+
+/* Secondary actions, uploads, folders and choices. */
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  .vp-upload-card, .vp-folder-card, .vp-archive-folder, .summary-choice,
+  .vp-summary-menu-card, .receivables-month-card, .express-csv-upload,
+  .vp-action-secondary, .worldwide-clear-button,
+  button[class*="bg-white"], button[class*="bg-slate-"], button[class*="bg-gray-"]
+) {
+  border-color: #47745a !important;
+  color: var(--doom-text) !important;
+  background: linear-gradient(145deg, #113b29, #0a2419) !important;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 20%) !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  .vp-upload-card, .vp-folder-card, .vp-archive-folder, .summary-choice,
+  .vp-summary-menu-card, .receivables-month-card, .express-csv-upload,
+  .vp-action-secondary, button[class*="bg-white"]
+):hover:not(:disabled) {
+  border-color: var(--doom-green-bright) !important;
+  color: var(--doom-text) !important;
+  background: #164a32 !important;
+}
+
+/* Filled actions use dark emerald with light text so nested icons stay legible. */
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  button.vp-action-primary, button.vp-action-success, button.vp-next-process,
+  button.vp-action-wms, button.express-csv-process-button, button.worldwide-save-button,
+  button[class*="bg-blue-"], button[class*="bg-cyan-"], button[class*="bg-sky-"],
+  button[class*="bg-emerald-"], button[class*="bg-green-"], button[class*="bg-teal-"],
+  button[class*="bg-violet-"], button[class*="bg-purple-"]
+) {
+  border-color: #55c483 !important;
+  color: #f2fff6 !important;
+  background: linear-gradient(135deg, #125c37, #0b452c) !important;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 25%) !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  button.vp-action-warning, button[class*="bg-amber-"], button[class*="bg-yellow-"], button[class*="bg-orange-"]
+) { border-color: #ac8d40 !important; color: #ffe6a1 !important; background: #3c2e11 !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  button.vp-action-danger, button.daily-picking-clear-log, button[class*="bg-red-"], button[class*="bg-rose-"]
+) { border-color: #ad6170 !important; color: #ffd5dc !important; background: #471f2a !important; }
+:is(#root .dashboard, .vp-themed-dialog) :is(
+  button.vp-action-button, button.vp-next-process, button.vp-action-wms,
+  button.express-csv-process-button, button.daily-picking-clear-log,
+  button.worldwide-save-button, button[class*="bg-"]
+) :is(span, svg, p, small) { color: inherit !important; }
+:is(#root .dashboard, .vp-themed-dialog) button:not(:disabled):hover { filter: brightness(1.12); }
+:is(#root .dashboard, .vp-themed-dialog) :is(button, a):focus-visible {
+  outline: 2px solid var(--doom-gold) !important;
+  outline-offset: 3px !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) button:disabled {
+  border-color: #395f48 !important;
+  color: #9ebaaa !important;
+  background: #14291e !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Modal content is dark; backdrop layers keep their transparency. */
+:is(.vp-themed-dialog, .product-showcase-dialog) {
+  background-color: rgb(0 8 5 / 78%) !important;
+}
+:is(#root .dashboard, .vp-themed-dialog) .fixed:is([class*="bg-black"], [class*="bg-slate-950"]) {
+  background: rgb(0 8 5 / 78%) !important;
+}
+:is(.app-version-dialog, .product-showcase-dialog > section) {
+  border-color: var(--doom-line-strong) !important;
+  color: var(--doom-text) !important;
+  background: #0a2419 !important;
+}
+.app-version-dialog :is(h2, p, .app-version-close, .app-version-list) { color: var(--doom-text) !important; }
+.app-version-dialog .app-version-close { background: #153b29 !important; }
+
+/* Match the initial update check to the login/splash artwork as well. */
+#root .startup-update-gate {
+  background: var(--vp-login-art) left center / cover no-repeat !important;
+}
+#root .startup-update-vignette { background: linear-gradient(90deg, transparent 47%, rgb(0 15 10 / 45%)) !important; }
+#root .startup-update-card .brand-logo { background: linear-gradient(110deg, var(--doom-gold-bright), var(--doom-gold)) !important; }
+@media (max-aspect-ratio: 4/3) {
+  #root .startup-update-gate { justify-content: center; background-position: 38% center !important; }
+  #root .startup-update-vignette { background: rgb(0 16 11 / 30%) !important; }
+}
+
+#root .dashboard .top-navigation-shell {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: #04140e !important;
+}
+#root .dashboard .product-spotlight-glow {
+  background: rgb(45 242 119 / 14%) !important;
+}
+
+/* Let row selection tint show through cells instead of hiding it under a fill. */
+:is(#root .dashboard, .vp-themed-dialog) td { background-color: transparent !important; }
+:is(#root .dashboard, .vp-themed-dialog) tr:is([aria-selected="true"], [data-selected="true"]) td {
+  background: #17492f !important;
+}
+.product-showcase-dialog {
+  border-color: var(--doom-line-strong) !important;
+  background: #0a2419 !important;
+}
+.product-showcase-dialog :is(.product-showcase-header, .product-showcase-filters,
+  .product-showcase-card, .product-showcase-detail, .product-showcase-detail-facts,
+  .product-showcase-mascot-note) {
+  border-color: var(--doom-line) !important;
+  background: #0c2c1f !important;
+}
+.product-showcase-dialog :is(strong, p, dt, dd, small) { color: var(--doom-muted) !important; }
+.product-showcase-dialog .product-showcase-filters button {
+  border-color: var(--doom-line) !important;
+  color: var(--doom-text) !important;
+  background: #123b28 !important;
+}
+.product-showcase-dialog :is(.product-showcase-card.is-selected, .product-showcase-filters button.is-active) {
+  border-color: var(--doom-gold) !important;
+  color: var(--doom-gold-bright) !important;
+  background: #2e2b16 !important;
+}
+
+/* Receivables / credit-note workspace selector. Explicit semantic states avoid
+   inheriting the old pale cyan/violet Tailwind gradients. */
+#root .dashboard .receivables-mode-switcher {
+  border-color: #3c654d !important;
+  background: #05180f !important;
+}
+#root .dashboard .receivables-mode-button {
+  --mode-accent: #8affad;
+  --mode-active-surface: #13482e;
+  --mode-icon-surface: #0b2e1c;
+  border-color: #40624e !important;
+  color: #d0e4d7 !important;
+  background: #0b2418 !important;
+  box-shadow: none !important;
+}
+#root .dashboard .receivables-mode-button[data-tone="credit-notes"] {
+  --mode-accent: #ffe6a1;
+  --mode-active-surface: #3e3014;
+  --mode-icon-surface: #291f0c;
+}
+#root .dashboard .receivables-mode-button[aria-pressed="true"] {
+  border-color: var(--mode-accent) !important;
+  color: #f2fff6 !important;
+  background: var(--mode-active-surface) !important;
+  box-shadow: inset 4px 0 0 var(--mode-accent), 0 0 18px rgb(0 0 0 / 20%) !important;
+}
+#root .dashboard .receivables-mode-button:hover:not(:disabled) {
+  border-color: var(--mode-accent) !important;
+}
+#root .dashboard .receivables-mode-button .receivables-mode-title { color: #edf8f1 !important; }
+#root .dashboard .receivables-mode-button[aria-pressed="true"] .receivables-mode-title { color: var(--mode-accent) !important; }
+#root .dashboard .receivables-mode-button .receivables-mode-description { color: #c0d1c5 !important; }
+#root .dashboard .receivables-mode-button .receivables-mode-icon {
+  border: 1px solid #4a6754;
+  color: var(--mode-accent) !important;
+  background: var(--mode-icon-surface) !important;
+}
+#root .dashboard .receivables-mode-button .receivables-mode-badge {
+  border: 1px solid var(--mode-accent);
+  color: var(--mode-accent) !important;
+  background: #071a10 !important;
+}

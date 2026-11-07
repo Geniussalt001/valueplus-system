@@ -1,46 +1,22 @@
-import {
-  BrandLogo,
-} from "../components/BrandLogo";
+import { BrandLogo } from "../components/BrandLogo";
+import "./LoginPage.css";
 
 export function SplashPage() {
   return (
-    <main className="splash-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-cover bg-center px-6 py-10 lg:px-20">
-      <div
-        className="splash-hybrid-vignette pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      />
-
-      <div
-        className="absolute right-[8%] h-[460px] w-[460px] rounded-full bg-cyan-500/10 blur-[110px]"
-        aria-hidden="true"
-      />
-
-      <div className="splash-hybrid-panel relative z-10 flex w-full max-w-[500px] flex-col items-center rounded-[28px] px-8 py-10 text-center backdrop-blur-2xl sm:px-12 sm:py-12">
-        <p className="text-[10px] font-semibold tracking-[0.34em] text-cyan-700">
-          WELCOME TO
-        </p>
-
-        <div className="splash-logo-container mt-6 flex h-40 w-full max-w-80 items-center justify-center">
-          <BrandLogo
-            size="large"
-            className="splash-hybrid-logo"
-          />
+    <main className="doom-login doom-splash" aria-label="กำลังเข้าสู่ระบบ ValuePlus">
+      <div className="doom-login-ambient" aria-hidden="true" />
+      <section className="doom-login-wrap">
+        <div className="doom-login-card doom-splash-card" role="status" aria-live="polite">
+          <p className="doom-splash-eyebrow">WELCOME TO</p>
+          <BrandLogo size="large" className="doom-login-logo doom-splash-logo" />
+          <h1 className="doom-splash-title">VALUEPLUS SYSTEM</h1>
+          <div className="doom-splash-dots" aria-hidden="true">
+            <span /><span /><span />
+          </div>
+          <p className="doom-splash-caption">กำลังเตรียมพื้นที่ทำงานของคุณ</p>
+          <p className="doom-splash-code">INITIALIZING WORKSPACE</p>
         </div>
-
-        <p className="mt-7 text-xs font-semibold tracking-[0.38em] text-slate-900">
-          VALUEPLUS SYSTEM
-        </p>
-
-        <div className="mt-9 flex items-center gap-3.5">
-          <span className="loading-dot loading-dot-one" />
-          <span className="loading-dot loading-dot-two" />
-          <span className="loading-dot loading-dot-three" />
-        </div>
-
-        <p className="mt-5 text-[10px] tracking-[0.22em] text-slate-500">
-          INITIALIZING WORKSPACE
-        </p>
-      </div>
+      </section>
     </main>
   );
 }

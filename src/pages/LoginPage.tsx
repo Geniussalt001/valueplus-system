@@ -22,9 +22,8 @@ import {
   authService,
 } from "../auth/authService";
 
-import {
-  BrandLogo,
-} from "../components/BrandLogo";
+import { BrandLogo } from "../components/BrandLogo";
+import "./LoginPage.css";
 
 import { AppVersionBadge } from "../components/common/AppVersionBadge";
 
@@ -241,246 +240,110 @@ export function LoginPage({
       });
   };
 
+  const statusLabel = loadingCode
+    ? "กำลังเข้าสู่ระบบ"
+    : connectionState === "ready"
+      ? "ACCESS READY"
+      : connectionState === "checking"
+        ? "กำลังตรวจสอบ"
+        : connectionState === "activating"
+          ? "กำลังเชื่อมต่อ"
+          : "รอเปิดใช้งาน";
+
   return (
-    <main
-      className="login-hybrid relative flex min-h-screen items-center justify-end overflow-hidden bg-contain bg-no-repeat px-4 py-10 sm:px-6 lg:px-8 xl:px-10"
-      style={{
-        backgroundImage:
-          "url('/images/login-background-valueplus-green-command-v2.webp')",
-      }}
-    >
-      <div className="login-doom-scanlines" aria-hidden="true" />
-      <div className="login-doom-sweep" aria-hidden="true" />
-      <div className="doom-particles" aria-hidden="true">
-        {Array.from({ length: 18 }, (_, index) => (
-          <span key={index} />
-        ))}
-      </div>
-      <div
-        className="login-hybrid-vignette pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      />
-
-      <section className="login-hybrid-card relative z-10 w-full max-w-[500px] overflow-hidden p-8 backdrop-blur-2xl sm:p-9">
-        <span className="login-doom-corner login-doom-corner-tl" aria-hidden="true" />
-        <span className="login-doom-corner login-doom-corner-tr" aria-hidden="true" />
-        <span className="login-doom-corner login-doom-corner-bl" aria-hidden="true" />
-        <span className="login-doom-corner login-doom-corner-br" aria-hidden="true" />
-        <span
-          className="login-hybrid-tracer"
-          aria-hidden="true"
-        />
-        <div className="relative z-10">
-          <BrandLogo
-            size="medium"
-            className="login-hybrid-logo"
-          />
-
-          <div className="login-hybrid-divider mt-7 h-px" />
-
-          <div className="login-hybrid-intro mt-7">
-            <div className="login-terminal-label flex items-center gap-2.5 text-cyan-700">
-              <ShieldCheck size={18} />
-              <span className="text-xs font-semibold tracking-[0.18em]">
-                VALUEPLUS COMMAND SYSTEM
-              </span>
-            </div>
-
-            <h1 className="mt-4 text-3xl font-semibold text-slate-900">
-              {greeting}
-            </h1>
-
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              เลือกพื้นที่ทำงานเพื่อเริ่มภารกิจของคุณ
-            </p>
+    <main className="doom-login">
+      <div className="doom-login-ambient" aria-hidden="true" />
+      <section className="doom-login-wrap" aria-labelledby="login-title">
+        <div className="doom-login-card">
+          <header className="doom-login-brand">
+            <BrandLogo size="medium" className="doom-login-logo" />
+          </header>
+          <div className="doom-login-eyebrow">
+            <ShieldCheck size={16} aria-hidden="true" />
+            VALUEPLUS COMMAND SYSTEM
           </div>
+          <h1 id="login-title" className="doom-login-title">{greeting}</h1>
+          <p className="doom-login-hint">เลือกพื้นที่ทำงานเพื่อเริ่มภารกิจของคุณ</p>
 
-          {connectionState ===
-            "checking" && (
-            <div className="login-hybrid-surface mt-8 flex min-h-[210px] flex-col items-center justify-center rounded-2xl px-6 text-center">
-              <LoaderCircle
-                size={30}
-                className="animate-spin text-cyan-600"
-              />
-              <p className="mt-4 font-semibold text-slate-900">
-                กำลังตรวจสอบการเชื่อมต่อ
-              </p>
-              <p className="mt-1.5 text-xs text-slate-500">
-                กรุณารอสักครู่
-              </p>
+          {connectionState === "checking" && (
+            <div className="doom-login-checking" role="status">
+              <LoaderCircle size={28} className="doom-login-spinner" aria-hidden="true" />
+              <strong>กำลังตรวจสอบการเชื่อมต่อ</strong>
+              <span>กรุณารอสักครู่</span>
             </div>
           )}
 
-          {(connectionState ===
-              "required" ||
-            connectionState ===
-              "activating") && (
-            <form
-              className="login-hybrid-surface mt-8 rounded-2xl p-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void activateSystem();
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="login-hybrid-icon flex h-11 w-11 items-center justify-center rounded-xl text-cyan-700">
-                  <Wifi size={21} />
-                </span>
+          {(connectionState === "required" || connectionState === "activating") && (
+            <form className="doom-login-activation" onSubmit={(event) => {
+              event.preventDefault();
+              void activateSystem();
+            }} aria-busy={connectionState === "activating"}>
+              <div className="doom-login-activation-heading">
+                <Wifi size={22} aria-hidden="true" />
                 <div>
-                  <p className="font-semibold text-slate-900">
-                    เชื่อมต่อระบบครั้งแรก
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    กรอกรหัสเปิดใช้งานสำหรับเครื่องนี้
-                  </p>
+                  <strong>เชื่อมต่อระบบครั้งแรก</strong>
+                  <p>กรอกรหัสเปิดใช้งานสำหรับเครื่องนี้</p>
                 </div>
               </div>
-
-              <label className="mt-6 block text-xs font-medium text-slate-600">
-                รหัสเปิดใช้งาน
-              </label>
-
-              <div className="login-hybrid-input mt-2.5 flex items-center rounded-xl px-4">
-                <KeyRound
-                  size={18}
-                  className="text-cyan-700"
-                />
-                <input
-                  autoFocus
-                  value={
-                    activationCode
-                  }
-                  disabled={
-                    connectionState ===
-                    "activating"
-                  }
-                  onChange={(
-                    event,
-                  ) => {
-                    setActivationCode(
-                      event.target
-                        .value,
-                    );
-                    setError("");
-                  }}
-                  placeholder="กรอกรหัสที่ได้รับ"
-                  className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-900 outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400"
-                />
+              <label htmlFor="login-activation-code">รหัสเปิดใช้งาน</label>
+              <div className="doom-login-input">
+                <KeyRound size={18} aria-hidden="true" />
+                <input id="login-activation-code" autoFocus required
+                  autoComplete="off" spellCheck={false}
+                  value={activationCode} disabled={connectionState === "activating"}
+                  aria-describedby={error ? "login-error" : undefined}
+                  onChange={(event) => { setActivationCode(event.target.value); setError(""); }}
+                  placeholder="กรอกรหัสที่ได้รับ" />
               </div>
-
-              <button
-                type="submit"
-                disabled={
-                  !activationCode.trim() ||
-                  connectionState ===
-                    "activating"
-                }
-                className="login-hybrid-primary mt-5 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {connectionState ===
-                "activating" ? (
-                  <LoaderCircle
-                    size={18}
-                    className="animate-spin"
-                  />
-                ) : (
-                  <ShieldCheck
-                    size={18}
-                  />
-                )}
+              <button type="submit" className="doom-login-primary"
+                disabled={!activationCode.trim() || connectionState === "activating"}>
+                {connectionState === "activating"
+                  ? <LoaderCircle size={18} className="doom-login-spinner" aria-hidden="true" />
+                  : <ShieldCheck size={18} aria-hidden="true" />}
                 เชื่อมต่อระบบ
               </button>
             </form>
           )}
 
-          {connectionState ===
-            "ready" && (
-          <div className="mt-8 space-y-4">
-            {accounts.map((account) => {
-              const Icon =
-                account.icon;
-
-              const loading =
-                loadingCode ===
-                account.code;
-
-              return (
-                <button
-                  key={account.code}
-                  type="button"
-                  disabled={Boolean(
-                    loadingCode,
-                  )}
-                  onPointerEnter={warmLoginConnection}
-                  onFocus={warmLoginConnection}
-                  onClick={() => {
-                    void selectAccount(
-                      account.code,
-                    );
-                  }}
-                  className="login-account-card group flex min-h-[92px] w-full items-center gap-4 rounded-2xl p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
-                  data-accent={account.accent}
-                  data-loading={
-                    loading
-                      ? "true"
-                      : "false"
-                  }
-                >
-                  <span className="login-hybrid-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-cyan-700">
-                    <Icon
-                      className="login-account-icon-svg"
-                      size={22}
-                      aria-hidden="true"
-                    />
-                  </span>
-
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold text-slate-900">
-                      {account.label}
+          {connectionState === "ready" && (
+            <div className="doom-login-options" aria-busy={Boolean(loadingCode)}>
+              {accounts.map((account) => {
+                const Icon = account.icon;
+                const loading = loadingCode === account.code;
+                return (
+                  <button key={account.code} type="button" className="doom-login-option"
+                    data-accent={account.accent} data-loading={loading}
+                    disabled={Boolean(loadingCode)}
+                    onPointerEnter={warmLoginConnection} onFocus={warmLoginConnection}
+                    onClick={() => { void selectAccount(account.code); }}>
+                    <span className="doom-login-icon"><Icon size={23} aria-hidden="true" /></span>
+                    <span className="doom-login-option-copy">
+                      <span className="doom-login-option-title">{account.label}</span>
+                      <span className="doom-login-option-code">ACCESS // {account.englishLabel}</span>
+                      <span className="doom-login-option-desc">
+                        {loading ? "กำลังเข้าสู่พื้นที่ทำงาน…" : account.description}
+                      </span>
                     </span>
-                    <span className="mt-1 block text-[10px] font-semibold tracking-[0.16em] text-cyan-700">
-                      ACCESS // {account.englishLabel}
+                    <span className="doom-login-arrow">
+                      {loading
+                        ? <LoaderCircle size={19} className="doom-login-spinner" aria-hidden="true" />
+                        : <ArrowRight size={20} aria-hidden="true" />}
                     </span>
-                    <span className="mt-1.5 block text-xs leading-5 text-slate-500">
-                      {account.description}
-                    </span>
-                  </span>
-
-                  <span className="login-account-arrow flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white transition group-hover:translate-x-1">
-                    {loading ? (
-                      <LoaderCircle
-                        size={18}
-                        className="animate-spin"
-                      />
-                    ) : (
-                      <ArrowRight size={18} />
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          )}
-
-          {error && (
-            <p className="mt-5 rounded-xl border border-red-400/35 bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
-              {error}
-            </p>
-          )}
-
-          <div className="login-hybrid-footer mt-7 flex items-end justify-between gap-4 text-[11px]">
-            <div className="flex flex-col items-start gap-2">
-              <span className="text-slate-500">VALUEPLUS RETAIL CO., LTD.</span>
-              <AppVersionBadge />
+                  </button>
+                );
+              })}
             </div>
-            <span className="login-ready-pill flex items-center gap-2.5 rounded-full px-3 py-2 font-semibold text-emerald-700">
-              <span
-                className="status-light status-online"
-                aria-hidden="true"
-              />
-              ACCESS READY
-            </span>
-          </div>
+          )}
+
+          {error && <p id="login-error" className="doom-login-error" role="alert">{error}</p>}
+          <footer className="doom-login-footer">
+            <div>
+              <span>VALUEPLUS RETAIL CO., LTD.</span>
+              <AppVersionBadge className="doom-login-version" />
+            </div>
+            <span className="doom-login-status" data-ready={connectionState === "ready" && !loadingCode}
+              role="status">{statusLabel}</span>
+          </footer>
         </div>
       </section>
     </main>
